@@ -1,0 +1,25 @@
+module mtworld
+
+require (
+	"github.com/zpab123/zplog"
+	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
+	"github.com/sevlyar/go-daemon"
+	"github.com/go-ini/ini"
+	"github.com/zpab123/xnsyncutil"
+	"github.com/pierrec/lz4"
+	"github.com/golang/snappy"
+	"github.com/vmihailenco/msgpack"
+	"github.com/petar/GoLLRB/llrb"
+	"github.com/shirou/gopsutil/process"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"github.com/zpab123/go-aoi"
+	"github.com/zpab123/goTimer"
+	"github.com/go-sql-driver/mysql"
+	"github.com/zpab123/typeconv"
+	"github.com/garyburd/redigo/redis"
+	"github.com/chasex/redis-go-cluster"
+	"golang.org/x/net/context"
+	"github.com/xtaci/kcp-go"
+)
