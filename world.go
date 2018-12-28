@@ -1,0 +1,20 @@
+// /////////////////////////////////////////////////////////////////////////////
+// world 管理对象
+
+package world
+
+import (
+	"github.com/zpab123/world/app" // 1个通用服务器对象
+)
+
+// /////////////////////////////////////////////////////////////////////////////
+// 对外 api
+
+// 创建1个新的 Application 对象
+func CreateApp() *app.Application {
+	// 创建 app
+	app := app.NewApplication()
+	app.Init()
+
+	return app
+}

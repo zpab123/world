@@ -47,7 +47,8 @@ func NewConnector() *Connector {
 
 // 运行 Connector 组件
 func (this *Connector) Run() {
-
+	// 启动 tcp 服务
+	this.tcpServer.Run()
 }
 
 // 设置最大连数
