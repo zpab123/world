@@ -12,6 +12,7 @@ import (
 	"github.com/zpab123/syncutil"        // 同步工具
 	"github.com/zpab123/world/component" // 组件库
 	"github.com/zpab123/world/consts"    // 全局常量
+	"github.com/zpab123/world/model"     // 全局 struct
 	"github.com/zpab123/zplog"           // log 库
 )
 
@@ -23,7 +24,9 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	baseInfo     *BaseInfo                       // 基础属性
+	baseInfo     *model.BaseInfo                 // 基础属性
+	runer        string                          // 服务器启动者 (master=master 命令启动 cmd=cmd 启动)
+	serverInfo   model.ServerInfo                // 服务器配置信息
 	state        syncutil.AtomicUint32           // app 当前状态
 	componentMap map[string]component.IComponent // 名字-> 组件 集合
 	runTime      time.Time                       // 启动时间
@@ -33,9 +36,13 @@ type Application struct {
 func NewApplication() *Application {
 	// 创建对象
 	app := &Application{
-		baseInfo:     &BaseInfo{},
+		baseInfo:     &model.BaseInfo{},
+		serverInfo:   model.ServerInfo{},
 		componentMap: map[string]component.IComponent{},
 	}
+
+	// 设置为无效状态
+	app.state.Store(consts.APP_STATE_INVALID)
 
 	return app
 }
@@ -46,17 +53,17 @@ func (app *Application) Init() bool {
 	//var initErr error = nil
 
 	// 路径信息
-	dir, err := getAppPath()
+	dir, err := getMainPath()
 	if err != nil {
 		zplog.Error("app 初始化失败->读取根目录失败")
 		return false
 	}
-	app.baseInfo.BasePath = dir
+	app.baseInfo.MainPath = dir
 
 	// 设置基础配置
 	defaultConfiguration(app)
 
-	// 状态改为初始化
+	// 设置为初始化状态
 	app.state.Store(consts.APP_STATE_INIT)
 	zplog.Infof("app 初始化完成")
 
@@ -98,7 +105,7 @@ func (app *Application) SetName(v string) {
 // 注册组件
 //
 // com=符合 IComponent 接口的对象
-func (app *Application) RegisterComponent(com *component.IComponent) {
+func (app *Application) RegisterComponent(com component.IComponent) {
 	// 获取名字
 	name := com.Name()
 
@@ -115,7 +122,7 @@ func (app *Application) RegisterComponent(com *component.IComponent) {
 // 包私有 api
 
 // 获取 当前 Application 运行的绝对路径 例如：E:\code\go\go-project\src\test
-func getAppPath() (string, error) {
+func getMainPath() (string, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		zplog.Warnf("获取 App 绝对路径失败")

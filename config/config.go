@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/zpab123/world/consts" // 全局常量
+	"github.com/zpab123/world/model"  // 全局 struct
 	"github.com/zpab123/zplog"        // 日志库
 )
 
@@ -19,10 +20,11 @@ import (
 var (
 	configMutex      sync.Mutex              // 进程互斥锁
 	mainPath         string                  // 程序启动目录
-	iniConfig        *WorldIni               // world.ini 配置信息
+	iniConfig        *model.WorldIni         // world.ini 配置信息
 	iniFilePath      = consts.PATH_WORLD_INI // world.ini 默认路径
-	serverConfig     *ServerConfig           // server.json 配置表
+	serverConfig     *model.ServerConfig     // server.json 配置表
 	serverConfigPath = consts.PATH_SERVER    // servers.json 配置文件路径
+	serverMap        model.ServerMap         // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
 )
 
 // 初始化
@@ -39,6 +41,23 @@ func init() {
 
 // /////////////////////////////////////////////////////////////////////////////
 // 对外 api
+
+// 获取 world.ini 配置对象
+func GetWorldIni() *model.WorldIni {
+	return iniConfig
+}
+
+// 获取 servers.json 配置信息
+//
+// 返回： map[string][]ServerInfo 数据集合
+func GetServerConfig() *model.ServerConfig {
+	return serverConfig
+}
+
+// 获取 当前环境的 服务器信息集合
+func GetServerMap() model.ServerMap {
+	return serverMap
+}
 
 // /////////////////////////////////////////////////////////////////////////////
 // 私有 api
@@ -92,13 +111,20 @@ func getServerConfig() {
 		}
 
 		// 创建对象
-		serverConfig = &ServerConfig{
-			Development: map[string][]ServerInfo{},
-			Production:  map[string][]ServerInfo{},
+		serverConfig = &model.ServerConfig{
+			Development: map[string][]model.ServerInfo{},
+			Production:  map[string][]model.ServerInfo{},
 		}
 
 		// 加载文件
 		fPath := filepath.Join(mainPath, serverConfigPath)
 		LoadJsonToMap(fPath, serverConfig)
+
+		// 根据运行环境赋值
+		if consts.ENV_DEV == iniConfig.Env {
+			serverMap = serverConfig.Development
+		} else {
+			serverMap = serverConfig.Production
+		}
 	}
 }

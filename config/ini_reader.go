@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-ini/ini"           // ini 库
 	"github.com/zpab123/world/consts" // 全局常量
+	"github.com/zpab123/world/model"  // 全局 struct
 	"github.com/zpab123/zplog"        // log 工具
 )
 
@@ -16,9 +17,9 @@ import (
 // 私有 api
 
 // 读取 world.ini 配置文件
-func readWorldIni() *WorldIni {
+func readWorldIni() *model.WorldIni {
 	// 创建 WorldIni 对象
-	config := &WorldIni{
+	config := &model.WorldIni{
 		Env: consts.ENV_DEV, // 默认开发环境
 	}
 
@@ -60,7 +61,7 @@ func checkConfigError(err error, msg string) {
 }
 
 // 读取 env 开发环境
-func readEnv(sec *ini.Section, config *WorldIni) {
+func readEnv(sec *ini.Section, config *model.WorldIni) {
 	// 设置成默认
 	config.Env = consts.ENV_DEV
 

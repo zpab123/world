@@ -21,6 +21,7 @@ const (
 
 // 服务器类型
 const (
+	SERVER_TYPE_MASTER    = "master"    // master 服务器
 	SERVER_TYPE_GATE      = "gate"      // gate 服务器类型
 	SERVER_TYPE_CONNECTOR = "connector" // connector 服务器类型
 )
