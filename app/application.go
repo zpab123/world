@@ -98,8 +98,8 @@ func (app *Application) Stop() error {
 }
 
 // 设置 app 名字
-func (app *Application) SetName(v string) {
-	app.baseInfo.AppName = v
+func (app *Application) SetType(v string) {
+	app.baseInfo.AppType = v
 }
 
 // 注册组件
