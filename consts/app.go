@@ -11,8 +11,8 @@ package consts
 const (
 	APP_STATE_INVALID = iota // 无效状态
 	APP_STATE_INIT           // 初始状态
-	APP_STATE_READY          // 准备状态
-	APP_STATE_RUN            // 运行状态
+	APP_STATE_RUNING         // 正在启动中
+	APP_STATE_WORKING        // 启动完成，运行状态
 	APP_STATE_STOP           // 停止状态
 )
 

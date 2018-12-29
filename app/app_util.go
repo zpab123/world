@@ -6,8 +6,9 @@ package app
 import (
 	"flag"
 
-	"github.com/zpab123/world/config" // 配置读取工具
-	"github.com/zpab123/world/consts" // 全局常量
+	"github.com/zpab123/world/component" // 组件库
+	"github.com/zpab123/world/config"    // 配置读取工具
+	"github.com/zpab123/world/consts"    // 全局常量
 )
 
 // 完成 app 的默认设置
@@ -20,19 +21,6 @@ func defaultConfiguration(app *Application) {
 		// 从配置文件中获取服务器信息
 		getInfoFromConfig(app)
 	}
-
-	// 加载 world.ini 信息
-
-	// 设置开发环境
-
-	// 加载 server.json 信息
-
-	// 保存 cmd 命令参数
-}
-
-// 设置默认组件
-func setDefaultComponent(app *Application) {
-	// 根据服务器类型，注册默认组件
 }
 
 // 解析 命令行参数
@@ -71,4 +59,35 @@ func getInfoFromConfig(app *Application) {
 
 	// 获取第1个 配置数据
 	app.serverInfo = serverList[0]
+}
+
+// 设置默认组件
+func regDefaultComponent(app *Application) {
+	// master 服务器 - 注册 master 组件
+
+	// 前端服务器
+	if app.serverInfo.Frontend {
+
+		// 注册1个 Connector 组件
+		regConnector(app)
+
+		// 注册 session 组件
+	}
+
+	// 注册 backendSession 组件
+
+	// 注册 channel 组件
+
+	// 注册 server 组件
+
+	// 注册 monitor 组件
+}
+
+// 注册1个 Connector 组件
+func regConnector(app *Application) {
+	// 创建组件
+	con := component.NewConnector()
+
+	// 注册组件
+	app.RegisterComponent(con)
 }

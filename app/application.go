@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -63,6 +64,9 @@ func (app *Application) Init() bool {
 	// 设置基础配置
 	defaultConfiguration(app)
 
+	// 注册默认组件
+	regDefaultComponent(app)
+
 	// 设置为初始化状态
 	app.state.Store(consts.APP_STATE_INIT)
 	zplog.Infof("app 初始化完成")
@@ -84,6 +88,14 @@ func (app *Application) Run() {
 
 	// 设置随机种子
 	rand.Seed(time.Now().UnixNano())
+
+	// 启动所有组件
+	for name, com := range app.componentMap {
+		com.Run()
+	}
+
+	// 设置为启动中
+	app.state.Store(consts.APP_STATE_RUNING)
 
 	// 主循环
 	for {
@@ -116,6 +128,14 @@ func (app *Application) RegisterComponent(com component.IComponent) {
 
 	// 保存组件
 	app.componentMap[name] = com
+}
+
+// 获取 tcp 服务器 监听地址(格式 -> 127.0.0.1:6532)
+func (app *Application) GetTcpAddr() {
+	// 拼接字符串
+	cTcpAddr := fmt.Sprintf("%s:%d", app.serverInfo.ClientHost, app.serverInfo.CTcpPort)
+
+	return cTcpAddr
 }
 
 // /////////////////////////////////////////////////////////////////////////////

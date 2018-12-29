@@ -81,6 +81,6 @@ func (this *Connector) OnTcpConn(conn net.Conn) {
 
 // 初始化 Connector 数据
 func (this *Connector) init() {
-	// 创建客户端网络服务
+	// 创建 tcp 服务器
 	this.tcpServer = network.NewTcpServer(this.tcpAddr, this)
 }

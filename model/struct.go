@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"time"
+)
+
 // /////////////////////////////////////////////////////////////////////////////
 // app 包
 
@@ -12,6 +16,12 @@ type BaseInfo struct {
 	AppType  string // 当前app的类型
 	Name     string // 当前app的名字
 	MainPath string // 程序根路径 例如 "E/server/gateserver.exe" 所在的目录 “E/server/”
+}
+
+// connector 组件配置参数
+type ConnectorConfig struct {
+	heartbeat time.Duration // 心跳间隔
+	handshake func()        // 自定义的握手处理函数
 }
 
 // /////////////////////////////////////////////////////////////////////////////
