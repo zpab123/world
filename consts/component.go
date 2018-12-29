@@ -1,0 +1,10 @@
+// /////////////////////////////////////////////////////////////////////////////
+// 全局常量 -- component 包
+
+// 全局 接口 定义
+package consts
+
+// 组件名字
+const (
+	COMPONENT_NAME_CONNECTOR = "connector" // connector 组件
+)

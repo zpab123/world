@@ -4,6 +4,7 @@
 package app
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -52,11 +53,13 @@ func (app *Application) Init() bool {
 	}
 	app.baseInfo.BasePath = dir
 
+	// 设置基础配置
+	defaultConfiguration(app)
+
 	// 状态改为初始化
 	app.state.Store(consts.APP_STATE_INIT)
-
-	// 初始化完成
 	zplog.Infof("app 初始化完成")
+
 	return true
 }
 
@@ -71,6 +74,9 @@ func (app *Application) Run() {
 		zplog.Error("app 非 init 状态，启动失败")
 		return
 	}
+
+	// 设置随机种子
+	rand.Seed(time.Now().UnixNano())
 
 	// 主循环
 	for {
@@ -87,6 +93,22 @@ func (app *Application) Stop() error {
 // 设置 app 名字
 func (app *Application) SetName(v string) {
 	app.baseInfo.AppName = v
+}
+
+// 注册组件
+//
+// com=符合 IComponent 接口的对象
+func (app *Application) RegisterComponent(com *component.IComponent) {
+	// 获取名字
+	name := com.Name()
+
+	// 组件已经存在
+	if app.componentMap[name] != nil {
+		zplog.Warnf("组件[*s]重复注册，新组件覆盖旧组件", name)
+	}
+
+	// 保存组件
+	app.componentMap[name] = com
 }
 
 // /////////////////////////////////////////////////////////////////////////////
