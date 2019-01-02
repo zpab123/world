@@ -25,12 +25,13 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	baseInfo     *model.BaseInfo                 // 基础属性
-	runer        string                          // 服务器启动者 (master=master 命令启动 cmd=cmd 启动)
-	serverInfo   model.ServerInfo                // 服务器配置信息
-	state        syncutil.AtomicUint32           // app 当前状态
-	componentMap map[string]component.IComponent // 名字-> 组件 集合
-	runTime      time.Time                       // 启动时间
+	baseInfo        *model.BaseInfo                 // 基础属性
+	runer           string                          // 服务器启动者 (master=master 命令启动 cmd=cmd 启动)
+	serverInfo      model.ServerInfo                // 服务器配置信息
+	state           syncutil.AtomicUint32           // app 当前状态
+	componentMap    map[string]component.IComponent // 名字-> 组件 集合
+	runTime         time.Time                       // 启动时间
+	connectorConfig *model.ConnectorConfig          // ConnectorConfig 组件配置参数
 }
 
 // 创建1个新的 Application 对象
@@ -64,9 +65,6 @@ func (app *Application) Init() bool {
 	// 设置基础配置
 	defaultConfiguration(app)
 
-	// 注册默认组件
-	regDefaultComponent(app)
-
 	// 设置为初始化状态
 	app.state.Store(consts.APP_STATE_INIT)
 	zplog.Infof("app 初始化完成")
@@ -88,6 +86,9 @@ func (app *Application) Run() {
 
 	// 设置随机种子
 	rand.Seed(time.Now().UnixNano())
+
+	// 注册默认组件
+	regDefaultComponent(app)
 
 	// 启动所有组件
 	for name, com := range app.componentMap {
@@ -114,6 +115,14 @@ func (app *Application) SetType(v string) {
 	app.baseInfo.AppType = v
 }
 
+// 设置 ConnectorConfig 参数
+func (app *Application) SetConnectorConfig(config *model.ConnectorConfig) {
+	// 参数检查
+	if nil == config.Check() {
+		app.connectorConfig = config
+	}
+}
+
 // 注册组件
 //
 // com=符合 IComponent 接口的对象
@@ -130,12 +139,30 @@ func (app *Application) RegisterComponent(com component.IComponent) {
 	app.componentMap[name] = com
 }
 
-// 获取 tcp 服务器 监听地址(格式 -> 127.0.0.1:6532)
-func (app *Application) GetTcpAddr() {
-	// 拼接字符串
-	cTcpAddr := fmt.Sprintf("%s:%d", app.serverInfo.ClientHost, app.serverInfo.CTcpPort)
+// 获取 tcp 服务器监听地址(格式 -> 127.0.0.1:6532)
+//
+// 如果不存在，则返回 ""
+func (app *Application) GetCTcpAddr() string {
+	// tcp 地址
+	var cTcpAddr string = ""
+	if app.serverInfo.CTcpPort > 0 {
+		cTcpAddr = fmt.Sprintf("%s:%d", app.serverInfo.ClientHost, app.serverInfo.CTcpPort) // 面向客户端的 tcp 地址
+	}
 
 	return cTcpAddr
+}
+
+// 获取 websocket 服务器监听地址(格式 -> 127.0.0.1:6532)
+//
+// 如果不存在，则返回 ""
+func (app *Application) GetCWsAddr() string {
+	// websocket 地址
+	var cWsAddr string = ""
+	if app.serverInfo.CWsPort > 0 {
+		cWsAddr = fmt.Sprintf("%s:%d", app.serverInfo.ClientHost, app.serverInfo.CWsPort) // 面向客户端的 websocket 地址
+	}
+
+	return cWsAddr
 }
 
 // /////////////////////////////////////////////////////////////////////////////
