@@ -49,11 +49,11 @@ func getInfoFromConfig(app *Application) {
 	app.baseInfo.Env = env
 
 	// 获取 server.json 中关于 当前服务器的配置信息
-	name := app.baseInfo.AppName
-	if "" == name {
+	appType := app.baseInfo.AppType
+	if "" == appType {
 		return
 	}
-	serverList := config.GetServerMap()[name]
+	serverList := config.GetServerMap()[appType]
 	if nil == serverList {
 		return
 	}
@@ -86,14 +86,10 @@ func regDefaultComponent(app *Application) {
 
 // 注册1个 Connector 组件
 func regConnector(app *Application) {
-	// 创建 Connector 配置参数
-	config := &model.ConnectorConfig{
-		TcpAddr: app.GetCTcpAddr(),
-		WsAddr:  app.GetCWsAddr(),
-	}
-
 	// 创建 Connector
-	con := component.NewConnector(config)
+	con := component.NewConnector(app.connectorConfig)
+	con.TcpAddr = app.GetCTcpAddr()
+	con.WsAddr = app.GetCWsAddr()
 
 	// 注册组件
 	app.RegisterComponent(con)

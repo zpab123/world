@@ -35,13 +35,18 @@ type Application struct {
 }
 
 // 创建1个新的 Application 对象
-func NewApplication() *Application {
+//
+// appType=server.json 中配置的类型
+func NewApplication(appType string) *Application {
 	// 创建对象
 	app := &Application{
 		baseInfo:     &model.BaseInfo{},
 		serverInfo:   model.ServerInfo{},
 		componentMap: map[string]component.IComponent{},
 	}
+
+	// 设置类型
+	app.baseInfo.AppType = appType
 
 	// 设置为无效状态
 	app.state.Store(consts.APP_STATE_INVALID)

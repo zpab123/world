@@ -11,9 +11,11 @@ import (
 // 对外 api
 
 // 创建1个新的 Application 对象
-func CreateApp() *app.Application {
+//
+// appType=server.json 中配置的类型
+func CreateApp(appType string) *app.Application {
 	// 创建 app
-	app := app.NewApplication()
+	app := app.NewApplication(appType)
 	app.Init()
 
 	return app

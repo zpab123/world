@@ -22,10 +22,6 @@ type BaseInfo struct {
 type ConnectorConfig struct {
 	Heartbeat time.Duration // 心跳间隔
 	Handshake func()        // 自定义的握手处理函数
-	TcpAddr   uint32        // Tcp 监听地址：格式 192.168.1.1:8600
-	WsAddr    uint32        // websocket 监听地址: 格式 192.168.1.1:8600
-	UdpAddr   uint32        // udp 监听地址: 格式 192.168.1.1:8600
-	KcpAddr   uint32        // kcp 监听地址: 格式 192.168.1.1:8600
 	MaxConn   uint32        // 最大连接数量，超过此数值后，不在接收新连接
 }
 

@@ -31,8 +31,12 @@ type Connector struct {
 	connNum   syncutil.AtomicUint32  // 当前连接数
 	state     syncutil.AtomicInt32   // connector 当前状态
 	config    *model.ConnectorConfig // 配置参数
+	TcpAddr   uint32                 // Tcp 监听地址：格式 192.168.1.1:8600
 	tcpServer *network.TcpServer     // tcp 服务器
+	WsAddr    uint32                 // websocket 监听地址: 格式 192.168.1.1:8600
 	wsServer  *network.WsServer      // websocket 服务器
+	UdpAddr   uint32                 // udp 监听地址: 格式 192.168.1.1:8600
+	KcpAddr   uint32                 // kcp 监听地址: 格式 192.168.1.1:8600
 }
 
 // 新建1个 Connector 对象
@@ -101,12 +105,12 @@ func (this *Connector) init() {
 	}
 
 	// 创建 tcp 服务器
-	if this.config.TcpAddr != "" {
+	if this.TcpAddr != "" {
 		this.tcpServer = network.NewTcpServer(this.config.TcpAddr, this)
 	}
 
 	// 创建 websocket 服务
-	if this.config.WsAddr != "" {
+	if this.WsAddr != "" {
 		this.wsServer = network.NewWsServer(this.config.WsAddr, this)
 	}
 }
