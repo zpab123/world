@@ -82,12 +82,32 @@ func (this *Connector) Stop() {
 
 // 收到1个新的 websocket 连接对象
 func (this *Connector) OnWsConn(wsconn *websocket.Conn) {
+	// 设置网路数据接收格式
+	zplog.Debugf("收到1个新的 websocket 连接，客户端地址为=%s", wsconn.RemoteAddr())
+	wsconn.PayloadType = websocket.BinaryFrame //按照二进制方式接收数据
 
+	// 创建统一连接并接收数据
 }
 
 // 收到1个新的 Tcp 连接对象
 func (this *Connector) OnTcpConn(conn net.Conn) {
+	// 打印日志
+	zplog.Debugf("收到1个新的 TCP 连接，客户端地址为=%s", conn.RemoteAddr())
 
+	// 将 conn 接口变量 转化为 *net.TCPConn 对象 （conn 需要完全符合 *net.TCPConn）
+	tcpConn, ok := conn.(*net.TCPConn)
+	if false == ok {
+		zplog.Errorf("收到错误的Tcp连接")
+		conn.Close()
+		return
+	}
+
+	// 设置 buffer 参数
+	tcpConn.SetWriteBuffer(consts.CONNECTOR_SOCKET_WRITE_BUF_SIZE)
+	tcpConn.SetReadBuffer(consts.CONNECTOR_SOCKET_READ_BUF_SIZE)
+	tcpConn.SetNoDelay(consts.CONNECTOR_SOCKET_NO_DELAY)
+
+	// 创建统一连接并接收数据
 }
 
 // 初始化 Connector 数据
@@ -122,4 +142,20 @@ func (this *Connector) setConfig() {
 	this.config = &model.ConnectorConfig{
 		MaxConn: _maxConnNum,
 	}
+}
+
+// 创建 session 组件
+func (this *Connector) createSession(conn net.Conn) {
+	// 达到最大连接
+	if this.connNum.Load() >= this.config.MaxConn {
+		conn.Close()
+		zplog.Warnf("Connector 组件达到最大连接数量=%d，断开新连接", this.config.MaxConn)
+		return
+	}
+
+	// 主动停止接收新连接 -- 后续添加
+
+	// 创建 session
+
+	// session 线程循环
 }
