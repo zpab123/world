@@ -9,7 +9,9 @@ import (
 	"github.com/zpab123/world/component" // 组件库
 	"github.com/zpab123/world/config"    // 配置读取工具
 	"github.com/zpab123/world/consts"    // 全局常量
-	"github.com/zpab123/world/model"     // 全局结构体
+
+	//"github.com/zpab123/zplog"           // log 库
+	"github.com/zpab123/world/model" // 全局 stuct
 )
 
 // 完成 app 的默认设置
@@ -86,10 +88,14 @@ func regDefaultComponent(app *Application) {
 
 // 注册1个 Connector 组件
 func regConnector(app *Application) {
+	// 创建参数
+	laddr := &model.Laddr{
+		TcpAddr: app.GetCTcpAddr(),
+		WsAddr:  app.GetCWsAddr(),
+	}
+
 	// 创建 Connector
-	con := component.NewConnector(app.connectorConfig)
-	con.TcpAddr = app.GetCTcpAddr()
-	con.WsAddr = app.GetCWsAddr()
+	con := component.NewConnector(laddr, app.connectorConfig)
 
 	// 注册组件
 	app.RegisterComponent(con)

@@ -96,8 +96,8 @@ func (app *Application) Run() {
 	regDefaultComponent(app)
 
 	// 启动所有组件
-	for name, com := range app.componentMap {
-		com.Run()
+	for _, com := range app.componentMap {
+		go com.Run()
 	}
 
 	// 设置为启动中

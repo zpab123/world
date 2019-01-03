@@ -10,6 +10,7 @@ import (
 	"github.com/zpab123/world/consts"  // 全局常量
 	"github.com/zpab123/world/model"   // 全局结构体
 	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/zplog"         // log 库
 	"golang.org/x/net/websocket"       // websocket 库
 )
 
@@ -27,20 +28,16 @@ const (
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
 	name      string                 // 组件名字
-	maxConn   uint32                 // 最大连接数量，超过此数值后，不在接收新连接
 	connNum   syncutil.AtomicUint32  // 当前连接数
 	state     syncutil.AtomicInt32   // connector 当前状态
 	config    *model.ConnectorConfig // 配置参数
-	TcpAddr   uint32                 // Tcp 监听地址：格式 192.168.1.1:8600
+	laddr     *model.Laddr           // 监听地址集合
 	tcpServer *network.TcpServer     // tcp 服务器
-	WsAddr    uint32                 // websocket 监听地址: 格式 192.168.1.1:8600
 	wsServer  *network.WsServer      // websocket 服务器
-	UdpAddr   uint32                 // udp 监听地址: 格式 192.168.1.1:8600
-	KcpAddr   uint32                 // kcp 监听地址: 格式 192.168.1.1:8600
 }
 
 // 新建1个 Connector 对象
-func NewConnector(parameter *model.ConnectorConfig) *Connector {
+func NewConnector(addrs *model.Laddr, parameter *model.ConnectorConfig) *Connector {
 	// 参数效验
 	if nil != parameter.Check() {
 		return nil
@@ -48,9 +45,9 @@ func NewConnector(parameter *model.ConnectorConfig) *Connector {
 
 	// 创建对象
 	server := &Connector{
-		name:    consts.COMPONENT_NAME_CONNECTOR,
-		maxConn: _maxConnNum,
-		config:  parameter,
+		name:   consts.COMPONENT_NAME_CONNECTOR,
+		laddr:  addrs,
+		config: parameter,
 	}
 
 	// 数据初始化
@@ -68,23 +65,19 @@ func (this *Connector) Name() string {
 func (this *Connector) Run() {
 	// 启动 tcp 服务
 	if nil != this.tcpServer {
-		this.tcpServer.Run()
+		zplog.Debugf("开启 tcp 服务")
+		go this.tcpServer.Run()
 	}
 
 	// 启动 websocket 服务
 	if nil != this.wsServer {
-		this.wsServer.Run()
+		go this.wsServer.Run()
 	}
 }
 
 // 停止运行 [IComponent 实现]
 func (this *Connector) Stop() {
 
-}
-
-// 设置最大连数
-func (this *Connector) SetMaxConn(num uint32) {
-	this.maxConn = num
 }
 
 // 收到1个新的 websocket 连接对象
@@ -99,18 +92,34 @@ func (this *Connector) OnTcpConn(conn net.Conn) {
 
 // 初始化 Connector 数据
 func (this *Connector) init() {
+	// 设置配置参数
+	this.setConfig()
+
 	// 最大连接数
-	if this.config.MaxConn > 0 {
-		this.maxConn = this.config.MaxConn
+	if this.config.MaxConn <= 0 {
+		this.config.MaxConn = _maxConnNum
 	}
 
 	// 创建 tcp 服务器
-	if this.TcpAddr != "" {
-		this.tcpServer = network.NewTcpServer(this.config.TcpAddr, this)
+	if this.laddr.TcpAddr != "" {
+		this.tcpServer = network.NewTcpServer(this.laddr.TcpAddr, this)
 	}
 
 	// 创建 websocket 服务
-	if this.WsAddr != "" {
-		this.wsServer = network.NewWsServer(this.config.WsAddr, this)
+	if this.laddr.WsAddr != "" {
+		this.wsServer = network.NewWsServer(this.laddr.WsAddr, this)
+	}
+}
+
+// 设置默认参数
+func (this *Connector) setConfig() {
+	// 已经设置
+	if nil != this.config {
+		return
+	}
+
+	// 创建 config
+	this.config = &model.ConnectorConfig{
+		MaxConn: _maxConnNum,
 	}
 }
