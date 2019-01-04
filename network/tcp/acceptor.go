@@ -1,0 +1,23 @@
+// /////////////////////////////////////////////////////////////////////////////
+// tcp 接收器
+
+package tcp
+
+import (
+	"net"
+)
+
+// /////////////////////////////////////////////////////////////////////////////
+// tcpAcceptor 对象
+
+// tcp 接收器
+type tcpAcceptor struct {
+	listener net.Listener // 侦听器
+}
+
+// 创建1个新的 tcpAcceptor 对象
+func newTcpAcceptor() *tcpAcceptor {
+	acceptor := &tcpAcceptor{}
+
+	return acceptor
+}

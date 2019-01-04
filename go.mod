@@ -4,6 +4,7 @@ require (
 	"github.com/zpab123/zplog"
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 	"github.com/sevlyar/go-daemon"
 	"github.com/go-ini/ini"
 	"github.com/zpab123/xnsyncutil"
