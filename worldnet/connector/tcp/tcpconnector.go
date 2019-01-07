@@ -25,6 +25,7 @@ func init() {
 
 // tcp 接收器
 type tcpConnector struct {
+	connector.ISessionManager              // 接口继承：符合 SessionManager 接口对象的
 	connector.TcpSocketOption              // 对象继承：tcp socket io 参数配置
 	connector.State                        // 对象继承：运行状态操作
 	connector.BaseInfo                     // 对象继承：基础信息
@@ -34,7 +35,9 @@ type tcpConnector struct {
 // 创建1个新的 tcpConnector 对象
 func newTcpConnector() worldnet.IConnector {
 	// 创建对象
-	cntor := &tcpConnector{}
+	cntor := &tcpConnector{
+		ISessionManager: new(connector.SessionManager),
+	}
 
 	// 配置基础数据
 	cntor.TcpSocketOption.Init()
@@ -90,6 +93,7 @@ func (self *tcpConnector) Stop() {
 	self.listener.Close()
 
 	// 断开所有 Session
+	self.CloseAllSession()
 
 	// 等待线程结束 - 阻塞
 	self.WaitAllStop()
