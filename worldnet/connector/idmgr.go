@@ -1,0 +1,22 @@
+// /////////////////////////////////////////////////////////////////////////////
+// id 管理
+
+package connector
+
+// /////////////////////////////////////////////////////////////////////////////
+// IdMananger 对象
+
+// session id 管理
+type IdMananger struct {
+	id int64 // session id 标识
+}
+
+// 获取ID
+func (this *IdMananger) GetId() int64 {
+	return this.id
+}
+
+// 设置ID
+func (this *IdMananger) SetId(v int64) {
+	this.id = v
+}

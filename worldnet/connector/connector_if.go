@@ -8,7 +8,7 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////
-// Session 相关
+// connector 相关
 
 // Session 管理接口
 type ISessionManager interface {
@@ -17,4 +17,9 @@ type ISessionManager interface {
 	Remove(worldnet.ISession) // 移除1个符合 ISession 接口的对象
 	GetCount() int            // 获取当前 ISession 数量
 	SetIDStart(start int64)   // 设置ID开始的号
+}
+
+// 数据处理接口
+type IDataMananger interface {
+	GetDataMananger() *DataManager // 获取 *DataManager 对象
 }
