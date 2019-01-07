@@ -24,6 +24,8 @@ type tcpSession struct {
 	sendQueue      *worldnet.Pipe       // 发送消息队列
 	closing        syncutil.AtomicInt64 // 是否正在关闭中 0=否；1=是
 	closeWaitGroup sync.WaitGroup       // 关闭同步器
+	// ID生成器
+	// 数据处理器
 }
 
 // 创建1个新的 tcpSession 对象
@@ -107,7 +109,25 @@ func (self *tcpSession) GetConnector() worldnet.IConnector {
 
 // 接收循环
 func (self *tcpSession) recvLoop() {
+	// 是否进行 io 异常捕获
+	var capturePanic bool
+	if i, ok := self.GetConnector().(worldnet.IRecoverIoPanic); ok {
+		capturePanic = i.GetRecoverIoPanic()
+	}
 
+	// 接收数据
+	for nil != self.conn {
+		var msg interface{}
+		var err error
+		if capturePanic {
+
+		} else {
+
+		}
+	}
+
+	// 结束1个线程通知
+	self.closeWaitGroup.Done()
 }
 
 // 发送循环

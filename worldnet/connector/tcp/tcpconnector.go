@@ -29,6 +29,7 @@ type tcpConnector struct {
 	connector.TcpSocketOption              // 对象继承：tcp socket io 参数配置
 	connector.State                        // 对象继承：运行状态操作
 	connector.BaseInfo                     // 对象继承：基础信息
+	connector.RecoverIoPanic               // 对象继承： io 异常捕获
 	listener                  net.Listener // 侦听器
 }
 

@@ -23,3 +23,39 @@ type ISessionAccessor interface {
 	SessionCount() int                // 活跃的会话数量
 	CloseAllSession()                 // 关闭所有连接
 }
+
+// 开启 IO 层异常捕获,在生产版本对外端口应该打开此设置
+type IRecoverIoPanic interface {
+	SetRecoverIoPanic(v bool) // 设置 IO 层是否异常捕获
+	GetRecoverIoPanic() bool  // 获取 IO 层是否异常捕获
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// Session 相关
+
+// 长连接
+type ISession interface {
+	Raw() interface{}         // 获得原始的 Socket 连接
+	GetConnector() IConnector // 获得 Session 归属的Peer
+	Send(msg interface{})     // 发送消息，消息需要以指针格式传入
+	Close()                   // 断开
+	ID() int64                // 标示 ID
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// packet 相关
+
+// Packet 消息收发器
+type IPacketManager interface {
+	RecvPacket(ses ISession) (pkt interface{}, err error) // 接收 Packet 消息
+	SendPacket(ses ISession, pkt interface{}) error       // 发送 Packet 消息
+}
+
+// 事件
+type IEvent interface {
+	Session() ISession    // 事件对应的会话
+	Message() interface{} // 事件携带的消息
+}
+
+// 用户端处理
+type EventCallback func(ev IEvent)
