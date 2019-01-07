@@ -44,8 +44,8 @@ func (self *TcpSocketOption) SetNoDelay(noDelay bool) {
 	self.noDelay = noDelay
 }
 
-// 设置 socket buffer 参数
-func (self *TcpSocketOption) SetSocketBuffer(readBufferSize int, writeBufferSize int, noDelay bool) {
+// 设置 socket buffer io 参数
+func (self *TcpSocketOption) SetBufferIo(readBufferSize int, writeBufferSize int, noDelay bool) {
 	self.SetReadBufferSize(readBufferSize)
 	self.SetWriteBufferSize(writeBufferSize)
 	self.SetNoDelay(noDelay)

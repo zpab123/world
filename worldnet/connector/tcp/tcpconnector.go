@@ -13,6 +13,14 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////
+// 包初始化
+
+func init() {
+	// 注册创建函数
+	connector.RegisterCreator(newTcpConnector)
+}
+
+// /////////////////////////////////////////////////////////////////////////////
 // tcpConnector 对象
 
 // tcp 接收器
@@ -24,7 +32,7 @@ type tcpConnector struct {
 }
 
 // 创建1个新的 tcpConnector 对象
-func NewTcpConnector() worldnet.IConnector {
+func newTcpConnector() worldnet.IConnector {
 	// 创建对象
 	cntor := &tcpConnector{}
 
@@ -118,5 +126,42 @@ func (self *tcpConnector) ListenAddress() string {
 
 // 侦听连接
 func (self *tcpConnector) accept() {
+	// 设置为运行状态
+	self.SetRunning(true)
 
+	// 主循环
+	for {
+		// 接收新连接
+		conn, err := self.listener.Accept()
+
+		// 正在停止
+		if self.IsStopping() {
+			break
+		}
+
+		// 监听错误
+		if nil != err {
+			zplog.Errorf("tcp.tcpConnector 接收新连接出现错误，名字=%s 错误=%v", self.Name(), err.Error())
+			break
+		}
+
+		// 处理连接进入独立线程, 防止 accept 无法响应
+		go self.createSession(conn)
+	}
+
+	// 监听异常
+	self.SetRunning(false) // 设置为非运行状态
+	self.EndStop()         // 结束停止
+}
+
+// 创建新的 tcpSession
+func (self *tcpConnector) createSession(conn net.Conn) {
+	// 设置 conn io 参数
+	self.SetSocketOption(conn)
+
+	// 创建 session
+	ses := newSession(conn, self, nil)
+
+	// 启动 session
+	ses.Run()
 }

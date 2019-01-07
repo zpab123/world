@@ -47,10 +47,10 @@ func (self *State) StartStop() {
 	self.stopping.Store(true)
 }
 
-// 结束停止
+// 停止结束
 func (self *State) EndStop() {
 	if self.IsRuning() {
 		self.stopWaitor.Done()
-		self.running.Store(false)
+		self.stopping.Store(false)
 	}
 }
