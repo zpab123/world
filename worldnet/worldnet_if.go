@@ -53,8 +53,8 @@ type IPacketManager interface {
 
 // 事件
 type IEvent interface {
-	GetSession() ISession    // 获取事件的 session 对象
-	GetMessage() interface{} // 获取事件携带的消息
+	GetSession() ISession   // 获取事件的 session 对象
+	GetPacket() interface{} // 获取事件携带的 Packet 消息
 }
 
 // 用户端处理

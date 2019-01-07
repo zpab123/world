@@ -41,11 +41,13 @@ func (self *DataManager) ReadPacket(ses worldnet.ISession) (pkt interface{}, err
 // 发送 packet [IPacketManager 接口]
 func (self *DataManager) SendPacket(evt worldnet.IEvent) {
 	if nil != self.packetManager && nil != evt {
-		self.packetManager.SendPacket(evt.GetSession(), evt.GetMessage())
+		self.packetManager.SendPacket(evt.GetSession(), evt.GetPacket())
 	}
 }
 
 // 发送事件
+//
+// DataManager 将各种消息分发给需要处理数据的对象
 func (self *DataManager) SendEvent(evt worldnet.IEvent) {
 	// 消息钩子
 
