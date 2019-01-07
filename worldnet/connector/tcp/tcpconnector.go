@@ -57,9 +57,10 @@ func (self *tcpConnector) Run() {
 
 	// 创建成功
 	self.listener = ln.(net.Listener)
-	//zplog.Infof("创建 tcp.tcpConnector 成功，名字=%s；监听地址=%s", self.Name(), self.ListenAddress())
+	zplog.Infof("创建 tcp.tcpConnector 成功，名字=%s；监听地址=%s", self.Name(), self.ListenAddress())
 
 	// 侦听连接
+	go self.accept()
 }
 
 // 停止侦听器 [worldnet.IConnector 接口]
@@ -89,4 +90,33 @@ func (self *tcpConnector) Stop() {
 // 获取类型的名字 [worldnet.IConnector 接口]
 func (self *tcpConnector) TypeName() string {
 	return consts.CONNECTOR_TYPE_TCP_ACCEPTOR
+}
+
+// 获取监听成功的端口
+func (self *tcpConnector) Port() int {
+	if self.listener == nil {
+		return 0
+	}
+
+	return self.listener.Addr().(*net.TCPAddr).Port
+}
+
+// 获取监听成功的地址
+func (self *tcpConnector) ListenAddress() string {
+	// 获取 host
+	pos := strings.Index(self.Address(), ":")
+	if pos == -1 {
+		return self.Address()
+	}
+	host := self.Address()[:pos]
+
+	// 获取 port
+	port := self.Port()
+
+	return utils.JoinAddress(host, port)
+}
+
+// 侦听连接
+func (self *tcpConnector) accept() {
+
 }
