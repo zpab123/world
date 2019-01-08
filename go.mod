@@ -23,4 +23,6 @@ require (
 	"github.com/chasex/redis-go-cluster"
 	"golang.org/x/net/context"
 	"github.com/xtaci/kcp-go"
+	"github.com/davyxu/goobjfmt"
+	"github.com/davyxu/protoplus/proto"
 )
