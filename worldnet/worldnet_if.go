@@ -35,7 +35,7 @@ type IRecoverIoPanic interface {
 
 // 长连接
 type ISession interface {
-	Raw() interface{}         // 获得原始的 Socket 连接
+	GetSocket() interface{}   // 获得原始的 Socket 连接
 	GetConnector() IConnector // 获得 Session 归属的Peer
 	Send(msg interface{})     // 发送消息，消息需要以指针格式传入
 	Close()                   // 断开

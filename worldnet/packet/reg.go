@@ -1,0 +1,16 @@
+// /////////////////////////////////////////////////////////////////////////////
+// packet 处理器 注册中心
+
+package packet
+
+import (
+	"github.com/zpab123/world/worldnet" // 网络库
+)
+
+// /////////////////////////////////////////////////////////////////////////////
+// public api
+
+// 注册1个网络消息处理器
+func RegisterHandler(cntor worldnet.IConnector, procName string, userCallback worldnet.EventCallback) {
+
+}

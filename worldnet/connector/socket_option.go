@@ -51,16 +51,6 @@ func (self *TcpSocketOption) SetBufferIo(readBufferSize int, writeBufferSize int
 	self.SetNoDelay(noDelay)
 }
 
-// 设置 Packet 最大字节
-func (self *TcpSocketOption) SetMaxPacketSize(maxSize int) {
-	self.maxPacketSize = maxSize
-}
-
-// 获取 Packet 最大字节
-func (self *TcpSocketOption) GetMaxPacketSize() int {
-	return self.maxPacketSize
-}
-
 // 设置 net.Conn 连接对象基础参数
 //
 // conn 符合 net.TCPConn 接口, 才会成功
@@ -78,7 +68,17 @@ func (self *TcpSocketOption) SetSocketOption(conn net.Conn) {
 	}
 }
 
-// 设置 net.Conn 连接对象读取超时
+// 设置 Packet 最大字节
+func (self *TcpSocketOption) SetMaxPacketSize(maxSize int) {
+	self.maxPacketSize = maxSize
+}
+
+// 获取 Packet 最大字节 [iSocketOpt 接口]
+func (self *TcpSocketOption) GetMaxPacketSize() int {
+	return self.maxPacketSize
+}
+
+// 设置 net.Conn 连接对象读取超时 [iSocketOpt 接口]
 func (self *TcpSocketOption) SetReadTimeout(conn net.Conn, callback func()) {
 	if self.readTimeout > 0 {
 		// issue: http://blog.sina.com.cn/s/blog_9be3b8f10101lhiq.html
@@ -92,7 +92,7 @@ func (self *TcpSocketOption) SetReadTimeout(conn net.Conn, callback func()) {
 	}
 }
 
-// 设置 net.Conn 连接对象写入超时
+// 设置 net.Conn 连接对象写入超时 [iSocketOpt 接口]
 func (self *TcpSocketOption) SetWriteTimeout(conn net.Conn, callback func()) {
 	if self.writeTimeout > 0 {
 		conn.SetWriteDeadline(time.Now().Add(self.writeTimeout))
