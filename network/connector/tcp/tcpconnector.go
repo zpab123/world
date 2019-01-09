@@ -25,4 +25,28 @@ func init() {
 
 // tcp 接收器
 type tcpConnector struct {
+	connector.BaseInfo // 对象继承： 基础信息
+}
+
+// 创建1个新的 tcpConnector 对象
+func newTcpConnector() {
+	// 创建对象
+	cntor := &tcpConnector{}
+
+	return cntor
+}
+
+// 启动 connector [IConnector 接口]
+func (this *tcpConnector) Run() {
+
+}
+
+// 停止 connector [IConnector 接口]
+func (this *tcpConnector) Stop() {
+
+}
+
+// 获取 connector 类型，例如 tcp.Connector/udp.Acceptor [IConnector 接口]
+func (this *tcpConnector) GetType() {
+	return consts.NETWORK_CONNECTOR_TYPE_TCP
 }

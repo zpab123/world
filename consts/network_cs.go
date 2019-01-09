@@ -11,6 +11,11 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // network 包
 
+// connector 类型
+const (
+	NETWORK_CONNECTOR_TYPE_TCP = "tcpConnector" // tcp 连接器
+)
+
 const (
 	TCP_SERVER_RECONNECT_TIME = 3 * time.Second // tcp 网络服务 开启失败后，重新开启时间，单位秒
 )
