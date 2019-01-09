@@ -14,16 +14,16 @@ import (
 
 // 包 初始化函数
 func init() {
-	packet.RegisterPktMgr(consts.WORLDNET_PKT_TYPE_LTV, creator)
+	packet.RegisterPostter(consts.WORLDNET_PKT_TYPE_LTV, creator)
 }
 
 // /////////////////////////////////////////////////////////////////////////////
 // private api
 
 // 绑定函数
-func creator(dm packet.IDataManger) {
-	// 设置 PacketManger
-	dm.SetPacketManager(new(TcpPacketManager))
+func creator(pm packet.IPacketManager) {
+	// 设置 PacketPostter
+	pm.SetPacketPostter(new(TcpPacketPostter))
 
 	// 设置 Hooker
 

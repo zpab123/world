@@ -4,19 +4,40 @@
 package packet
 
 import (
-	"github.com/zpab123/world/worldnet/packet" // 网络库
+	"fmt"
+
+	"github.com/zpab123/world/worldnet"        // 网络库
+	"github.com/zpab123/world/worldnet/packet" // packet 管理库
+)
+
+// /////////////////////////////////////////////////////////////////////////////
+// 包 变量
+
+// 变量
+var (
+	postCreatorMap = map[string]PostCreator{} // pktType->Creator 对象集合
 )
 
 // /////////////////////////////////////////////////////////////////////////////
 // public api
 
-// 注册1个 packet 解码对象
-func RegisterPktMgr(pktType string, f Creator) {
+// 注册1个 packet 投递对象
+func RegisterPostter(pktType string, f Creator) {
+	postCreatorMap[pktType] = f
+}
 
+// 设置 packet 收发方法
+func SetPacketPostter(pm packet.IPacketManager, pktType string) {
+	// 创建收发对象
+	if postCreator, ok := postterMap[pktType]; ok {
+		postCreator(pm)
+	} else {
+		panic(fmt.Sprintf("设置 packet 收发对象错误： pktType=%s；不存在", pktType))
+	}
 }
 
 // /////////////////////////////////////////////////////////////////////////////
 // Creator 对象
 
 // 创建函数
-type Creator func(dm packet.IDataManger)
+type PostCreator func(pm IPacketManager)

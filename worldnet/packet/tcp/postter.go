@@ -11,14 +11,14 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////
-// TcpPacketManager 对象
+// TcpPacketPostter 对象
 
 // tcp 消息收发管理
-type TcpPacketManager struct {
+type TcpPacketPostter struct {
 }
 
 // 接收消息
-func (TcpPacketManager) RecvPacket(ses worldnet.ISession) (pkt interface{}, err error) {
+func (TcpPacketPostter) RecvPacket(ses worldnet.ISession) (pkt interface{}, err error) {
 	// 获取读取 io.Reader
 	reader, ok := ses.GetSocket().(io.Reader)
 

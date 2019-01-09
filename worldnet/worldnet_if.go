@@ -83,7 +83,7 @@ type IContextSet interface {
 // packet 数据处理相关
 
 // packet 消息收发接口
-type IPacketManager interface {
+type IPacketPostter interface {
 	// 接收 1个 packet
 	RecvPacket(ses ISession) (msg interface{}, err error)
 	// 发送 1个 packet
