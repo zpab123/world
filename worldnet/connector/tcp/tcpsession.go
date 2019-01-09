@@ -20,14 +20,14 @@ import (
 
 // Socket 会话对象
 type tcpSession struct {
-	conn                   net.Conn             // Socket 原始连接
-	connector              worldnet.IConnector  // 符合 IConnector 接口的对象
-	closeNotify            func()               // tcpSession 关闭成功后的回调函数
-	sendQueue              *worldnet.Pipe       // 发送消息队列
-	closing                syncutil.AtomicInt64 // 是否正在关闭中 0=否；1=是
-	closeWaitGroup         sync.WaitGroup       // 关闭同步器
-	*connector.DataManager                      // 对象继承：网络消息管理对象
-	connector.IdMananger                        // 对象继承：ID管理
+	conn                    net.Conn             // Socket 原始连接
+	connector               worldnet.IConnector  // 符合 IConnector 接口的对象
+	closeNotify             func()               // tcpSession 关闭成功后的回调函数
+	sendQueue               *worldnet.Pipe       // 发送消息队列
+	closing                 syncutil.AtomicInt64 // 是否正在关闭中 0=否；1=是
+	closeWaitGroup          sync.WaitGroup       // 关闭同步器
+	connector.PacketManager                      // 对象继承： packet 消息管理对象
+	connector.IdMananger                         // 对象继承：ID管理
 }
 
 // 创建1个新的 tcpSession 对象

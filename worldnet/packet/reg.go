@@ -6,8 +6,7 @@ package packet
 import (
 	"fmt"
 
-	"github.com/zpab123/world/worldnet"        // 网络库
-	"github.com/zpab123/world/worldnet/packet" // packet 管理库
+	"github.com/zpab123/world/worldnet" // 网络库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -27,9 +26,9 @@ func RegisterPostter(pktType string, f Creator) {
 }
 
 // 设置 packet 收发方法
-func SetPacketPostter(pm packet.IPacketManager, pktType string) {
+func SetPacketPostter(pm IPacketManager, pktType string) {
 	// 创建收发对象
-	if postCreator, ok := postterMap[pktType]; ok {
+	if postCreator, ok := postCreatorMap[pktType]; ok {
 		postCreator(pm)
 	} else {
 		panic(fmt.Sprintf("设置 packet 收发对象错误： pktType=%s；不存在", pktType))

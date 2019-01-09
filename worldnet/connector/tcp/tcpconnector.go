@@ -30,7 +30,7 @@ type tcpConnector struct {
 	connector.State                        // 对象继承：运行状态操作
 	connector.BaseInfo                     // 对象继承：基础信息
 	connector.RecoverIoPanic               // 对象继承: io 异常捕获
-	connector.DataManager                  // 对象继承：网络消息管理
+	connector.PacketManager                // 对象继承：packet 消息管理
 	listener                  net.Listener // 侦听器
 }
 
