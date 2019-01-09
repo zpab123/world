@@ -38,7 +38,7 @@ func newSession(conn net.Conn, cntor worldnet.IConnector, endNotify func()) *tcp
 	que := worldnet.NewPipe()
 
 	// 消息处理器
-	dm := cntor.(connector.IDataMananger).GetDataMananger()
+	dm := cntor.GetDataMananger()
 
 	// 创建 session
 	ses := &tcpSession{

@@ -3,6 +3,10 @@
 
 package worldnet
 
+import (
+	"github.com/zpab123/world/worldnet/connector" // 连接器
+)
+
 // /////////////////////////////////////////////////////////////////////////////
 // connector 接口
 
@@ -26,9 +30,10 @@ type ISession interface {
 
 // connector 接口
 type IConnector interface {
-	Run() IConnector // 启动 connector
-	Stop()           // 停止通讯端
-	GetType() string // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor
+	connector.IDataMananger // 继承 IDataMananger 接口
+	Run() IConnector        // 启动 connector
+	Stop()                  // 停止通讯端
+	GetType() string        // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor
 }
 
 // Connector 基础属性
