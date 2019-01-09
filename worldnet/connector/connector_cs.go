@@ -5,7 +5,8 @@ package connector
 
 // connector 类型
 const (
-	TYPE_TCP_CONNECTOR = "tcpConnector" // tcpConnector 类型
+	TYPE_TCP_CONNECTOR    = "tcpConnector"   // tcpConnector 类型
+	TYPE_HYBRID_CONNECTOR = "hybridconnecto" // hybridconnecto 类型
 )
 
 // tcp socket 默认参数

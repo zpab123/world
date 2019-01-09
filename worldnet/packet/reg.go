@@ -4,13 +4,19 @@
 package packet
 
 import (
-	"github.com/zpab123/world/worldnet" // 网络库
+	"github.com/zpab123/world/worldnet/packet" // 网络库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
 // public api
 
-// 注册1个网络消息处理器
-func RegisterHandler(cntor worldnet.IConnector, procName string, userCallback worldnet.EventCallback) {
+// 注册1个 packet 解码对象
+func RegisterPktMgr(pktType string, f Creator) {
 
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// Creator 对象
+
+// 创建函数
+type Creator func(dm packet.IDataManger)

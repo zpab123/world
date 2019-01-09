@@ -30,10 +30,10 @@ type ISession interface {
 
 // connector 接口
 type IConnector interface {
-	connector.IDataMananger // 继承 IDataMananger 接口
-	Run() IConnector        // 启动 connector
-	Stop()                  // 停止通讯端
-	GetType() string        // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor
+	//connector.IDataMananger // 继承 IDataMananger 接口
+	Run() IConnector // 启动 connector
+	Stop()           // 停止通讯端
+	GetType() string // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor
 }
 
 // Connector 基础属性
@@ -80,14 +80,14 @@ type IContextSet interface {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// processor 数据处理相关
+// packet 数据处理相关
 
-// 消息收发器
-type IMessageTransmitter interface {
-	// 接收消息
-	OnRecvMessage(ses ISession) (msg interface{}, err error)
-	// 发送消息
-	OnSendMessage(ses ISession, msg interface{}) error
+// packet 消息收发接口
+type IPacketManager interface {
+	// 接收 1个 packet
+	RecvPacket(ses ISession) (msg interface{}, err error)
+	// 发送 1个 packet
+	SendPacket(ses ISession, msg interface{}) error
 }
 
 // 处理钩子(参数输入, 返回输出, 不给MessageProccessor处理时，可以将Event设置为nil)
