@@ -52,25 +52,27 @@ func (self *tcpConnector) Run() {
 	// 阻塞，等到所有线程结束
 	self.WaitAllStop()
 
-	// 已经运行
+	// 正在运行
 	if self.IsRuning() {
 		return
 	}
 
 	// 创建侦听器
-	ln, err := utils.DetectPort(self.Address(), func(a *utils.Address, port int) (interface{}, error) {
+	ln, err := utils.DetectPort(self.GetAddress(), func(a *utils.Address, port int) (interface{}, error) {
 		return net.Listen("tcp", a.HostPortString(port))
 	})
 
 	// 创建失败
 	if nil != err {
-		zplog.Errorf("创建 tcp.tcpConnector 失败，名字=%s；错误=%v", self.Name(), err.Error())
+		zplog.Errorf("tcp.tcpConnector 创建失败：名字=%s；错误=%v", self.GetName(), err.Error())
 		self.SetRunning(false)
+
+		return
 	}
 
 	// 创建成功
 	self.listener = ln.(net.Listener)
-	zplog.Infof("创建 tcp.tcpConnector 成功，名字=%s；监听地址=%s", self.Name(), self.ListenAddress())
+	zplog.Infof("tcp.tcpConnector 创建成功：名字=%s；监听地址=%s", self.GetName(), self.GetListenAddress())
 
 	// 侦听连接
 	go self.accept()
@@ -101,13 +103,13 @@ func (self *tcpConnector) Stop() {
 	self.WaitAllStop()
 }
 
-// 获取类型的名字 [worldnet.IConnector 接口]
-func (self *tcpConnector) TypeName() string {
-	return consts.CONNECTOR_TYPE_TCP_ACCEPTOR
+// 获取 Connector 的类型 [worldnet.IConnector 接口]
+func (self *tcpConnector) GetType() string {
+	return connector.TYPE_TCP_CONNECTOR
 }
 
 // 获取监听成功的端口
-func (self *tcpConnector) Port() int {
+func (self *tcpConnector) GetPort() int {
 	if self.listener == nil {
 		return 0
 	}
@@ -116,16 +118,16 @@ func (self *tcpConnector) Port() int {
 }
 
 // 获取监听成功的地址
-func (self *tcpConnector) ListenAddress() string {
+func (self *tcpConnector) GetListenAddress() string {
 	// 获取 host
-	pos := strings.Index(self.Address(), ":")
+	pos := strings.Index(self.GetAddress(), ":")
 	if pos == -1 {
-		return self.Address()
+		return self.GetAddress()
 	}
-	host := self.Address()[:pos]
+	host := self.GetAddress()[:pos]
 
 	// 获取 port
-	port := self.Port()
+	port := self.GetPort()
 
 	return utils.JoinAddress(host, port)
 }
@@ -147,7 +149,7 @@ func (self *tcpConnector) accept() {
 
 		// 监听错误
 		if nil != err {
-			zplog.Errorf("tcp.tcpConnector 接收新连接出现错误，名字=%s 错误=%v", self.Name(), err.Error())
+			zplog.Errorf("tcp.tcpConnector 接收新连接出现错误：名字=%s 错误=%v", self.GetName(), err.Error())
 			break
 		}
 

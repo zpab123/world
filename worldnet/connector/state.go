@@ -1,5 +1,5 @@
 // /////////////////////////////////////////////////////////////////////////////
-// connector 运行状态操作
+// connector 运行状态操作 [代码完整]
 
 package connector
 
@@ -15,9 +15,9 @@ import (
 
 // 运行状态
 type State struct {
-	running    syncutil.AtomicBool // 是否正在运行状态
-	stopWaitor sync.WaitGroup      // 结束线程组
-	stopping   syncutil.AtomicBool // 是否正在停止
+	running       syncutil.AtomicBool // 是否正在运行状态
+	stopWaitGroup sync.WaitGroup      // 结束线程组
+	stopping      syncutil.AtomicBool // 是否正在停止
 }
 
 // 是否正在运行状态
@@ -33,7 +33,7 @@ func (self *State) SetRunning(v bool) {
 // 等待所有线程结束
 func (self *State) WaitAllStop() {
 	// 如果正在停止时, 等待停止完成
-	self.stopWaitor.Wait()
+	self.stopWaitGroup.Wait()
 }
 
 // 是否处于停止状态
@@ -43,14 +43,14 @@ func (self *State) IsStopping() bool {
 
 // 开始停止
 func (self *State) StartStop() {
-	self.stopWaitor.Add(1)
+	self.stopWaitGroup.Add(1)
 	self.stopping.Store(true)
 }
 
 // 停止结束
 func (self *State) EndStop() {
 	if self.IsRuning() {
-		self.stopWaitor.Done()
+		self.stopWaitGroup.Done()
 		self.stopping.Store(false)
 	}
 }

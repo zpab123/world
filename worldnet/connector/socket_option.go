@@ -1,5 +1,5 @@
 // /////////////////////////////////////////////////////////////////////////////
-// socket io 参数配置
+// socket io 参数配置 [代码完整]
 
 package connector
 
@@ -13,20 +13,21 @@ import (
 
 // TcpSocketOption 配置
 type TcpSocketOption struct {
-	readBufferSize  int           // 读取 buffer 大小
-	writeBufferSize int           // 写入 buffer 大小
+	readBufferSize  int           // 读取 buffer 字节大小
+	writeBufferSize int           // 写入 buffer 字节大小
 	noDelay         bool          // 写入数据后，是否立即发送
-	maxPacketSize   int           // 单个packet 数据包大小
+	maxPacketSize   int           // 单个 packet 最大字节数
 	readTimeout     time.Duration // 读数据超时时间
 	writeTimeout    time.Duration // 写数据超时时间
 }
 
 // 初始化 TcpSocketOption
 //
-// 读/写 buferr 尺寸均设置为-1
+// 读/写 buferr 尺寸均设置为 默认参数
 func (self *TcpSocketOption) Init() {
-	self.readBufferSize = -1
-	self.writeBufferSize = -1
+	self.readBufferSize = TCP_BUFFER_READ_SIZE   // 张鹏：原先是-1，这里被修改了
+	self.writeBufferSize = TCP_BUFFER_WRITE_SIZE // 张鹏：原先是-1，这里被修改了
+	self.noDelay = TCP_NO_DELAY                  // 张鹏：原先没有这个设置项，这里被修改了
 }
 
 // 设置 socket readBufferSize 字节数大小
@@ -51,9 +52,15 @@ func (self *TcpSocketOption) SetBufferIo(readBufferSize int, writeBufferSize int
 	self.SetNoDelay(noDelay)
 }
 
+// 设置 读/写 buffer 超时时间
+func (self *CoreTCPSocketOption) SetDeadline(read, write time.Duration) {
+	self.readTimeout = read
+	self.writeTimeout = write
+}
+
 // 设置 net.Conn 连接对象基础参数
 //
-// conn 符合 net.TCPConn 接口, 才会成功
+// conn 符合 *net.TCPConn 接口, 才会成功
 func (self *TcpSocketOption) SetSocketOption(conn net.Conn) {
 	if cc, ok := conn.(*net.TCPConn); ok {
 		if self.readBufferSize >= 0 {

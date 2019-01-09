@@ -3,14 +3,8 @@
 
 package worldnet
 
-// Session 接口
-type ISession interface {
-	Raw() interface{}     // 获得原始的Socket连接
-	Connector()           // 获得 Session 归属的 Connector
-	Send(msg interface{}) // 发送消息，消息需要以指针格式传入
-	Close()               // 断开连接
-	ID() int64            // 获取 session ID
-}
+// /////////////////////////////////////////////////////////////////////////////
+// connector 接口
 
 // Session 存取器接口
 type ISessionAccessor interface {
@@ -20,11 +14,21 @@ type ISessionAccessor interface {
 	CloseAllSession()                 // 关闭所有连接
 }
 
+// Session 接口
+type ISession interface {
+	Raw() interface{}     // 获得原始的 Socket 连接
+	Connector()           // 获得 Session 归属的 Connector
+	Send(pkt interface{}) // 发送 pkt 消息，消息需要以指针格式传入
+	Close()               // 断开连接
+	GetId() int64         // 获取 session Id
+	SetId(v int64)        // 设置 session Id
+}
+
 // connector 接口
 type IConnector interface {
-	Run() IConnector  // 启动 connector
-	Stop()            // 停止通讯端
-	TypeName() string // Peer的类型(protocol.type)，例如tcp.Connector/udp.Acceptor
+	Run() IConnector // 启动 connector
+	Stop()           // 停止通讯端
+	GetType() string // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor
 }
 
 // Connector 基础属性

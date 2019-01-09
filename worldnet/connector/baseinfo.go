@@ -13,7 +13,7 @@ type BaseInfo struct {
 }
 
 // 获取通讯端的名称
-func (self *BaseInfo) Name() string {
+func (self *BaseInfo) GetName() string {
 	return self.name
 }
 
@@ -23,7 +23,7 @@ func (self *BaseInfo) SetName(v string) {
 }
 
 // 获取监听地址
-func (self *BaseInfo) Address() string {
+func (self *BaseInfo) GetAddress() string {
 	return self.addr
 }
 

@@ -1,5 +1,5 @@
 // /////////////////////////////////////////////////////////////////////////////
-// Session 管理对象
+// Session 管理对象 [代码完整]
 
 package connector
 
@@ -21,20 +21,6 @@ type SessionManager struct {
 	count    syncutil.AtomicInt64 // 记录当前在使用的会话数量
 }
 
-// 设置ID开始的号
-//
-// [ISessionManager 接口]
-func (self *SessionManager) SetIDStart(start int64) {
-	self.sesIDGen.Store(start)
-}
-
-// 获取当前 ISession 数量
-//
-// [ISessionManager 接口]
-func (self *SessionManager) Count() int {
-	return int(self.count.Load())
-}
-
 // 添加1个符合 ISession 接口的对象
 //
 // [ISessionManager 接口]
@@ -46,9 +32,10 @@ func (self *SessionManager) Add(ses worldnet.ISession) {
 	self.count.Add(1)
 
 	// 设置 session ID
-	ses.(interface {
-		SetID(int64)
-	}).SetID(id)
+	//ses.(interface {
+	//SetID(int64)
+	//}).SetID(id)
+	ses.SetId(id)
 
 	// 保存
 	self.sesMap.Store(id, ses)
@@ -59,10 +46,20 @@ func (self *SessionManager) Add(ses worldnet.ISession) {
 // [ISessionManager 接口]
 func (self *SessionManager) Remove(ses worldnet.ISession) {
 	// 移除
-	self.sesMap.Delete(ses.ID())
+	self.sesMap.Delete(ses.GetId())
 
 	// 计数 -1
 	self.count.Add(-1)
+}
+
+// 获取当前 ISession 数量 [ISessionManager 接口]
+func (self *SessionManager) GetCount() int {
+	return int(self.count.Load())
+}
+
+// 设置ID开始的号 [ISessionManager 接口]
+func (self *SessionManager) SetIDStart(start int64) {
+	self.sesIDGen.Store(start)
 }
 
 // 从 session 存取器中获取一个连接 [ISessionAccessor 接口]
@@ -93,9 +90,13 @@ func (self *SessionManager) SessionCount() int {
 
 // 关闭所有连接 [ISessionAccessor 接口]
 func (self *SessionManager) CloseAllSession() {
-	self.VisitSession(func(ses worldnet.ISession) bool {
+	// 处理函数
+	f := func(ses worldnet.ISession) bool {
 		ses.Close()
 
 		return true
-	})
+	}
+
+	// 遍历
+	self.VisitSession(f)
 }
