@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/world/utils"   // 工具库
 	"github.com/zpab123/zplog"         // 日志库
 )
 
@@ -35,7 +36,7 @@ func RegisterCreator(f CreateFunc) {
 }
 
 // 根据类型，创建1个 connector 对象
-func NewConnector(typeName string, addr *Address) network.IConnector {
+func NewConnector(typeName string, addr *utils.Address) network.IConnector {
 	// 类型检查
 	creator := creatorMap[typeName]
 	if nil == creator {
