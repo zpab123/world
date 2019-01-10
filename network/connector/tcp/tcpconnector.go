@@ -5,9 +5,9 @@ package tcp
 
 import (
 	"net"
+	"strings"
 
 	"github.com/zpab123/world/consts"            // 全局常量
-	"github.com/zpab123/world/network"           // 网络库
 	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/utils"             // 工具库
 	"github.com/zpab123/zplog"                   // 日志库
@@ -31,7 +31,7 @@ type tcpConnector struct {
 }
 
 // 创建1个新的 tcpConnector 对象
-func newTcpConnector() {
+func newTcpConnector() connector.IConnector {
 	// 创建对象
 	cntor := &tcpConnector{}
 
@@ -68,7 +68,7 @@ func (this *tcpConnector) Stop() {
 }
 
 // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor [IConnector 接口]
-func (this *tcpConnector) GetType() {
+func (this *tcpConnector) GetType() string {
 	return consts.NETWORK_CONNECTOR_TYPE_TCP
 }
 
@@ -84,11 +84,11 @@ func (this *tcpConnector) GetPort() int {
 // 获取监听成功的地址
 func (this *tcpConnector) GetListenAddress() string {
 	// 获取 host
-	pos := strings.Index(this.GetAddress(), ":")
+	pos := strings.Index(this.GetAddr().TcpAddr, ":")
 	if pos == -1 {
-		return this.GetAddress()
+		return this.GetAddr().TcpAddr
 	}
-	host := this.GetAddress()[:pos]
+	host := this.GetAddr().TcpAddr[:pos]
 
 	// 获取 port
 	port := this.GetPort()
@@ -101,7 +101,7 @@ func (this *tcpConnector) accept() {
 	// 主循环
 	for {
 		// 接收新连接
-		conn, err := this.listener.Accept()
+		_, err := this.listener.Accept()
 
 		// 监听错误
 		if nil != err {
