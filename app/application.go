@@ -25,6 +25,7 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
+	ComponentOpt                                    // 对象继承： 配置 app 各种组件参数
 	baseInfo        *model.BaseInfo                 // 基础属性
 	runer           string                          // 服务器启动者 (master=master 命令启动 cmd=cmd 启动)
 	serverInfo      model.ServerInfo                // 服务器配置信息
@@ -118,14 +119,6 @@ func (app *Application) Stop() error {
 // 设置 app 名字
 func (app *Application) SetType(v string) {
 	app.baseInfo.AppType = v
-}
-
-// 设置 ConnectorConfig 参数
-func (app *Application) SetConnectorConfig(config *model.ConnectorConfig) {
-	// 参数检查
-	if nil == config.Check() {
-		app.connectorConfig = config
-	}
 }
 
 // 注册组件

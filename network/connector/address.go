@@ -1,0 +1,22 @@
+// /////////////////////////////////////////////////////////////////////////////
+// socket 地址参数
+
+package connector
+
+// /////////////////////////////////////////////////////////////////////////////
+// Address 对象
+
+// 监听地址
+type Address struct {
+	addr *Laddr
+}
+
+// 获取地址
+func (this *Address) GetAddr() *Laddr {
+	return this.addr
+}
+
+// 设置地址
+func (this *Address) SetAddr(addrs *Laddr) {
+	this.addr = addrs
+}

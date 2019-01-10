@@ -26,8 +26,8 @@ func init() {
 
 // tcp 接收器
 type tcpConnector struct {
-	connector.BaseInfo              // 对象继承： 基础信息
-	listener           net.Listener // 侦听器
+	connector.Address              // 对象继承： 监听地址信息
+	listener          net.Listener // 侦听器
 }
 
 // 创建1个新的 tcpConnector 对象

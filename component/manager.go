@@ -26,7 +26,8 @@ func RegisterComponent(com IComponent) {
 	name := com.Name()
 
 	// 组件已经存在
-	if componentMap[name] != nil {
+	component := componentMap[name]
+	if component != nil {
 		zplog.Warnf("组件[*s]重复注册，新组件覆盖旧组件", name)
 	}
 

@@ -21,19 +21,6 @@ type BaseInfo struct {
 // /////////////////////////////////////////////////////////////////////////////
 // connector 组件
 
-// connector 组件配置参数
-type ConnectorConfig struct {
-	Heartbeat time.Duration // 心跳间隔
-	Handshake func()        // 自定义的握手处理函数
-	MaxConn   uint32        // 最大连接数量，超过此数值后，不再接收新连接
-}
-
-// 检查 ConnectorConfig 参数是否存在错误
-func (this *ConnectorConfig) Check() error {
-
-	return nil
-}
-
 // 监听地址
 type Laddr struct {
 	TcpAddr string // Tcp 监听地址：格式 192.168.1.1:8600

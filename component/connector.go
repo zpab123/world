@@ -159,3 +159,8 @@ func (this *Connector) createSession(conn net.Conn) {
 
 	// session 线程循环
 }
+
+// 获取 connector
+func (this *Connector) getConnector(typeName string) network.IConnector {
+
+}

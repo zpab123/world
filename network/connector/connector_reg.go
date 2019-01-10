@@ -36,7 +36,10 @@ func RegisterCreator(f CreateFunc) {
 }
 
 // 根据类型，创建1个 connector 对象
-func NewConnector(typeName string, addr *utils.Address) network.IConnector {
+func NewConnector(addr *Laddr, opts *ConnectorOpt) network.IConnector {
+	// 获取类型
+	typeName := opts.TypeName
+
 	// 类型检查
 	creator := creatorMap[typeName]
 	if nil == creator {
@@ -45,17 +48,15 @@ func NewConnector(typeName string, addr *utils.Address) network.IConnector {
 	}
 
 	// 地址检查
-	_, err := addr.Check()
-	if nil != err {
-		zplog.Panicf(err.Error())
-		panic(err.Error())
-	}
+
+	// 参数检查
+	opts.Check()
 
 	// 创建 connector
 	cntor := creator()
 
 	// 设置基本参数
-	cntor.SetAddress(addr.GetAddrRange())
+	//cntor.SetAddress(addr.GetAddrRange())
 
 	return cntor
 }
