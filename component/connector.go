@@ -6,9 +6,7 @@ package component
 import (
 	"github.com/zpab123/syncutil"                // 原子操作工具
 	"github.com/zpab123/world/consts"            // 全局常量
-	"github.com/zpab123/world/model"             // 全局结构体
 	"github.com/zpab123/world/network/connector" // 网络连接库
-	"github.com/zpab123/zplog"                   // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +23,7 @@ const (
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
 	name      string                  // 组件名字
-	laddr     *model.Laddr            // 监听地址集合
+	laddr     *connector.Laddr        // 监听地址集合
 	connNum   syncutil.AtomicUint32   // 当前连接数
 	opt       *connector.ConnectorOpt // 配置参数
 	state     syncutil.AtomicInt32    // connector 当前状态
@@ -33,9 +31,9 @@ type Connector struct {
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *model.Laddr, param *connector.ConnectorOpt) *Connector {
+func NewConnector(addrs *connector.Laddr, param *connector.ConnectorOpt) *Connector {
 	// 参数效验
-	if nil != parameter.Check() {
+	if nil != param.Check() {
 		return nil
 	}
 

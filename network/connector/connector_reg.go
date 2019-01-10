@@ -26,7 +26,7 @@ func RegisterCreator(f CreateFunc) {
 
 	// 已经存在
 	if _, ok := creatorMap[cntor.GetType()]; ok {
-		panic("注册 connector 重复，类型=%s", cntor.GetType())
+		panic(fmt.Sprintf("注册 connector 重复，类型=%s", cntor.GetType()))
 	}
 
 	// 保存类型
@@ -42,7 +42,7 @@ func NewConnector(addr *Laddr, opts *ConnectorOpt) IConnector {
 	creator := creatorMap[typeName]
 	if nil == creator {
 		zplog.Panicf("创建 connector 出错：找不到 %s 类型的 connector", typeName)
-		panic(fmt.Sprintf("创建 connector 出错：找不到 %s 类型的 connector"), typeName)
+		panic(fmt.Sprintf("创建 connector 出错：找不到 %s 类型的 connector", typeName))
 	}
 
 	// 地址检查
