@@ -55,8 +55,8 @@ func NewConnector(addr *Laddr, opts *ConnectorOpt) network.IConnector {
 	// 创建 connector
 	cntor := creator()
 
-	// 设置基本参数
-	//cntor.SetAddress(addr.GetAddrRange())
+	// 设置地址参数
+	cntor.SetAddr(addr)
 
 	return cntor
 }

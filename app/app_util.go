@@ -6,9 +6,10 @@ package app
 import (
 	"flag"
 
-	"github.com/zpab123/world/component" // 组件库
-	"github.com/zpab123/world/config"    // 配置读取工具
-	"github.com/zpab123/world/consts"    // 全局常量
+	"github.com/zpab123/world/component"         // 组件库
+	"github.com/zpab123/world/config"            // 配置读取工具
+	"github.com/zpab123/world/consts"            // 全局常量
+	"github.com/zpab123/world/network/connector" // 网络连接库
 
 	//"github.com/zpab123/zplog"           // log 库
 	"github.com/zpab123/world/model" // 全局 stuct
@@ -88,15 +89,23 @@ func regDefaultComponent(app *Application) {
 
 // 注册1个 Connector 组件
 func regConnector(app *Application) {
-	// 创建参数
-	laddr := &model.Laddr{
+	// 地址参数
+	laddr := &connector.Laddr{
 		TcpAddr: app.GetCTcpAddr(),
 		WsAddr:  app.GetCWsAddr(),
 	}
 
+	// connector 参数
+	opts := app.GetConnectorOpt()
+	if nil == opts {
+		opts = connector.ConnectorOpt{
+			TypeName: connector.CONNECTOR_TYPE_TCP,
+		}
+	}
+
 	// 创建 Connector
-	con := component.NewConnector(laddr, app.connectorConfig)
+	contor := component.NewConnector(laddr, opts)
 
 	// 注册组件
-	app.RegisterComponent(con)
+	app.RegisterComponent(contor)
 }

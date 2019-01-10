@@ -44,7 +44,7 @@ func (this *tcpConnector) Run() {
 	f := func(addr *utils.Address, port int) (interface{}, error) {
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
-	ln, err := utils.DetectPort(f)
+	ln, err := utils.DetectPort(this.GetAddr().TcpAddr, f)
 
 	// 创建失败
 	if nil != err {
