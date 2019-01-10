@@ -10,12 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/zpab123/syncutil"        // 同步工具
-	"github.com/zpab123/world/base"      // 基础信息
-	"github.com/zpab123/world/component" // 组件库
-	"github.com/zpab123/world/consts"    // 全局常量
-	"github.com/zpab123/world/model"     // 全局 struct
-	"github.com/zpab123/zplog"           // log 库
+	"github.com/zpab123/world/base"   // 基础信息
+	"github.com/zpab123/world/consts" // 全局常量
+	"github.com/zpab123/world/model"  // 全局 struct
+	"github.com/zpab123/zplog"        // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////

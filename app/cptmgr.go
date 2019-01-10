@@ -6,14 +6,11 @@ package app
 import (
 	"github.com/zpab123/world/component"         // 组件库
 	"github.com/zpab123/world/network/connector" // 网络连接库
+	"github.com/zpab123/zplog"                   // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
 // 包 初始化
-
-import (
-	"github.com/zpab123/syncutil" // 原子变量工具
-)
 
 // /////////////////////////////////////////////////////////////////////////////
 // ComponentManager 对象

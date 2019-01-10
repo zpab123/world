@@ -6,11 +6,8 @@ package app
 import (
 	"flag"
 
-	"github.com/zpab123/world/cmd"               // cmd 信息相关
 	"github.com/zpab123/world/component"         // 组件库
 	"github.com/zpab123/world/config"            // 配置读取工具
-	"github.com/zpab123/world/consts"            // 全局常量
-	"github.com/zpab123/world/model"             // 全局 stuct
 	"github.com/zpab123/world/network/connector" // 网络连接库
 )
 
