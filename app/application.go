@@ -26,12 +26,12 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	base.BaseInfo                                 // 对象继承： 基础信息
-	ComponentOpt                                  // 对象继承： 配置 app 各种组件参数
-	serverInfo    model.ServerInfo                // 服务器配置信息
-	state         syncutil.AtomicUint32           // app 当前状态
-	componentMap  map[string]component.IComponent // 名字-> 组件 集合
-	runTime       time.Time                       // 启动时间
+	baseInfo     *base.BaseInfo                  // 服务器基础信息
+	serverInfo   model.ServerInfo                // 服务器配置信息
+	state        syncutil.AtomicUint32           // app 当前状态
+	componentMap map[string]component.IComponent // 名字-> 组件 集合
+	runTime      time.Time                       // 启动时间
+	ComponentOpt                                 // 对象继承： 配置 app 各种组件参数
 }
 
 // 创建1个新的 Application 对象
@@ -40,13 +40,13 @@ type Application struct {
 func NewApplication(appType string) *Application {
 	// 创建对象
 	app := &Application{
-		baseInfo:     &model.BaseInfo{},
+		baseInfo:     &base.BaseInfo{},
 		serverInfo:   model.ServerInfo{},
 		componentMap: map[string]component.IComponent{},
 	}
 
 	// 设置类型
-	app.SetServerType(appType)
+	app.baseInfo.ServerType = appType
 
 	// 设置为无效状态
 	app.state.Store(consts.APP_STATE_INVALID)
@@ -66,7 +66,7 @@ func (app *Application) Init() bool {
 
 		return false
 	}
-	app.SetMainPath(dir)
+	app.baseInfo.MainPath = dir
 
 	// 设置基础配置
 	defaultConfiguration(app)

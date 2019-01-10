@@ -16,8 +16,7 @@ type WorldIni struct {
 
 // servers.json 的 server 服务器信息
 type ServerInfo struct {
-	Name string // 服务器的名字
-	// ServiceId  uint8  // 服务ID（用于gate服务器消息转发）
+	Name       string // 服务器的名字
 	Frontend   bool   // 是否是前端服务器
 	Host       string // 服务器的ID地址
 	Port       uint   // 服务器端口

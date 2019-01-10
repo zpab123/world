@@ -3,42 +3,17 @@
 
 package base
 
+import (
+	"github.com/zpab123/world/consts" // 全局常量
+)
+
 // /////////////////////////////////////////////////////////////////////////////
 // Cmd 对象
 
 // 启动信息
 type BaseInfo struct {
-	runer      string // 启动者
-	serverType string // 服务器类型
-	mainPath   string // main 程序所在路径
-}
-
-// 获取 Runer
-func (this *BaseInfo) GetRuner() string {
-	return this.runer
-}
-
-// 设置 Runer
-func (this *BaseInfo) SetRuner(v string) {
-	this.runer = v
-}
-
-// 获取服务器类型
-func (this *BaseInfo) GetServerType() string {
-	return this.serverType
-}
-
-// 设置服务器类型
-func (this *BaseInfo) SetServerType(v string) {
-	this.serverType = v
-}
-
-// 获取 main 程序所在路径
-func (this *BaseInfo) GetMainPath() string {
-	return this.mainPath
-}
-
-// 设置 main 程序所在路径
-func (this *BaseInfo) SetMainPath(v string) {
-	this.mainPath = v
+	ServerType string // 服务器类型
+	MainPath   string // main 程序所在路径
+	Env        string // 运行环境 production= 开发环境 development = 运营环境
+	Name       string // 服务器名字
 }

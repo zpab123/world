@@ -6,6 +6,7 @@ package app
 import (
 	"flag"
 
+	"github.com/zpab123/world/cmd"               // cmd 信息相关
 	"github.com/zpab123/world/component"         // 组件库
 	"github.com/zpab123/world/config"            // 配置读取工具
 	"github.com/zpab123/world/consts"            // 全局常量
@@ -20,47 +21,63 @@ func defaultConfiguration(app *Application) {
 	// 解析命令行参数
 	parseArgs(app)
 
-	// 获取启动参数
-	//if app.runer == consts.APP_RUNER_CMD {
-	// 从配置文件中获取服务器信息
-	//getInfoFromConfig(app)
-	//}
+	// 获取服务器信息
+	getServerInfo(app)
 }
 
 // 解析 命令行参数
 func parseArgs(app *Application) {
 	// 参数定义
-	runer := flag.String("runer", "cmd", "runer") // 服务器启动者
+	//serverType := flag.String("type", "serverType", "server type") // 服务器类型，例如 gate connect area ...等
+	//gid := flag.Uint("gid", 0, "gid")                                       // 服务器进程id
+	name := flag.String("name", "master", "server name") // 服务器名字
+	//frontend := flag.Bool("frontend", false, "is frontend server")          // 是否是前端服务器
+	//host := flag.String("host", "127.0.0.1", "server host")                 // 服务器IP地址
+	//port := flag.Uint("port", 0, "server port")                             // 服务器端口
+	//clientHost := flag.String("clientHost", "127.0.0.1", "for client host") // 面向客户端的 IP地址
+	//cTcpPort := flag.Uint("cTcpPort", 0, "tcp port")                        // tcp 连接端口
+	//cWsPort := flag.Uint("cWsPort", 0, "websocket port")                    // websocket 连接端口
 
 	// 解析参数
 	flag.Parse()
 
-	// 保存 runer
-	if consts.APP_RUNER_MASTER == *runer {
-		app.SetRuner(consts.APP_RUNER_MASTER) // master 服务器启动
-	} else {
-		app.SetRuner(consts.APP_RUNER_MANUAL) // 手动启动
-	}
+	// 赋值
+	//cmdParam := &cmd.CmdParam{
+	//ServerType: *serverType,
+	//Gid:        *gid,
+	//Name: *name,
+	//Frontend:   *frontend,
+	//Host:       *host,
+	//Port:       *port,
+	//ClientHost: *clientHost,
+	//CTcpPort:   *cTcpPort,
+	//CWsPort:    *cWsPort,
+	//}
+
+	// 设置 app 名字
+	app.baseInfo.Name = *name
 }
 
-// 从配置文件中获取服务器信息
-func getInfoFromConfig(app *Application) {
-	// 获取运行环境
-	env := config.GetWorldIni().Env // 当前环境
-	app.baseInfo.Env = env
+// 获取服务器信息
+func getServerInfo(app *Application) {
+	// 获取服务器类型
+	serverType := app.baseInfo.ServerType
 
-	// 获取 server.json 中关于 当前服务器的配置信息
-	appType := app.baseInfo.AppType
-	if "" == appType {
-		return
-	}
-	serverList := config.GetServerMap()[appType]
-	if nil == serverList {
+	// 获取服务器名字
+	name := app.baseInfo.Name
+
+	// 获取类型列表
+	list := config.GetServerMap()[serverType]
+	if len(list) <= 0 {
 		return
 	}
 
-	// 获取第1个 配置数据
-	app.serverInfo = serverList[0]
+	// 获取服务器信息
+	for _, info := range list {
+		if info.Name == name {
+			app.serverInfo = info
+		}
+	}
 }
 
 // 设置默认组件
