@@ -3,16 +3,14 @@
 
 package connector
 
-import (
-	"github.com/zpab123/world/worldnet" // worldnet 网络库
-)
+//"github.com/zpab123/world/network" // 网络库
 
 // /////////////////////////////////////////////////////////////////////////////
 // connector 相关
 
 // Session 管理接口
 type ISessionManager interface {
-	worldnet.ISessionAccessor // 接口继承： Session 存取器接口
+	//network.ISessionAccessor  // 接口继承： Session 存取器接口
 	Add(worldnet.ISession)    // 添加1个符合 ISession 接口的对象
 	Remove(worldnet.ISession) // 移除1个符合 ISession 接口的对象
 	GetCount() int            // 获取当前 ISession 数量

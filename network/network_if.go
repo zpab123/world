@@ -4,7 +4,7 @@
 package network
 
 import (
-	"github.com/zpab123/world/model" // 全局 struct
+	"github.com/zpab123/world/network/connector" // 网络连接器
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -21,5 +21,5 @@ type IConnector interface {
 // 地址接口
 type IAddress interface {
 	SetAddr(addr *connector.Laddr) // 设置监听地址
-	GetAddr() *model.Laddr         // 获取监听地址
+	GetAddr() *connector.Laddr     // 获取监听地址
 }

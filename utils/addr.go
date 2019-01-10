@@ -146,9 +146,9 @@ func (this *Address) Check() (bool, error) {
 // 例如：scheme://host:minPort~maxPort/path
 func (this *Address) GetAddrRange() (string, error) {
 	// 参数检查
-	ok := this.Check()
+	ok, err := this.Check()
 	if !ok {
-		return nil, addError
+		return "", err
 	}
 
 	// 获取地址
@@ -159,7 +159,7 @@ func (this *Address) GetAddrRange() (string, error) {
 		addr = fmt.Sprintf("%s://%s:%d~%d/%s", this.Scheme, this.Host, this.MinPort, this.MaxPort, this.Path)
 	}
 
-	return addr
+	return addr, nil
 }
 
 // 根据 port 参数，与 Address 对象的 host 组成1个 addr 字符
