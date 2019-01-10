@@ -6,12 +6,13 @@ package component
 import (
 	"net"
 
-	"github.com/zpab123/syncutil"      // 原子操作工具
-	"github.com/zpab123/world/consts"  // 全局常量
-	"github.com/zpab123/world/model"   // 全局结构体
-	"github.com/zpab123/world/network" // 网络库
-	"github.com/zpab123/zplog"         // log 库
-	"golang.org/x/net/websocket"       // websocket 库
+	"github.com/zpab123/syncutil"                // 原子操作工具
+	"github.com/zpab123/world/consts"            // 全局常量
+	"github.com/zpab123/world/model"             // 全局结构体
+	"github.com/zpab123/world/network"           // 网络库
+	"github.com/zpab123/world/network/connector" // 网络连接库
+	"github.com/zpab123/zplog"                   // log 库
+	"golang.org/x/net/websocket"                 // websocket 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -27,33 +28,38 @@ const (
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
-	name      string                 // 组件名字
-	connNum   syncutil.AtomicUint32  // 当前连接数
-	state     syncutil.AtomicInt32   // connector 当前状态
-	config    *model.ConnectorConfig // 配置参数
-	laddr     *model.Laddr           // 监听地址集合
-	tcpServer *network.TcpServer     // tcp 服务器
-	wsServer  *network.WsServer      // websocket 服务器
+	name      string                  // 组件名字
+	connNum   syncutil.AtomicUint32   // 当前连接数
+	state     syncutil.AtomicInt32    // connector 当前状态
+	opt       *connector.ConnectorOpt // 配置参数
+	laddr     *model.Laddr            // 监听地址集合
+	connector network.IConnector      // 某种类型的 connector 连接器
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *model.Laddr, parameter *model.ConnectorConfig) *Connector {
+func NewConnector(addrs *model.Laddr, param *connector.ConnectorOpt) *Connector {
 	// 参数效验
 	if nil != parameter.Check() {
 		return nil
 	}
 
-	// 创建对象
-	server := &Connector{
-		name:   consts.COMPONENT_NAME_CONNECTOR,
-		laddr:  addrs,
-		config: parameter,
+	// 创建 connector
+	cntor := connector.NewConnector(addrs, param)
+
+	// 创建组件
+	cpt := &Connector{
+		name:  consts.COMPONENT_NAME_CONNECTOR,
+		laddr: addrs,
+		opt:   param,
 	}
 
-	// 数据初始化
-	server.init()
+	// 保存 Connector
+	cpt.connector = cntor
 
-	return server
+	// 数据初始化
+	cpt.init()
+
+	return cpt
 }
 
 // 组件名字 [IComponent 实现]
