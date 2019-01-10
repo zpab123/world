@@ -25,14 +25,13 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	ComponentOpt                                    // 对象继承： 配置 app 各种组件参数
-	baseInfo        *model.BaseInfo                 // 基础属性
-	runer           string                          // 服务器启动者 (master=master 命令启动 cmd=cmd 启动)
-	serverInfo      model.ServerInfo                // 服务器配置信息
-	state           syncutil.AtomicUint32           // app 当前状态
-	componentMap    map[string]component.IComponent // 名字-> 组件 集合
-	runTime         time.Time                       // 启动时间
-	connectorConfig *model.ConnectorConfig          // ConnectorConfig 组件配置参数
+	ComponentOpt                                 // 对象继承： 配置 app 各种组件参数
+	baseInfo     *model.BaseInfo                 // 基础属性
+	runer        string                          // 服务器启动者 (master=master 命令启动 cmd=cmd 启动)
+	serverInfo   model.ServerInfo                // 服务器配置信息
+	state        syncutil.AtomicUint32           // app 当前状态
+	componentMap map[string]component.IComponent // 名字-> 组件 集合
+	runTime      time.Time                       // 启动时间
 }
 
 // 创建1个新的 Application 对象
