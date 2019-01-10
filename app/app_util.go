@@ -21,10 +21,10 @@ func defaultConfiguration(app *Application) {
 	parseArgs(app)
 
 	// 获取启动参数
-	if app.runer == consts.APP_RUNER_CMD {
-		// 从配置文件中获取服务器信息
-		getInfoFromConfig(app)
-	}
+	//if app.runer == consts.APP_RUNER_CMD {
+	// 从配置文件中获取服务器信息
+	//getInfoFromConfig(app)
+	//}
 }
 
 // 解析 命令行参数
@@ -35,13 +35,11 @@ func parseArgs(app *Application) {
 	// 解析参数
 	flag.Parse()
 
-	//赋值
+	// 保存 runer
 	if consts.APP_RUNER_MASTER == *runer {
-		// 保存 runer
-		app.runer = consts.APP_RUNER_MASTER
+		app.SetRuner(consts.APP_RUNER_MASTER) // master 服务器启动
 	} else {
-		// 保存 runer
-		app.runer = consts.APP_RUNER_CMD
+		app.SetRuner(consts.APP_RUNER_MANUAL) // 手动启动
 	}
 }
 

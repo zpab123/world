@@ -18,6 +18,6 @@ const (
 
 // 启动方式
 const (
-	APP_RUNER_CMD    = "cmd"    // 由 cmd 启动
-	APP_RUNER_MASTER = "master" // 由 master 服务器启动
+	APP_RUNER_MANUAL = "manually" // 手动启动
+	APP_RUNER_MASTER = "master"   // 由 master 服务器启动
 )

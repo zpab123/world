@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/zpab123/syncutil"        // 同步工具
+	"github.com/zpab123/world/base"      // 基础信息
 	"github.com/zpab123/world/component" // 组件库
 	"github.com/zpab123/world/consts"    // 全局常量
 	"github.com/zpab123/world/model"     // 全局 struct
@@ -25,13 +26,12 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	ComponentOpt                                 // 对象继承： 配置 app 各种组件参数
-	baseInfo     *model.BaseInfo                 // 基础属性
-	runer        string                          // 服务器启动者 (master=master 命令启动 cmd=cmd 启动)
-	serverInfo   model.ServerInfo                // 服务器配置信息
-	state        syncutil.AtomicUint32           // app 当前状态
-	componentMap map[string]component.IComponent // 名字-> 组件 集合
-	runTime      time.Time                       // 启动时间
+	base.BaseInfo                                 // 对象继承： 基础信息
+	ComponentOpt                                  // 对象继承： 配置 app 各种组件参数
+	serverInfo    model.ServerInfo                // 服务器配置信息
+	state         syncutil.AtomicUint32           // app 当前状态
+	componentMap  map[string]component.IComponent // 名字-> 组件 集合
+	runTime       time.Time                       // 启动时间
 }
 
 // 创建1个新的 Application 对象
@@ -46,7 +46,7 @@ func NewApplication(appType string) *Application {
 	}
 
 	// 设置类型
-	app.baseInfo.AppType = appType
+	app.SetServerType(appType)
 
 	// 设置为无效状态
 	app.state.Store(consts.APP_STATE_INVALID)
@@ -62,10 +62,11 @@ func (app *Application) Init() bool {
 	// 路径信息
 	dir, err := getMainPath()
 	if err != nil {
-		zplog.Error("app 初始化失败->读取根目录失败")
+		zplog.Error("app 初始化失败：读取根目录失败")
+
 		return false
 	}
-	app.baseInfo.MainPath = dir
+	app.SetMainPath(dir)
 
 	// 设置基础配置
 	defaultConfiguration(app)
