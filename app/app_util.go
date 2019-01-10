@@ -113,7 +113,7 @@ func regConnector(app *Application) {
 	// connector 参数
 	opts := app.GetConnectorOpt()
 	if nil == opts {
-		opts = connector.ConnectorOpt{
+		opts = &connector.ConnectorOpt{
 			TypeName: connector.CONNECTOR_TYPE_TCP,
 		}
 	}

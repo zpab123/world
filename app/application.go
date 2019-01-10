@@ -26,12 +26,10 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	baseInfo     *base.BaseInfo                  // 服务器基础信息
-	serverInfo   model.ServerInfo                // 服务器配置信息
-	state        syncutil.AtomicUint32           // app 当前状态
-	componentMap map[string]component.IComponent // 名字-> 组件 集合
-	runTime      time.Time                       // 启动时间
-	ComponentOpt                                 // 对象继承： 配置 app 各种组件参数
+	baseInfo         *base.BaseInfo   // 服务器基础信息
+	serverInfo       model.ServerInfo // 服务器配置信息
+	stateManager                      // 对象继承： app 状态管理
+	componentManager                  // 对象继承： app 组件管理
 }
 
 // 创建1个新的 Application 对象
@@ -40,9 +38,8 @@ type Application struct {
 func NewApplication(appType string) *Application {
 	// 创建对象
 	app := &Application{
-		baseInfo:     &base.BaseInfo{},
-		serverInfo:   model.ServerInfo{},
-		componentMap: map[string]component.IComponent{},
+		baseInfo:   &base.BaseInfo{},
+		serverInfo: model.ServerInfo{},
 	}
 
 	// 设置类型
@@ -81,7 +78,7 @@ func (app *Application) Init() bool {
 // 启动 app
 func (app *Application) Run() {
 	// 记录启动时间
-	app.runTime = time.Now()
+	app.baseInfo.RunTime = time.Now()
 
 	// 状态效验
 	if app.state.Load() != consts.APP_STATE_INIT {
@@ -116,25 +113,9 @@ func (app *Application) Stop() error {
 	return nil
 }
 
-// 设置 app 名字
+// 设置 app 类型
 func (app *Application) SetType(v string) {
-	app.baseInfo.AppType = v
-}
-
-// 注册组件
-//
-// com=符合 IComponent 接口的对象
-func (app *Application) RegisterComponent(com component.IComponent) {
-	// 获取名字
-	name := com.Name()
-
-	// 组件已经存在
-	if app.componentMap[name] != nil {
-		zplog.Warnf("组件[*s]重复注册，新组件覆盖旧组件", name)
-	}
-
-	// 保存组件
-	app.componentMap[name] = com
+	app.baseInfo.ServerType = v
 }
 
 // 获取 tcp 服务器监听地址(格式 -> 127.0.0.1:6532)
