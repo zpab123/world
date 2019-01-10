@@ -7,7 +7,6 @@ import (
 	"github.com/zpab123/syncutil"                // 原子操作工具
 	"github.com/zpab123/world/consts"            // 全局常量
 	"github.com/zpab123/world/model"             // 全局结构体
-	"github.com/zpab123/world/network"           // 网络库
 	"github.com/zpab123/world/network/connector" // 网络连接库
 	"github.com/zpab123/zplog"                   // log 库
 )
@@ -30,7 +29,7 @@ type Connector struct {
 	connNum   syncutil.AtomicUint32   // 当前连接数
 	opt       *connector.ConnectorOpt // 配置参数
 	state     syncutil.AtomicInt32    // connector 当前状态
-	connector network.IConnector      // 某种类型的 connector 连接器
+	connector connector.IConnector    // 某种类型的 connector 连接器
 }
 
 // 新建1个 Connector 对象

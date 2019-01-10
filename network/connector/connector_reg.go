@@ -6,9 +6,7 @@ package connector
 import (
 	"fmt"
 
-	"github.com/zpab123/world/network" // 网络库
-	"github.com/zpab123/world/utils"   // 工具库
-	"github.com/zpab123/zplog"         // 日志库
+	"github.com/zpab123/zplog" // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -36,7 +34,7 @@ func RegisterCreator(f CreateFunc) {
 }
 
 // 根据类型，创建1个 connector 对象
-func NewConnector(addr *Laddr, opts *ConnectorOpt) network.IConnector {
+func NewConnector(addr *Laddr, opts *ConnectorOpt) IConnector {
 	// 获取类型
 	typeName := opts.TypeName
 
@@ -64,4 +62,4 @@ func NewConnector(addr *Laddr, opts *ConnectorOpt) network.IConnector {
 // /////////////////////////////////////////////////////////////////////////////
 // CreateFunc 对象
 
-type CreateFunc func() network.IConnector
+type CreateFunc func() IConnector

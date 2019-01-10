@@ -8,16 +8,16 @@ package connector
 // /////////////////////////////////////////////////////////////////////////////
 // connector 相关
 
-// Session 管理接口
-type ISessionManager interface {
-	//network.ISessionAccessor  // 接口继承： Session 存取器接口
-	Add(worldnet.ISession)    // 添加1个符合 ISession 接口的对象
-	Remove(worldnet.ISession) // 移除1个符合 ISession 接口的对象
-	GetCount() int            // 获取当前 ISession 数量
-	SetIDStart(start int64)   // 设置ID开始的号
+// connector 接口
+type IConnector interface {
+	Run()            // 启动 connector
+	Stop()           // 停止 connector
+	GetType() string // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor
+	IAddress         // 接口继承： IAddress 接口
 }
 
-// 数据处理接口
-type IDataMananger interface {
-	GetDataMananger() *DataManager // 获取 *DataManager 对象
+// 地址接口
+type IAddress interface {
+	SetAddr(addr *Laddr) // 设置监听地址
+	GetAddr() *Laddr     // 获取监听地址
 }
