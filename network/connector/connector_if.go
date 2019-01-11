@@ -10,10 +10,9 @@ package connector
 
 // acceptor 接口
 type IAcceptor interface {
-	Run()            // 启动 acceptor
-	Stop()           // 停止 acceptor
-	GetType() string // 获取 acceptor 类型，例如 tcp.Connector/udp.Acceptor
-	IAddress         // 接口继承： IAddress 接口
+	Run()    // 启动 acceptor
+	Stop()   // 停止 acceptor
+	IAddress // 接口继承： IAddress 接口
 }
 
 // 地址接口

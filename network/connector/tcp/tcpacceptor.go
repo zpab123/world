@@ -7,7 +7,6 @@ import (
 	"net"
 	"strings"
 
-	"github.com/zpab123/world/consts"            // 全局常量
 	"github.com/zpab123/world/ifs"               // 接口库
 	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/utils"             // 工具库
@@ -19,7 +18,7 @@ import (
 
 func init() {
 	// 注册创建函数
-	connector.RegisterCreator(connector.CONNECTOR_TYPE_TCP, newTcpAcceptor)
+	connector.RegisterAcceptor(connector.CONNECTOR_TYPE_TCP, newTcpAcceptor)
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -46,7 +45,7 @@ func newTcpAcceptor(cntor ifs.IConnector) connector.IAcceptor {
 	return aptor
 }
 
-// 启动 connector [IConnector 接口]
+// 启动 tcpAcceptor [IAcceptor 接口]
 func (this *tcpAcceptor) Run() {
 	// 创建侦听器
 	f := func(addr *utils.Address, port int) (interface{}, error) {
@@ -69,15 +68,10 @@ func (this *tcpAcceptor) Run() {
 	go this.accept()
 }
 
-// 停止 connector [IConnector 接口]
+// 停止 tcpAcceptor [IAcceptor 接口]
 func (this *tcpAcceptor) Stop() {
 	// 关闭侦听器
 	this.listener.Close()
-}
-
-// 获取 connector 类型，例如 tcp.Connector/udp.Acceptor [IConnector 接口]
-func (this *tcpAcceptor) GetType() string {
-	return consts.NETWORK_CONNECTOR_TYPE_TCP
 }
 
 // 获取监听成功的端口

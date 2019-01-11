@@ -17,7 +17,7 @@ import (
 
 //  变量
 var (
-	creatorMap = map[string]AcceptorCreateFunc{} // typeName->CreateFunc 集合
+	acceptorMap = map[string]AcceptorCreateFunc{} // typeName->AcceptorCreateFunc 集合
 )
 
 // 常量
@@ -29,14 +29,14 @@ const (
 // public api
 
 // 注册1个 connector 创建函数
-func RegisterCreator(typeName string, f AcceptorCreateFunc) {
+func RegisterAcceptor(typeName string, f AcceptorCreateFunc) {
 	// 已经存在
-	if _, ok := creatorMap[typeName]; ok {
+	if _, ok := acceptorMap[typeName]; ok {
 		panic(fmt.Sprintf("注册 connector 重复，类型=%s", typeName))
 	}
 
 	// 保存类型
-	creatorMap[typeName] = f
+	acceptorMap[typeName] = f
 }
 
 // 根据类型，创建1个 acceptor 对象
@@ -45,7 +45,7 @@ func NewAcceptor(addr *Laddr, opts *ConnectorOpt, cntor ifs.IConnector) IAccepto
 	typeName := opts.TypeName
 
 	// 类型检查
-	creator := creatorMap[typeName]
+	creator := acceptorMap[typeName]
 	if nil == creator {
 		zplog.Panicf("创建 Acceptor 出错：找不到 %s 类型的 Acceptor", typeName)
 		panic(fmt.Sprintf("创建 Acceptor 出错：找不到 %s 类型的 Acceptor", typeName))
