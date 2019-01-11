@@ -40,8 +40,12 @@ type mulAcceptor struct {
 
 // 创建1个 mulAcceptor 对象
 func newMulAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
+	// 获取参数
+	addrs := cntor.GetAddrs()
+	opts := cntor.GetConnectorOpt()
+
 	// 创建 tcpAcceptor
-	//tcpaptor := connector.NewAcceptor()
+	tcpaptor := connector.NewAcceptor(addrs, opts, cntor)
 
 	// 创建对象
 	mulaptor := &mulAcceptor{

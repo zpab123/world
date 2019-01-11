@@ -41,9 +41,9 @@ func RegisterAcceptor(typeName string, f AcceptorCreateFunc) {
 }
 
 // 根据类型，创建1个 acceptor 对象
-func NewAcceptor(addr *model.Laddr, opts *model.ConnectorOpt, cntor ifs.IConnector) ifs.IAcceptor {
+func NewAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
 	// 获取类型
-	typeName := opts.TypeName
+	typeName := cntor.GetConnectorOpt().TypeName
 
 	// 类型检查
 	creator := acceptorMap[typeName]
@@ -61,7 +61,7 @@ func NewAcceptor(addr *model.Laddr, opts *model.ConnectorOpt, cntor ifs.IConnect
 	aptor := creator(cntor)
 
 	// 设置地址参数
-	aptor.SetAddr(addr)
+	aptor.SetAddr(cntor.GetAddrs())
 
 	return aptor
 }
@@ -123,6 +123,11 @@ func (this *Connector) Stop() {
 // 获取地址集合信息 [IConnector 接口]
 func (this *Connector) GetAddrs() *model.Laddr {
 	return this.laddr
+}
+
+// 获取 connector 配置信息 [IConnector 接口]
+func (this *Connector) GetConnectorOpt() *model.ConnectorOpt {
+	return this.opt
 }
 
 // /////////////////////////////////////////////////////////////////////////////
