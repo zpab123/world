@@ -137,17 +137,17 @@ type AcceptorCreateFunc func(cntor ifs.IConnector) ifs.IAcceptor
 type SockerManager struct {
 }
 
-// 收到1个新的 socket 连接
+// 收到1个新的 socket 连接 [IConnector] 接口
 func (this *SockerManager) OnNewSocket(socket ifs.ISocket) {
 
 }
 
-// 某个 socket  断开
+// 某个 socket  断开 [IConnector] 接口
 func (this *SockerManager) OnSocketClose(socket ifs.ISocket) {
 
 }
 
-// 某个 socket  收到数据
+// 某个 socket  收到数据 [IConnector] 接口
 func (this *SockerManager) OnSocketMessage(socket ifs.ISocket) {
 
 }

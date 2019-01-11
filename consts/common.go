@@ -25,3 +25,8 @@ const (
 	SERVER_TYPE_GATE      = "gate"      // gate 服务器类型
 	SERVER_TYPE_CONNECTOR = "connector" // connector 服务器类型
 )
+
+// 组件名字
+const (
+	COMPONENT_NAME_CONNECTOR = "connector" // connector 组件
+)
