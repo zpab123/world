@@ -6,7 +6,6 @@ package app
 import (
 	"flag"
 
-	"github.com/zpab123/world/component"         // 组件库
 	"github.com/zpab123/world/config"            // 配置读取工具
 	"github.com/zpab123/world/network/connector" // 网络连接库
 )
@@ -114,7 +113,7 @@ func regConnector(app *Application) {
 	}
 
 	// 创建 Connector
-	contor := component.NewConnector(laddr, opts)
+	contor := connector.NewConnector(laddr, opts)
 
 	// 注册组件
 	app.RegisterComponent(contor)

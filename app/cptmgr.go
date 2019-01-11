@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/zpab123/world/component"         // 组件库
+	"github.com/zpab123/world/ifs"               // 接口库
 	"github.com/zpab123/world/network/connector" // 网络连接库
 	"github.com/zpab123/zplog"                   // log 库
 )
@@ -17,8 +17,8 @@ import (
 
 // app 组件管理
 type componentManager struct {
-	connectorOpt *connector.ConnectorOpt         // connector 组件配置参数
-	componentMap map[string]component.IComponent // 名字-> 组件 集合
+	connectorOpt *connector.ConnectorOpt   // connector 组件配置参数
+	componentMap map[string]ifs.IComponent // 名字-> 组件 集合
 }
 
 // 获取 connector 组件参数 [IComponentManager] 接口
@@ -34,7 +34,7 @@ func (this *componentManager) SetConnectorOpt(opts *connector.ConnectorOpt) {
 // 注册1个 Component 组件
 //
 // com=符合 IComponent 接口的对象
-func (this *componentManager) RegisterComponent(com component.IComponent) {
+func (this *componentManager) RegisterComponent(com ifs.IComponent) {
 	// 获取名字
 	name := com.Name()
 
@@ -50,5 +50,5 @@ func (this *componentManager) RegisterComponent(com component.IComponent) {
 // 初始化 componentManager
 func (this *componentManager) componentMgrInit() {
 	// 创建 map
-	this.componentMap = map[string]component.IComponent{}
+	this.componentMap = map[string]ifs.IComponent{}
 }

@@ -18,28 +18,29 @@ import (
 
 func init() {
 	// 注册创建函数
-	connector.RegisterCreator(newTcpConnector)
+	connector.RegisterCreator(newTcpAcceptor)
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// tcpConnector 对象
+// tcpAcceptor 对象
 
 // tcp 接收器
-type tcpConnector struct {
-	connector.Address              // 对象继承： 监听地址信息
-	listener          net.Listener // 侦听器
+type tcpAcceptor struct {
+	connector.AddrManager                  // 对象继承： 监听地址管理
+	connector.TCPSocketOption              // 对象继承： socket 基础参数管理
+	listener                  net.Listener // 侦听器
 }
 
-// 创建1个新的 tcpConnector 对象
-func newTcpConnector() connector.IConnector {
+// 创建1个新的 tcpAcceptor 对象
+func newTcpAcceptor() connector.IAcceptor {
 	// 创建对象
-	cntor := &tcpConnector{}
+	cntor := &tcpAcceptor{}
 
 	return cntor
 }
 
 // 启动 connector [IConnector 接口]
-func (this *tcpConnector) Run() {
+func (this *tcpAcceptor) Run() {
 	// 创建侦听器
 	f := func(addr *utils.Address, port int) (interface{}, error) {
 		return net.Listen("tcp", addr.HostPortString(port))
@@ -48,32 +49,32 @@ func (this *tcpConnector) Run() {
 
 	// 创建失败
 	if nil != err {
-		zplog.Errorf("启动 tcpConnector 失败。错误=%v", err.Error())
+		zplog.Errorf("启动 tcpAcceptor 失败。错误=%v", err.Error())
 
 		return
 	}
 
 	// 创建成功
 	this.listener = ln.(net.Listener)
-	zplog.Infof("启动 tcpConnector 成功。监听地址=%s", this.GetListenAddress())
+	zplog.Infof("启动 tcpAcceptor 成功。监听地址=%s", this.GetListenAddress())
 
 	// 侦听连接
 	go this.accept()
 }
 
 // 停止 connector [IConnector 接口]
-func (this *tcpConnector) Stop() {
+func (this *tcpAcceptor) Stop() {
 	// 关闭侦听器
 	this.listener.Close()
 }
 
 // 获取 connector 类型，例如 tcp.Connector/udp.Acceptor [IConnector 接口]
-func (this *tcpConnector) GetType() string {
+func (this *tcpAcceptor) GetType() string {
 	return consts.NETWORK_CONNECTOR_TYPE_TCP
 }
 
 // 获取监听成功的端口
-func (this *tcpConnector) GetPort() int {
+func (this *tcpAcceptor) GetPort() int {
 	if this.listener == nil {
 		return 0
 	}
@@ -82,7 +83,7 @@ func (this *tcpConnector) GetPort() int {
 }
 
 // 获取监听成功的地址
-func (this *tcpConnector) GetListenAddress() string {
+func (this *tcpAcceptor) GetListenAddress() string {
 	// 获取 host
 	pos := strings.Index(this.GetAddr().TcpAddr, ":")
 	if pos == -1 {
@@ -97,20 +98,31 @@ func (this *tcpConnector) GetListenAddress() string {
 }
 
 // 侦听连接
-func (this *tcpConnector) accept() {
+func (this *tcpAcceptor) accept() {
 	// 主循环
 	for {
 		// 接收新连接
-		_, err := this.listener.Accept()
+		conn, err := this.listener.Accept()
 
 		// 监听错误
 		if nil != err {
-			zplog.Errorf("tcpConnector 接收新连接出现错误，停止工作。错误=%v", err.Error())
+			zplog.Errorf("tcpAcceptor 接收新连接出现错误，停止工作。错误=%v", err.Error())
 
 			break
 		}
 
 		// 处理连接进入独立线程, 防止 accept 无法响应
-		//go self.createSession(conn)
+		go this.onNewConn(conn)
 	}
+}
+
+// 收到1个新的 socket 连接
+func (this *tcpAcceptor) onNewConn(conn net.Conn) {
+	// 设置 io 参数
+	this.ApplySocketOption(conn)
+
+	// 创建 socket 对象
+
+	// 通知 IConnector 组件
+
 }

@@ -69,3 +69,25 @@ func (this *Connector) Stop() {
 	// 停止 connector
 	this.connector.Stop()
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// socketManager
+
+// socket 管理
+type SockerManager struct {
+}
+
+// 收到1个新的 socket 连接
+func (this *SockerManager) onNewSocket() {
+
+}
+
+// 某个 socket  断开
+func (this *SockerManager) onSocketClose() {
+
+}
+
+// 某个 socket  收到数据
+func (this *SockerManager) onSocketMessage() {
+
+}

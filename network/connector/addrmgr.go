@@ -7,16 +7,16 @@ package connector
 // Address 对象
 
 // 监听地址
-type Address struct {
+type AddrManager struct {
 	addr *Laddr
 }
 
 // 获取地址
-func (this *Address) GetAddr() *Laddr {
+func (this *AddrManager) GetAddr() *Laddr {
 	return this.addr
 }
 
 // 设置地址
-func (this *Address) SetAddr(addrs *Laddr) {
+func (this *AddrManager) SetAddr(addrs *Laddr) {
 	this.addr = addrs
 }
