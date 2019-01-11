@@ -22,16 +22,16 @@ const (
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
-	name      string                  // 组件名字
-	laddr     *connector.Laddr        // 监听地址集合
-	connNum   syncutil.AtomicUint32   // 当前连接数
-	opt       *connector.ConnectorOpt // 配置参数
-	state     syncutil.AtomicInt32    // connector 当前状态
-	connector connector.IConnector    // 某种类型的 connector 连接器
+	name      string                // 组件名字
+	laddr     *model.Laddr          // 监听地址集合
+	connNum   syncutil.AtomicUint32 // 当前连接数
+	opt       *model.ConnectorOpt   // 配置参数
+	state     syncutil.AtomicInt32  // connector 当前状态
+	connector connector.IConnector  // 某种类型的 connector 连接器
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *connector.Laddr, param *connector.ConnectorOpt) *Connector {
+func NewConnector(addrs *connector.Laddr, param *model.ConnectorOpt) *Connector {
 	// 参数效验
 	if nil != param.Check() {
 		return nil

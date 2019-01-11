@@ -9,6 +9,7 @@ import (
 	"github.com/zpab123/syncutil"     // 原子操作工具
 	"github.com/zpab123/world/consts" // 全局常量
 	"github.com/zpab123/world/ifs"    // 顶级接口库
+	"github.com/zpab123/world/model"  // 全局数据类型
 	"github.com/zpab123/zplog"        // 日志库
 )
 
@@ -40,7 +41,7 @@ func RegisterAcceptor(typeName string, f AcceptorCreateFunc) {
 }
 
 // 根据类型，创建1个 acceptor 对象
-func NewAcceptor(addr *Laddr, opts *ConnectorOpt, cntor ifs.IConnector) IAcceptor {
+func NewAcceptor(addr *model.Laddr, opts *model.ConnectorOpt, cntor ifs.IConnector) ifs.IAcceptor {
 	// 获取类型
 	typeName := opts.TypeName
 
@@ -71,16 +72,16 @@ func NewAcceptor(addr *Laddr, opts *ConnectorOpt, cntor ifs.IConnector) IAccepto
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
 	name          string                // 组件名字
-	laddr         *Laddr                // 监听地址集合
+	laddr         *model.Laddr          // 监听地址集合
 	connNum       syncutil.AtomicUint32 // 当前连接数
-	opt           *ConnectorOpt         // 配置参数
+	opt           *model.ConnectorOpt   // 配置参数
 	state         syncutil.AtomicInt32  // connector 当前状态
-	acceptor      IAcceptor             // 某种类型的 acceptor 连接器
+	acceptor      ifs.IAcceptor         // 某种类型的 acceptor 连接器
 	SockerManager                       // 对象继承： socket 管理
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *Laddr, param *ConnectorOpt) ifs.IComponent {
+func NewConnector(addrs *model.Laddr, param *model.ConnectorOpt) ifs.IComponent {
 	// 参数效验
 	if nil != param.Check() {
 		return nil
@@ -119,10 +120,15 @@ func (this *Connector) Stop() {
 	this.acceptor.Stop()
 }
 
+// 获取地址集合信息 [IConnector 接口]
+func (this *Connector) GetAddrs() *model.Laddr {
+	return this.laddr
+}
+
 // /////////////////////////////////////////////////////////////////////////////
 // AcceptorCreateFunc 对象
 
-type AcceptorCreateFunc func(cntor ifs.IConnector) IAcceptor
+type AcceptorCreateFunc func(cntor ifs.IConnector) ifs.IAcceptor
 
 // /////////////////////////////////////////////////////////////////////////////
 // socketManager

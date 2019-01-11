@@ -6,8 +6,10 @@ package app
 import (
 	"flag"
 
-	"github.com/zpab123/world/config"            // 配置读取工具
-	"github.com/zpab123/world/network/connector" // 网络连接库
+	"github.com/zpab123/world/config"                  // 配置读取工具
+	"github.com/zpab123/world/model"                   // 全局数据类型库
+	"github.com/zpab123/world/network/connector"       // 网络连接库
+	_ "github.com/zpab123/world/network/connector/mul" // 注册下 mul 包
 )
 
 // 完成 app 的默认设置
@@ -99,7 +101,7 @@ func regDefaultComponent(app *Application) {
 // 注册1个 Connector 组件
 func regConnector(app *Application) {
 	// 地址参数
-	laddr := &connector.Laddr{
+	laddr := &model.Laddr{
 		TcpAddr: app.GetCTcpAddr(),
 		WsAddr:  app.GetCWsAddr(),
 	}
@@ -107,8 +109,8 @@ func regConnector(app *Application) {
 	// connector 参数
 	opts := app.GetConnectorOpt()
 	if nil == opts {
-		opts = &connector.ConnectorOpt{
-			TypeName: connector.CONNECTOR_TYPE_TCP,
+		opts = &model.ConnectorOpt{
+			TypeName: connector.CONNECTOR_TYPE_MUL, // 默认支持多种
 		}
 	}
 

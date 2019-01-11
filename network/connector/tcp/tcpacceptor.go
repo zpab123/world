@@ -9,6 +9,7 @@ import (
 
 	"github.com/zpab123/world/ifs"               // 接口库
 	"github.com/zpab123/world/network/connector" // 连接器
+	"github.com/zpab123/world/model"             // 常用数据类型
 	"github.com/zpab123/world/utils"             // 工具库
 	"github.com/zpab123/zplog"                   // 日志库
 )
@@ -48,7 +49,7 @@ func newTcpAcceptor(cntor ifs.IConnector) connector.IAcceptor {
 // 启动 tcpAcceptor [IAcceptor 接口]
 func (this *tcpAcceptor) Run() {
 	// 创建侦听器
-	f := func(addr *utils.Address, port int) (interface{}, error) {
+	f := func(addr *model.Address, port int) (interface{}, error) {
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
 	ln, err := utils.DetectPort(this.GetAddr().TcpAddr, f)
