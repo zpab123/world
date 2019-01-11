@@ -41,10 +41,9 @@ func RegisterAcceptor(typeName string, f AcceptorCreateFunc) {
 }
 
 // 根据类型，创建1个 acceptor 对象
-func NewAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
-	// 获取类型
-	typeName := cntor.GetConnectorOpt().TypeName
-
+//
+// typeName 方便自己定义类型，不受 connectorOpt 影响
+func NewAcceptor(typeName string, cntor ifs.IConnector) ifs.IAcceptor {
 	// 类型检查
 	creator := acceptorMap[typeName]
 	if nil == creator {
@@ -52,16 +51,11 @@ func NewAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
 		panic(fmt.Sprintf("创建 Acceptor 出错：找不到 %s 类型的 Acceptor", typeName))
 	}
 
-	// 地址检查
-
-	// 参数检查
-	opts.Check()
-
 	// 创建 acceptor
 	aptor := creator(cntor)
 
 	// 设置地址参数
-	aptor.SetAddr(cntor.GetAddrs())
+	aptor.SetAddr(cntor.GetAddr())
 
 	return aptor
 }
@@ -81,21 +75,23 @@ type Connector struct {
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *model.Laddr, param *model.ConnectorOpt) ifs.IComponent {
+func NewConnector(addrs *model.Laddr, opts *model.ConnectorOpt) ifs.IComponent {
 	// 参数效验
-	if nil != param.Check() {
+	if nil != opts.Check() {
 		return nil
 	}
+
+	// 地址检查？
 
 	// 创建组件
 	cntor := &Connector{
 		name:  consts.COMPONENT_NAME_CONNECTOR,
 		laddr: addrs,
-		opt:   param,
+		opt:   opts,
 	}
 
 	// 创建 Acceptor
-	aptor := NewAcceptor(addrs, param, cntor)
+	aptor := NewAcceptor(opts.TypeName, cntor)
 
 	// 保存 Acceptor
 	cntor.acceptor = aptor
@@ -121,7 +117,7 @@ func (this *Connector) Stop() {
 }
 
 // 获取地址集合信息 [IConnector 接口]
-func (this *Connector) GetAddrs() *model.Laddr {
+func (this *Connector) GetAddr() *model.Laddr {
 	return this.laddr
 }
 

@@ -6,10 +6,9 @@ package app
 import (
 	"flag"
 
-	"github.com/zpab123/world/config"                  // 配置读取工具
-	"github.com/zpab123/world/model"                   // 全局数据类型库
-	"github.com/zpab123/world/network/connector"       // 网络连接库
-	_ "github.com/zpab123/world/network/connector/mul" // 注册下 mul 包
+	"github.com/zpab123/world/config"            // 配置读取工具
+	"github.com/zpab123/world/model"             // 全局数据类型库
+	"github.com/zpab123/world/network/connector" // 网络连接库
 )
 
 // 完成 app 的默认设置
@@ -109,9 +108,7 @@ func regConnector(app *Application) {
 	// connector 参数
 	opts := app.GetConnectorOpt()
 	if nil == opts {
-		opts = &model.ConnectorOpt{
-			TypeName: connector.CONNECTOR_TYPE_MUL, // 默认支持多种
-		}
+		opts = getDefaultConnectorOpt()
 	}
 
 	// 创建 Connector
@@ -119,4 +116,14 @@ func regConnector(app *Application) {
 
 	// 注册组件
 	app.RegisterComponent(contor)
+}
+
+// 获取默认 ConnectorOpt
+func getDefaultConnectorOpt() *model.ConnectorOpt {
+	// 创建默认
+	opts := &model.ConnectorOpt{
+		TypeName: connector.CONNECTOR_TYPE_MUL, // 默认支持多种
+	}
+
+	return opts
 }

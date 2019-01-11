@@ -10,8 +10,8 @@ import (
 
 	"github.com/gorilla/websocket"               // websocket 库
 	"github.com/zpab123/world/ifs"               // 全局接口库
-	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/model"             // 常用数据类型
+	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/utils"             // 工具库
 	"github.com/zpab123/zplog"                   // 日志库
 )
@@ -35,12 +35,15 @@ type wsAcceptor struct {
 	httpServer            *http.Server       // http 服务器
 	certfile              string             // 加密文件
 	keyfile               string             // key
+	connector             ifs.IConnector     // connector 对象
 }
 
 // 创建1个 wsAcceptor 对象
-func newWsAcceptor(cntor ifs.IConnector) connector.IAcceptor {
+func newWsAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
 	// 创建对象
-	wsaptor := &wsAcceptor{}
+	wsaptor := &wsAcceptor{
+		connector: cntor,
+	}
 
 	return wsaptor
 }
@@ -82,7 +85,7 @@ func (this *wsAcceptor) Run() {
 		}
 
 		// 创建 socket
-
+		newWsSocket(conn, this.connector)
 	}
 
 	// HandleFunc 注册一个处理器函数 handler 和对应的模式 pattern。

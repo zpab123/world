@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/zpab123/world/ifs"               // 接口库
-	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/model"             // 常用数据类型
+	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/utils"             // 工具库
 	"github.com/zpab123/zplog"                   // 日志库
 )
@@ -34,7 +34,7 @@ type tcpAcceptor struct {
 }
 
 // 创建1个新的 tcpAcceptor 对象
-func newTcpAcceptor(cntor ifs.IConnector) connector.IAcceptor {
+func newTcpAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
 	// 创建对象
 	aptor := &tcpAcceptor{
 		connector: cntor,

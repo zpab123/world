@@ -13,7 +13,7 @@ import (
 // connector 组件
 type IConnector interface {
 	IComponent                            // 接口继承： 组件接口
-	GetAddrs() *model.Laddr               // 获取地址信息集合
+	GetAddr() *model.Laddr                // 获取地址信息集合
 	GetConnectorOpt() *model.ConnectorOpt // 网络连接配置
 	OnNewSocket(socket ISocket)           // 收到1个新的 socket 连接
 	OnSocketClose(socket ISocket)         // 某个 socket  断开
