@@ -6,16 +6,28 @@ package tcp
 import (
 	"net"
 
-	"github.com/zpab123/world/network/connector" // 连接器
+	"github.com/zpab123/world/ifs" // 全局接口库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
 // tcpSocket 对象
 type tcpSocket struct {
-	closeNotify func() // tcpSession 关闭成功后的回调函数
+	tcpConn   net.Conn       // Socket原始连接
+	connector ifs.IConnector // connector 组件
 }
 
 // 创建1个新的 tcpSocket 对象
-func newtcpSocket(conn net.Conn, aptor connector.IAcceptor) {
+func newtcpSocket(conn net.Conn, cntor ifs.IConnector) ifs.ISocket {
+	// 创建 socket
+	socket := &tcpSocket{
+		tcpConn:   conn,
+		connector: cntor,
+	}
 
+	return socket
+}
+
+// 刷新缓冲区
+func (this *tcpSocket) Flush() error {
+	return nil
 }

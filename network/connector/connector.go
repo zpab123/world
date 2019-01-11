@@ -17,7 +17,7 @@ import (
 
 //  变量
 var (
-	creatorMap = map[string]CreateFunc{} // typeName->CreateFunc 集合
+	creatorMap = map[string]AcceptorCreateFunc{} // typeName->CreateFunc 集合
 )
 
 // 常量
@@ -29,21 +29,18 @@ const (
 // public api
 
 // 注册1个 connector 创建函数
-func RegisterCreator(f CreateFunc) {
-	// 临时实例化一个，获取类型
-	cntor := f()
-
+func RegisterCreator(typeName string, f AcceptorCreateFunc) {
 	// 已经存在
-	if _, ok := creatorMap[cntor.GetType()]; ok {
-		panic(fmt.Sprintf("注册 connector 重复，类型=%s", cntor.GetType()))
+	if _, ok := creatorMap[typeName]; ok {
+		panic(fmt.Sprintf("注册 connector 重复，类型=%s", typeName))
 	}
 
 	// 保存类型
-	creatorMap[cntor.GetType()] = f
+	creatorMap[typeName] = f
 }
 
 // 根据类型，创建1个 acceptor 对象
-func NewAcceptor(addr *Laddr, opts *ConnectorOpt) IAcceptor {
+func NewAcceptor(addr *Laddr, opts *ConnectorOpt, cntor ifs.IConnector) IAcceptor {
 	// 获取类型
 	typeName := opts.TypeName
 
@@ -60,7 +57,7 @@ func NewAcceptor(addr *Laddr, opts *ConnectorOpt) IAcceptor {
 	opts.Check()
 
 	// 创建 acceptor
-	aptor := creator()
+	aptor := creator(cntor)
 
 	// 设置地址参数
 	aptor.SetAddr(addr)
@@ -73,12 +70,13 @@ func NewAcceptor(addr *Laddr, opts *ConnectorOpt) IAcceptor {
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
-	name     string                // 组件名字
-	laddr    *Laddr                // 监听地址集合
-	connNum  syncutil.AtomicUint32 // 当前连接数
-	opt      *ConnectorOpt         // 配置参数
-	state    syncutil.AtomicInt32  // connector 当前状态
-	acceptor IAcceptor             // 某种类型的 acceptor 连接器
+	name          string                // 组件名字
+	laddr         *Laddr                // 监听地址集合
+	connNum       syncutil.AtomicUint32 // 当前连接数
+	opt           *ConnectorOpt         // 配置参数
+	state         syncutil.AtomicInt32  // connector 当前状态
+	acceptor      IAcceptor             // 某种类型的 acceptor 连接器
+	SockerManager                       // 对象继承： socket 管理
 }
 
 // 新建1个 Connector 对象
@@ -88,15 +86,15 @@ func NewConnector(addrs *Laddr, param *ConnectorOpt) ifs.IComponent {
 		return nil
 	}
 
-	// 创建 Acceptor
-	aptor := NewAcceptor(addrs, param)
-
 	// 创建组件
 	cntor := &Connector{
 		name:  consts.COMPONENT_NAME_CONNECTOR,
 		laddr: addrs,
 		opt:   param,
 	}
+
+	// 创建 Acceptor
+	aptor := NewAcceptor(addrs, param, cntor)
 
 	// 保存 Acceptor
 	cntor.acceptor = aptor
@@ -122,9 +120,9 @@ func (this *Connector) Stop() {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// CreateFunc 对象
+// AcceptorCreateFunc 对象
 
-type CreateFunc func() IAcceptor
+type AcceptorCreateFunc func(cntor ifs.IConnector) IAcceptor
 
 // /////////////////////////////////////////////////////////////////////////////
 // socketManager
@@ -134,16 +132,16 @@ type SockerManager struct {
 }
 
 // 收到1个新的 socket 连接
-func (this *SockerManager) onNewSocket() {
+func (this *SockerManager) OnNewSocket(socket ifs.ISocket) {
 
 }
 
 // 某个 socket  断开
-func (this *SockerManager) onSocketClose() {
+func (this *SockerManager) OnSocketClose(socket ifs.ISocket) {
 
 }
 
 // 某个 socket  收到数据
-func (this *SockerManager) onSocketMessage() {
+func (this *SockerManager) OnSocketMessage(socket ifs.ISocket) {
 
 }
