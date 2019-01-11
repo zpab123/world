@@ -64,6 +64,9 @@ func (app *Application) Init() bool {
 	}
 	app.baseInfo.MainPath = dir
 
+	// 组件管理初始化
+	app.componentMgrInit()
+
 	// 设置基础配置
 	defaultConfiguration(app)
 
@@ -93,8 +96,8 @@ func (app *Application) Run() {
 	regDefaultComponent(app)
 
 	// 启动所有组件
-	for _, com := range app.componentMap {
-		go com.Run()
+	for _, cpt := range app.componentMap {
+		go cpt.Run()
 	}
 
 	// 设置为启动中

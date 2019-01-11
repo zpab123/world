@@ -46,3 +46,9 @@ func (this *componentManager) RegisterComponent(com component.IComponent) {
 	// 保存组件
 	this.componentMap[name] = com
 }
+
+// 初始化 componentManager
+func (this *componentManager) componentMgrInit() {
+	// 创建 map
+	this.componentMap = map[string]component.IComponent{}
+}
