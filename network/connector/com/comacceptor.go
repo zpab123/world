@@ -33,6 +33,7 @@ type comAcceptor struct {
 	connector.SocketCreator                    // 对象继承： socket 创建管理
 	connector                 model.IConnector // connector 对象
 	tcpListener               net.Listener     // tcp 侦听器
+	httpServer                *http.Server     // http 服务器
 	wsListenAddr              string           // 监听成功的 websocket
 	certFile                  string           // TLS加密文件
 	keyFile                   string           // TLS解密key
@@ -163,7 +164,7 @@ func (this *comAcceptor) runWsListener() {
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
 
-	_, err := utils.DetectPort(this.GetAddr().WsAddr, f)
+	ln, err := utils.DetectPort(this.GetAddr().WsAddr, f)
 
 	// 查找失败
 	if nil != err {
@@ -173,6 +174,7 @@ func (this *comAcceptor) runWsListener() {
 
 	// 端口查找成功
 	this.wsListenAddr = addrObj.String(wsPort)
+	ln.(net.Listener).Close() // 解除端口占用
 
 	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
 	http.Handle("/ws", websocket.Handler(this.onNewWsConn)) // 有新连接的时候，会调用 onNewWsConn 处理新连接
