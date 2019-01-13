@@ -30,7 +30,6 @@ func init() {
 type comAcceptor struct {
 	connector.AddrManager                      // 对象继承： 监听地址管理
 	connector.TCPSocketOption                  // 对象继承： socket 基础参数管理
-	connector.SocketCreator                    // 对象继承： socket 创建管理
 	connector                 model.IConnector // connector 对象
 	tcpListener               net.Listener     // tcp 侦听器
 	httpServer                *http.Server     // http 服务器
@@ -142,11 +141,11 @@ func (this *comAcceptor) onNewTcpConn(conn net.Conn) {
 	// 配置 io 参数
 	this.ApplySocketOption(conn)
 
-	// 创建 socket 对象
-	this.CreatePacketSocket(conn)
+	// 创建 packetSocket
+	packetSocket := connector.CreatePacketSocket(conn)
 
 	// 通知 Connector 组件
-	this.connector.OnNewSocket(this.GetPacketSocket())
+	this.connector.OnNewSocket(packetSocket)
 }
 
 // 启动 websocket 侦听
@@ -199,7 +198,15 @@ func (this *comAcceptor) runWsListener() {
 
 // 收到1个新的 websocket 连接
 func (this *comAcceptor) onNewWsConn(wsConn *websocket.Conn) {
+	zplog.Debugf("收到1个新的 websocket 连接。客户端ip=", wsConn.RemoteAddr())
+	// 设置为接收二进制数据
+	wsConn.PayloadType = websocket.BinaryFrame
 
+	// 创建 packetSocket
+	packetSocket := connector.CreatePacketSocket(wsConn)
+
+	// 通知 Connector 组件
+	this.connector.OnNewSocket(packetSocket)
 }
 
 // /////////////////////////////////////////////////////////////////////////////
