@@ -40,8 +40,19 @@ type wsAcceptor struct {
 
 // 创建1个 wsAcceptor 对象
 func newWsAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
+	// 检查函数
+	origin := func(r *http.Request) bool {
+		return true
+	}
+
+	// 创建 Upgrader
+	uper := websocket.Upgrader{
+		CheckOrigin: origin,
+	}
+
 	// 创建对象
 	wsaptor := &wsAcceptor{
+		upgrader:  uper,
 		connector: cntor,
 	}
 
@@ -59,8 +70,10 @@ func (this *wsAcceptor) Run() {
 	// 查找1个 可用端口
 	f := func(addr *model.Address, port int) (interface{}, error) {
 		addrObj = addr
+
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
+
 	ln, err := utils.DetectPort(this.GetAddr().WsAddr, f)
 
 	// 查找失败
@@ -128,19 +141,4 @@ func (this *wsAcceptor) GetPort() int {
 	}
 
 	return this.listener.Addr().(*net.TCPAddr).Port
-}
-
-// 获取监听成功的地址
-func (this *wsAcceptor) GetListenAddress() string {
-	// 获取 host
-	pos := strings.Index(this.GetAddr().WsAddr, ":")
-	if pos == -1 {
-		return this.GetAddr().WsAddr
-	}
-	host := this.GetAddr().WsAddr[:pos]
-
-	// 获取 port
-	port := this.GetPort()
-
-	return utils.JoinAddress(host, port)
 }

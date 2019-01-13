@@ -8,6 +8,7 @@ const (
 	CONNECTOR_TYPE_TCP       = "tcp"          // tcp
 	CONNECTOR_TYPE_WEBSOCKET = "websocket"    // websocket
 	CONNECTOR_TYPE_MUL       = "multiformity" // 同时支持 tcp 和 websocket
+	CONNECTOR_TYPE_COM       = "composite"    // 同时支持 tcp 和 websocket
 )
 
 // tcp socket 默认参数
