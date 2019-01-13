@@ -6,11 +6,9 @@ package ws
 import (
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/websocket"               // websocket 库
-	"github.com/zpab123/world/ifs"               // 全局接口库
-	"github.com/zpab123/world/model"             // 常用数据类型
+	"github.com/zpab123/world/model"             // 全局接口库
 	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/utils"             // 工具库
 	"github.com/zpab123/zplog"                   // 日志库
@@ -35,11 +33,11 @@ type wsAcceptor struct {
 	httpServer            *http.Server       // http 服务器
 	certfile              string             // 加密文件
 	keyfile               string             // key
-	connector             ifs.IConnector     // connector 对象
+	connector             model.IConnector   // connector 对象
 }
 
 // 创建1个 wsAcceptor 对象
-func newWsAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
+func newWsAcceptor(cntor model.IConnector) model.IAcceptor {
 	// 检查函数
 	origin := func(r *http.Request) bool {
 		return true

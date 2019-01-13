@@ -3,17 +3,21 @@
 
 package model
 
+import (
+	"net"
+)
+
 // /////////////////////////////////////////////////////////////////////////////
 // acceptor 相关
 
 // connector 组件
 type IConnector interface {
-	IComponent                      // 接口继承： 组件接口
-	GetAddr() *Laddr                // 获取地址信息集合
-	GetConnectorOpt() *ConnectorOpt // 网络连接配置
-	OnNewSocket(socket ISocket)     // 收到1个新的 socket 连接
-	OnSocketClose(socket ISocket)   // 某个 socket  断开
-	OnSocketMessage(socket ISocket) // 某个 socket  收到数据
+	IComponent                            // 接口继承： 组件接口
+	GetAddr() *Laddr                      // 获取地址信息集合
+	GetConnectorOpt() *ConnectorOpt       // 网络连接配置
+	OnNewSocket(socket IPacketSocket)     // 收到1个新的 socket 连接
+	OnSocketClose(socket IPacketSocket)   // 某个 socket  断开
+	OnSocketMessage(socket IPacketSocket) // 某个 socket  收到数据
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -34,5 +38,10 @@ type IAddress interface {
 
 // socket 组件
 type ISocket interface {
+	net.Conn // 接口继承： 符合 Conn 的对象
 	Flush() error
+}
+
+// 可以收发 packet 的 socket
+type IPacketSocket interface {
 }

@@ -7,10 +7,10 @@ import (
 	"net"
 	"strings"
 
-	"github.com/zpab123/world/ifs"               // 接口库
 	"github.com/zpab123/world/model"             // 常用数据类型
 	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/utils"             // 工具库
+	"github.com/zpab123/zplog"                   // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -26,14 +26,15 @@ func init() {
 
 // 支持 tcp websocket 连接
 type comAcceptor struct {
-	connector.AddrManager                    // 对象继承： 监听地址管理
-	connector.TCPSocketOption                // 对象继承： socket 基础参数管理
-	connector                 ifs.IConnector // connector 对象
-	tcpListener               net.Listener   // tcp 侦听器
+	connector.AddrManager                      // 对象继承： 监听地址管理
+	connector.TCPSocketOption                  // 对象继承： socket 基础参数管理
+	connector.SocketCreator                    // 对象继承： socket 创建管理
+	connector                 model.IConnector // connector 对象
+	tcpListener               net.Listener     // tcp 侦听器
 }
 
 // 创建1个 comAcceptor 对象
-func newComAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
+func newComAcceptor(cntor model.IConnector) model.IAcceptor {
 	// 创建 comAcceptor
 	comaptor := &comAcceptor{
 		connector: cntor,
@@ -61,7 +62,7 @@ func (this *comAcceptor) GetTcpPort() int {
 		return 0
 	}
 
-	port := this.tcpListener.Addr().(net.TCPAddr).Port
+	port := this.tcpListener.Addr().(*net.TCPAddr).Port
 
 	return port
 }
@@ -97,7 +98,7 @@ func (this *comAcceptor) runTcpListener() {
 	}
 
 	// 创建成功
-	this.listener = ln.(net.Listener)
+	this.tcpListener = ln.(net.Listener)
 	zplog.Infof("comAcceptor-tcp 启动成功。监听地址=%s", this.GetTcpAddr())
 
 	// 侦听 tcp 连接
@@ -107,7 +108,11 @@ func (this *comAcceptor) runTcpListener() {
 // 接收新的 tcp 连接
 func (this *comAcceptor) acceptTcpConn() {
 	//  出现错误，关闭监听
-	defer this.tcpListener.Close()
+	closeF := func() {
+		zplog.Error("侦听 tcp 新连接出现错误。关闭 comAcceptor")
+		this.tcpListener.Close()
+	}
+	defer closeF()
 
 	// 监听新连接
 	for {
@@ -116,7 +121,7 @@ func (this *comAcceptor) acceptTcpConn() {
 			if utils.IsTimeoutError(err) {
 				continue
 			} else {
-				return err
+				break
 			}
 		}
 
@@ -131,10 +136,10 @@ func (this *comAcceptor) onNewTcpConn(conn net.Conn) {
 	this.ApplySocketOption(conn)
 
 	// 创建 socket 对象
-	newComSocket(conn, false)
+	this.CreatePacketSocket(conn)
 
 	// 通知 Connector 组件
-	//this.connector.OnNewSocket(socket)
+	this.connector.OnNewSocket(this.GetPacketSocket())
 }
 
 // /////////////////////////////////////////////////////////////////////////////

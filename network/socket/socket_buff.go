@@ -34,12 +34,12 @@ func NewBufferSocket(socket model.ISocket) *BufferSocket {
 }
 
 // 将 bufReader 中部分读取数据到 p 中
-func (this *BufferSocket) Read(p []byte) (int error) {
+func (this *BufferSocket) Read(p []byte) (int, error) {
 	return this.bufReader.Read(p)
 }
 
 // 将 p 中部分数据写入 buffer 中
-func (this *BufferSocket) Write(p []byte) (int error) {
+func (this *BufferSocket) Write(p []byte) (int, error) {
 	return this.bufWriter.Write(p)
 }
 

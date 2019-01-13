@@ -4,7 +4,7 @@
 package mul
 
 import (
-	"github.com/zpab123/world/ifs"               // 全局接口库
+	"github.com/zpab123/world/model"             // 全局 [常量-基础数据类型-接口] 集合
 	"github.com/zpab123/world/network/connector" // 连接器
 )
 
@@ -21,14 +21,14 @@ func init() {
 
 // 同时支持 tcp websocket 的对象
 type mulAcceptor struct {
-	connector.AddrManager                // 对象继承： 监听地址管理
-	connector             ifs.IConnector // connector 组件
-	tcpAcceptor           ifs.IAcceptor  // tcpAcceptor 对象
-	wsAcceptor            ifs.IAcceptor  // wsAcceptor 对象
+	connector.AddrManager                  // 对象继承： 监听地址管理
+	connector             model.IConnector // connector 组件
+	tcpAcceptor           model.IAcceptor  // tcpAcceptor 对象
+	wsAcceptor            model.IAcceptor  // wsAcceptor 对象
 }
 
 // 创建1个 mulAcceptor 对象
-func newMulAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
+func newMulAcceptor(cntor model.IConnector) model.IAcceptor {
 	// 创建 tcpAcceptor
 	tcpaptor := connector.NewAcceptor(connector.CONNECTOR_TYPE_TCP, cntor)
 

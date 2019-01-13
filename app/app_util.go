@@ -7,7 +7,7 @@ import (
 	"flag"
 
 	"github.com/zpab123/world/config"            // 配置读取工具
-	"github.com/zpab123/world/model"             // 全局数据类型库
+	"github.com/zpab123/world/model"             // 全局 [常量-基础数据类型-接口] 集合
 	"github.com/zpab123/world/network/connector" // 网络连接库
 )
 
@@ -122,7 +122,7 @@ func regConnector(app *Application) {
 func getDefaultConnectorOpt() *model.ConnectorOpt {
 	// 创建默认
 	opts := &model.ConnectorOpt{
-		TypeName: connector.CONNECTOR_TYPE_MUL, // 默认支持多种
+		TypeName: connector.CONNECTOR_TYPE_COM, // 默认支持多种
 	}
 
 	return opts

@@ -6,7 +6,7 @@ package mul
 import (
 	"net"
 
-	"github.com/zpab123/world/ifs" // 全局接口库
+	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -14,12 +14,12 @@ import (
 
 // websocket 管理
 type mulSocket struct {
-	tcpConn   net.Conn       // Socket原始连接
-	connector ifs.IConnector // connector 组件
+	tcpConn   net.Conn         // Socket原始连接
+	connector model.IConnector // connector 组件
 }
 
 // 创建1个新的 mulSocket 对象
-func newMulSocket(conn net.Conn, cntor ifs.IConnector) ifs.ISocket {
+func newMulSocket(conn net.Conn, cntor model.IConnector) interface{} {
 	// 创建 socket
 	socket := &mulSocket{
 		tcpConn:   conn,

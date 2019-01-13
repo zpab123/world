@@ -7,7 +7,6 @@ import (
 	"net"
 	"strings"
 
-	"github.com/zpab123/world/ifs"               // 接口库
 	"github.com/zpab123/world/model"             // 常用数据类型
 	"github.com/zpab123/world/network/connector" // 连接器
 	"github.com/zpab123/world/utils"             // 工具库
@@ -27,14 +26,14 @@ func init() {
 
 // tcp 接收器
 type tcpAcceptor struct {
-	connector.AddrManager                    // 对象继承： 监听地址管理
-	connector.TCPSocketOption                // 对象继承： socket 基础参数管理
-	listener                  net.Listener   // 侦听器
-	connector                 ifs.IConnector // connector 对象
+	connector.AddrManager                      // 对象继承： 监听地址管理
+	connector.TCPSocketOption                  // 对象继承： socket 基础参数管理
+	listener                  net.Listener     // 侦听器
+	connector                 model.IConnector // connector 对象
 }
 
 // 创建1个新的 tcpAcceptor 对象
-func newTcpAcceptor(cntor ifs.IConnector) ifs.IAcceptor {
+func newTcpAcceptor(cntor model.IConnector) model.IAcceptor {
 	// 创建对象
 	aptor := &tcpAcceptor{
 		connector: cntor,

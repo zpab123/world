@@ -1,12 +1,12 @@
 // /////////////////////////////////////////////////////////////////////////////
-// 组合模式，支持 tcp websocket 连接
+// 能够接收/发送 packet 的 socket
 
 package com
 
 import (
 	"net"
 
-	"github.com/zpab123/world/ifs" // 接口库
+	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ type comSocket struct {
 }
 
 // 创建1个新的 comSocket 对象
-func newComSocket(conn net.Conn, isWebSocket bool) ifs.ISocket {
+func newComSocket(conn net.Conn, isWebSocket bool) model.ISocket {
 	// 创建 socket
 	socket := &comSocket{
 		Conn: conn,

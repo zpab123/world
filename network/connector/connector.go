@@ -6,11 +6,9 @@ package connector
 import (
 	"fmt"
 
-	"github.com/zpab123/syncutil"     // 原子操作工具
-	"github.com/zpab123/world/consts" // 全局常量
-	"github.com/zpab123/world/ifs"    // 顶级接口库
-	"github.com/zpab123/world/model"  // 全局数据类型
-	"github.com/zpab123/zplog"        // 日志库
+	"github.com/zpab123/syncutil"    // 原子操作工具
+	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
+	"github.com/zpab123/zplog"       // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +41,7 @@ func RegisterAcceptor(typeName string, f AcceptorCreateFunc) {
 // 根据类型，创建1个 acceptor 对象
 //
 // typeName 方便自己定义类型，不受 connectorOpt 影响
-func NewAcceptor(typeName string, cntor ifs.IConnector) ifs.IAcceptor {
+func NewAcceptor(typeName string, cntor model.IConnector) model.IAcceptor {
 	// 类型检查
 	creator := acceptorMap[typeName]
 	if nil == creator {
@@ -70,12 +68,12 @@ type Connector struct {
 	connNum       syncutil.AtomicUint32 // 当前连接数
 	opt           *model.ConnectorOpt   // 配置参数
 	state         syncutil.AtomicInt32  // connector 当前状态
-	acceptor      ifs.IAcceptor         // 某种类型的 acceptor 连接器
+	acceptor      model.IAcceptor       // 某种类型的 acceptor 连接器
 	SockerManager                       // 对象继承： socket 管理
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *model.Laddr, opts *model.ConnectorOpt) ifs.IComponent {
+func NewConnector(addrs *model.Laddr, opts *model.ConnectorOpt) model.IConnector {
 	// 参数效验
 	if nil != opts.Check() {
 		return nil
@@ -85,7 +83,7 @@ func NewConnector(addrs *model.Laddr, opts *model.ConnectorOpt) ifs.IComponent {
 
 	// 创建组件
 	cntor := &Connector{
-		name:  consts.COMPONENT_NAME_CONNECTOR,
+		name:  model.C_COMPONENT_NAME_CONNECTOR,
 		laddr: addrs,
 		opt:   opts,
 	}
@@ -129,7 +127,7 @@ func (this *Connector) GetConnectorOpt() *model.ConnectorOpt {
 // /////////////////////////////////////////////////////////////////////////////
 // AcceptorCreateFunc 对象
 
-type AcceptorCreateFunc func(cntor ifs.IConnector) ifs.IAcceptor
+type AcceptorCreateFunc func(cntor model.IConnector) model.IAcceptor
 
 // /////////////////////////////////////////////////////////////////////////////
 // socketManager
@@ -139,16 +137,16 @@ type SockerManager struct {
 }
 
 // 收到1个新的 socket 连接 [IConnector] 接口
-func (this *SockerManager) OnNewSocket(socket ifs.ISocket) {
+func (this *SockerManager) OnNewSocket(socket model.IPacketSocket) {
 
 }
 
 // 某个 socket  断开 [IConnector] 接口
-func (this *SockerManager) OnSocketClose(socket ifs.ISocket) {
+func (this *SockerManager) OnSocketClose(socket model.IPacketSocket) {
 
 }
 
 // 某个 socket  收到数据 [IConnector] 接口
-func (this *SockerManager) OnSocketMessage(socket ifs.ISocket) {
+func (this *SockerManager) OnSocketMessage(socket model.IPacketSocket) {
 
 }
