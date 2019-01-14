@@ -6,9 +6,11 @@ package connector
 import (
 	"fmt"
 
-	"github.com/zpab123/syncutil"    // 原子操作工具
-	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
-	"github.com/zpab123/zplog"       // 日志库
+	"github.com/zpab123/syncutil"      // 原子操作工具
+	"github.com/zpab123/world/model"   // 全局 [常量-基础数据类型-接口] 集合
+	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/world/session" // 会话组件
+	"github.com/zpab123/zplog"         // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -63,13 +65,15 @@ func NewAcceptor(typeName string, cntor model.IConnector) model.IAcceptor {
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
-	name          string                // 组件名字
-	laddr         *model.Laddr          // 监听地址集合
-	connNum       syncutil.AtomicUint32 // 当前连接数
-	opt           *model.ConnectorOpt   // 配置参数
-	state         syncutil.AtomicInt32  // connector 当前状态
-	acceptor      model.IAcceptor       // 某种类型的 acceptor 连接器
-	SockerManager                       // 对象继承： socket 管理
+	name                   string                // 组件名字
+	laddr                  *model.Laddr          // 监听地址集合
+	connNum                syncutil.AtomicUint32 // 当前连接数
+	opt                    *model.ConnectorOpt   // 配置参数
+	state                  syncutil.AtomicInt32  // connector 当前状态
+	acceptor               model.IAcceptor       // 某种类型的 acceptor 连接器
+	SockerManager                                // 对象继承： socket 管理
+	session.SessionManager                       // 对象继承： session 管理
+	network.RecoverIoPanic                       // 对象继承： io 异常捕获
 }
 
 // 新建1个 Connector 对象

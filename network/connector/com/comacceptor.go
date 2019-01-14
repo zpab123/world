@@ -32,7 +32,6 @@ type comAcceptor struct {
 	connector.TCPSocketOption                  // 对象继承： socket 基础参数管理
 	connector                 model.IConnector // connector 对象
 	tcpListener               net.Listener     // tcp 侦听器
-	httpServer                *http.Server     // http 服务器
 	wsListenAddr              string           // 监听成功的 websocket
 	certFile                  string           // TLS加密文件
 	keyFile                   string           // TLS解密key
@@ -142,7 +141,7 @@ func (this *comAcceptor) onNewTcpConn(conn net.Conn) {
 	this.ApplySocketOption(conn)
 
 	// 创建 packetSocket
-	packetSocket := connector.CreatePacketSocket(conn)
+	packetSocket := connector.CreatePacketSocket(conn, this.connector)
 
 	// 通知 Connector 组件
 	this.connector.OnNewSocket(packetSocket)
@@ -203,7 +202,7 @@ func (this *comAcceptor) onNewWsConn(wsConn *websocket.Conn) {
 	wsConn.PayloadType = websocket.BinaryFrame
 
 	// 创建 packetSocket
-	packetSocket := connector.CreatePacketSocket(wsConn)
+	packetSocket := connector.CreatePacketSocket(wsConn, this.connector)
 
 	// 通知 Connector 组件
 	this.connector.OnNewSocket(packetSocket)

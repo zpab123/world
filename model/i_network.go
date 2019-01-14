@@ -45,3 +45,11 @@ type ISocket interface {
 // 可以收发 packet 的 socket
 type IPacketSocket interface {
 }
+
+// packet 消息收发接口
+type IPacketPostter interface {
+	// 接收 1个 packet
+	RecvPacket(socket IPacketSocket) (msg interface{}, err error)
+	// 发送 1个 packet
+	SendPacket(socket IPacketSocket, msg interface{}) error
+}
