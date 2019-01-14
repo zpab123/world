@@ -73,7 +73,7 @@ type Connector struct {
 	acceptor               model.IAcceptor       // 某种类型的 acceptor 连接器
 	SockerManager                                // 对象继承： socket 管理
 	session.SessionManager                       // 对象继承： session 管理
-	network.RecoverIoPanic                       // 对象继承： io 异常捕获
+	network.RecoverIoPanic                       // 对象继承： 设置是否 io 异常捕获
 }
 
 // 新建1个 Connector 对象

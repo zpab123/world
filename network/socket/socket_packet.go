@@ -6,6 +6,7 @@ package socket
 import (
 	"github.com/zpab123/world/model"   // 全局 [常量-基础数据类型-接口] 集合
 	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/zplog"         // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -67,10 +68,20 @@ func (this *PacketSocket) Close() {
 // 接收循环
 func (this *PacketSocket) recvLoop() {
 	// 是否进行 io 异常捕获
-	var capturePanic bool
-	//if i, ok := this.connector.(network.)
+	var capturePanic bool = this.connector.GetRecoverIoPanic()
 
+	// 数据处理
 	for nil != this.socket {
+		var pkt interface{}
+		var err error
+
+		// 接收数据
+		if capturePanic {
+			pkt, err = this.protectedRecv()
+		} else {
+			pkt, err = this.RecvPacket()
+		}
+
 		// 接收数据
 		pkt := this.ReadPacket()
 
@@ -83,6 +94,21 @@ func (this *PacketSocket) recvLoop() {
 // 发送循环
 func (this *PacketSocket) sendLoop() {
 
+}
+
+// 保护性读取 packet 数据 （带异常捕获）
+func (this *PacketSocket) protectedRecv() (pkt interface{}, err error) {
+	// 异常捕获
+	defer func() {
+		if err := recover(); err != nil {
+			zplog.Panicf("PacketSocket 接收 packet 异常。错误=%s", err)
+			this.socket.Close()
+		}
+	}()
+
+	pkt, err = this.RecvPacket()
+
+	return
 }
 
 // 接收下1个 packet 数据

@@ -6,8 +6,7 @@ package network
 import (
 	"errors"
 
-	"github.com/zpab123/world/model"    // 全局 [常量-基础数据类型-接口] 集合
-	"github.com/zpab123/world/worldnet" // 网络库
+	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +25,7 @@ type PacketManager struct {
 }
 
 // 读取 packet [IPacketPostter 接口]
-func (this *PacketManager) ReadPacket(ses worldnet.ISession) (pkt interface{}, err error) {
+func (this *PacketManager) RecvPacket(ses model.ISession, recoverPanic bool) (pkt interface{}, err error) {
 	if nil != this.postter {
 		return this.postter.RecvPacket(ses)
 	}

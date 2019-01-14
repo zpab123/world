@@ -13,11 +13,18 @@ import (
 // connector 组件
 type IConnector interface {
 	IComponent                            // 接口继承： 组件接口
+	IRecoverIoPanic                       // 接口继承： 设置是否捕获 io 异常
 	GetAddr() *Laddr                      // 获取地址信息集合
 	GetConnectorOpt() *ConnectorOpt       // 网络连接配置
 	OnNewSocket(socket IPacketSocket)     // 收到1个新的 socket 连接
 	OnSocketClose(socket IPacketSocket)   // 某个 socket  断开
 	OnSocketMessage(socket IPacketSocket) // 某个 socket  收到数据
+}
+
+// 开启 IO 层异常捕获, 在生产版本对外端口应该打开此设置
+type IRecoverIoPanic interface {
+	SetRecoverIoPanic(v bool) // 设置是否捕获 Io 异常 [IRecoverIoPanic 接口]
+	GetRecoverIoPanic() bool  // 获取是否捕获 Io 异常 [IRecoverIoPanic 接口]
 }
 
 // /////////////////////////////////////////////////////////////////////////////

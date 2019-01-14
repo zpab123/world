@@ -3,10 +3,6 @@
 
 package model
 
-import (
-	"net"
-)
-
 // Session 组件
 type ISession interface {
 }
