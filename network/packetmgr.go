@@ -19,23 +19,23 @@ var notPostter = errors.New("数据处理错误: 收发器 postter 为 nil ") //
 
 // packet 数据管理
 type PacketManager struct {
-	postter model.IPacketPostter // packet 收发管理：符合 IPacketPostter 接口的对象
+	dataManager model.IDataManager // 网络数据收发管理对象
 	//callback worldnet.EventCallback  // 事件回调函数
 	// 钩子
 }
 
-// 读取 packet [IPacketPostter 接口]
-func (this *PacketManager) RecvPacket(ses model.ISession, recoverPanic bool) (pkt interface{}, err error) {
-	if nil != this.postter {
-		return this.postter.RecvPacket(ses)
+// 接收1个 packet [IDataManager 接口]
+func (this *PacketManager) RecvPacket(socket model.IPacketSocket) (pkt interface{}, err error) {
+	if nil != this.dataManager {
+		return this.dataManager.RecvPacket(socket)
 	}
 
 	return nil, notPostter
 }
 
-// 发送 packet [IPacketPostter 接口]
+// 发送1个 packet [IDataManager 接口]
 func (this *PacketManager) SendPacket(pkt interface{}) {
-	if nil != this.postter && nil != pkt {
+	if nil != this.dataManager && nil != pkt {
 		//this.postter.SendPacket(evt.GetSession(), evt.GetPacket())
 	}
 }

@@ -13,7 +13,8 @@ import (
 
 // connector 类型
 const (
-	NETWORK_CONNECTOR_TYPE_TCP = "tcpConnector" // tcp 连接器
+	C_ACCEPTOR_TYPE_TCP = "tcpAcceptor" // tcp 接收器
+	C_ACCEPTOR_TYPE_COM = "composite"   // 同时支持 tcp 和 websocket
 )
 
 const (
@@ -28,6 +29,9 @@ const (
 
 // packet 常量
 const (
-	C_PACKET_HEAD_LEN = 4         // 消息头大小:字节 type(2字节) + length(2字节)
-	C_PACKET_MAX_LEN  = 64 * 1024 // 最大单个 packet 数据，= head + body （64K = 65536）
+	C_PACKET_HEAD_LEN      = 4          // 消息头大小:字节 type(2字节) + length(2字节)
+	C_PACKET_MAX_LEN       = 64 * 1024  // 最大单个 packet 数据，= head + body （64K = 65536）
+	C_PACKET_TYPE_TCP_TLV  = "tcp.tlv"  // type-length-value 形式的 packet 数据
+	C_PACKET_TYPE_TCP_JSON = "tcp.josn" // type-length-json 形式的 packet 数据
+	C_MSG_TYPE_INVALID     = iota       // 无效的消息类型
 )

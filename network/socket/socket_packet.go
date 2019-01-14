@@ -6,6 +6,7 @@ package socket
 import (
 	"github.com/zpab123/world/model"   // 全局 [常量-基础数据类型-接口] 集合
 	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/world/utils"   // 工具库
 	"github.com/zpab123/zplog"         // 日志库
 )
 
@@ -52,8 +53,10 @@ func (this *PacketSocket) Run() {
 	// 结束监听 goroutine
 
 	// 启动并发接收 goroutine
+	go this.recvLoop()
 
 	// 启动并发发送 goroutine
+	go this.sendLoop()
 }
 
 // 关闭 PacketSocket
@@ -82,17 +85,53 @@ func (this *PacketSocket) recvLoop() {
 			pkt, err = this.RecvPacket()
 		}
 
-		// 接收数据
-		pkt := this.ReadPacket()
+		// 接收出错
+		if nil != err {
+			// EOFO 错误
+			if !utils.IsEOFOrNetReadError(err) {
+				zplog.Errorf("PacketSocket 关闭。 socketId=, err=%s", err)
+			}
+
+			// 准备关闭发送线程
+			this.sendQueue.Add(nil)
+
+			// 通知 connector 组件
+
+			break
+		}
 
 		// 自身数据处理 -- 握手、心跳等
 
 		// 通知 connector 的数据
 	}
+
+	// 结束发送线程
 }
 
 // 发送循环
 func (this *PacketSocket) sendLoop() {
+	// 发送切片
+	var writeList []interface{}
+
+	// 复制数据
+	for {
+		writeList = writeList[0:0]
+		exit := this.sendQueue.Pick(&writeList)
+
+		// 遍历要发送的数据
+		for _, pkt := range writeList {
+			this.SendPacket(pkt)
+		}
+
+		if exit {
+			break
+		}
+	}
+
+	// 完整关闭
+	this.socket.Close()
+
+	// 通知其他线程
 
 }
 
@@ -110,7 +149,3 @@ func (this *PacketSocket) protectedRecv() (pkt interface{}, err error) {
 
 	return
 }
-
-// 接收下1个 packet 数据
-//
-// 返回, nil=没收到完整的 packet 数据; packet=完整的 packet 数据包

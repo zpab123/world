@@ -99,3 +99,31 @@ type ConnectorOpt struct {
 func (this *ConnectorOpt) Check() error {
 	return nil
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// TConnectorOpt 对象
+
+// connector 组件配置参数
+type TConnectorOpt struct {
+	AcceptorType string        // 接收器 类型
+	PktType      string        // packet 数据结构类型
+	Heartbeat    time.Duration // 心跳间隔
+	Handshake    func()        // 自定义的握手处理函数
+	MaxConn      uint32        // 最大连接数量，超过此数值后，不再接收新连接
+}
+
+// 检查 ConnectorConfig 参数是否存在错误
+func (this *TConnectorOpt) Check() error {
+	return nil
+}
+
+// 设置默认参数
+func (this *TConnectorOpt) SetDefault() {
+	this.AcceptorType = C_ACCEPTOR_TYPE_COM
+	this.PktType = C_PACKET_TYPE_TCP_TLB
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// TConnectorOpt 对象
+
+type TDataMgrCreator func(pm IPacketManager, handler IPacketHandler)

@@ -51,12 +51,29 @@ type ISocket interface {
 
 // 可以收发 packet 的 socket
 type IPacketSocket interface {
+	ISocket             // 接口继承： 符合 ISocket 的对象
+	GetSocket() ISocket // 获取 ISocket 对象
 }
 
-// packet 消息收发接口
-type IPacketPostter interface {
+// 网络数据收发管理
+type IDataManager interface {
 	// 接收 1个 packet
-	RecvPacket(socket IPacketSocket) (msg interface{}, err error)
+	RecvPacket(socket IPacketSocket) (pkt interface{}, err error)
 	// 发送 1个 packet
-	SendPacket(socket IPacketSocket, msg interface{}) error
+	SendPacket(socket IPacketSocket, pkt interface{}) error
+}
+
+// packet 消息管理接口
+type IPacketManager interface {
+	// 设置网络数据 接受/发送对象
+	SetDataManager(dm IDataManager)
+	// 设置 接收后，发送前的事件处理流程
+	//SetHooker
+	// 设置 接收后最终处理回调
+	//SetCallback(v cellnet.EventCallback)
+}
+
+// packet 处理接口
+type IPacketHandler interface {
+	OnMessage(ses ISession, msg interface{})
 }
