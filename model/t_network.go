@@ -120,7 +120,7 @@ func (this *TConnectorOpt) Check() error {
 // 设置默认参数
 func (this *TConnectorOpt) SetDefault() {
 	this.AcceptorType = C_ACCEPTOR_TYPE_COM
-	this.PktType = C_PACKET_TYPE_TCP_TLB
+	this.PktType = C_PACKET_TYPE_TCP_TLV
 }
 
 // /////////////////////////////////////////////////////////////////////////////
