@@ -3,14 +3,30 @@
 
 package model
 
-// /////////////////////////////////////////////////////////////////////////////
-// 组件相关
-
 // 组件基础
 type IComponent interface {
 	Name() string // 获取组件名字
 	Run()         // 组件开始运行
 	Stop()        // 组件停止运行
+}
+
+// 状态管理
+type IState interface {
+	SetState(v uint32) // 设置状态
+	GetState() uint32  // 获取状态
+}
+
+// 多线程同步
+type ISyncGroup interface {
+	Add(delta int) // 添加 delta 个 go 线程
+	Done()         // 完成1个 go  线程
+	Wait()         // 阻塞： 等待所有 go 线程结束
+}
+
+// 多线程任务状态同步
+type IStateGroup interface {
+	IState     // 接口继承： 状态基础
+	ISyncGroup // 接口继承： 多线程同步
 }
 
 // 设置和获取自定义属性

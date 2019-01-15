@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/zpab123/world/base"                    // 基础信息
@@ -28,10 +29,11 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	baseInfo         *base.BaseInfo   // 服务器基础信息
-	serverInfo       model.ServerInfo // 服务器配置信息
-	stateManager                      // 对象继承： app 状态管理
-	componentManager                  // 对象继承： app 组件管理
+	baseInfo         *base.BaseInfo        // 服务器基础信息
+	serverInfo       model.ServerInfo      // 服务器配置信息
+	state            syncutil.AtomicUint32 // app 当前状态
+	goGroup          sync.WaitGroup        // 线程同步组
+	componentManager                       // 对象继承： app 组件管理
 }
 
 // 创建1个新的 Application 对象
@@ -54,7 +56,7 @@ func NewApplication(appType string) *Application {
 }
 
 // 初始化 Application
-func (app *Application) Init() bool {
+func (this *Application) Init() bool {
 	// 错误变量
 	//var initErr error = nil
 
@@ -65,30 +67,30 @@ func (app *Application) Init() bool {
 
 		return false
 	}
-	app.baseInfo.MainPath = dir
+	this.baseInfo.MainPath = dir
 
 	// 组件管理初始化
-	app.componentMgrInit()
+	this.componentMgrInit()
 
 	// 设置基础配置
-	defaultConfiguration(app)
+	defaultConfiguration(this)
 
 	// 设置为初始化状态
-	app.state.Store(consts.APP_STATE_INIT)
-	zplog.Infof("app 初始化完成")
+	this.state.Store(model.C_APP_STATE_INIT)
+	zplog.Infof("app 状态：初始化完成")
 
 	return true
 }
 
 // 启动 app
-func (app *Application) Run() {
+func (this *Application) Run() {
 	// 记录启动时间
-	app.baseInfo.RunTime = time.Now()
+	this.baseInfo.RunTime = time.Now()
 
 	// 状态效验
-	if app.state.Load() != consts.APP_STATE_INIT {
+	if this.state.Load() != consts.APP_STATE_INIT {
 		//err := new error
-		zplog.Error("app 非 init 状态，启动失败")
+		zplog.Error("this 非 init 状态，启动失败")
 		return
 	}
 
@@ -96,15 +98,24 @@ func (app *Application) Run() {
 	rand.Seed(time.Now().UnixNano())
 
 	// 注册默认组件
-	regDefaultComponent(app)
+	regDefaultComponent(this)
+
+	// 设置为启动中
+	this.state.Store(model.C_APP_STATE_RUNING)
+	zplog.Infof("app 状态：正在启动 ...")
 
 	// 启动所有组件
-	for _, cpt := range app.componentMap {
+	for _, cpt := range this.componentMap {
+		this.goGroup.Add(1)
 		go cpt.Run()
 	}
 
-	// 设置为启动中
-	app.state.Store(consts.APP_STATE_RUNING)
+	// 阻塞 - 等待启动完成
+	this.goGroup.Wait()
+
+	// 启动完毕 - 设置为工作中
+	this.state.Store(model.C_APP_STATE_WORKING)
+	zplog.Infof("app 状态：启动成功，工作中 ...")
 
 	// 主循环
 	for {
@@ -112,29 +123,29 @@ func (app *Application) Run() {
 	}
 }
 
-// 停止 app
-func (app *Application) Stop() error {
+// 停止 this
+func (this *Application) Stop() error {
 	// 停止所有组件
-	for _, cpt := range app.componentMap {
+	for _, cpt := range this.componentMap {
 		cpt.Stop()
 	}
 
 	return nil
 }
 
-// 设置 app 类型
-func (app *Application) SetType(v string) {
-	app.baseInfo.ServerType = v
+// 设置 this 类型
+func (this *Application) SetType(v string) {
+	this.baseInfo.ServerType = v
 }
 
 // 获取 tcp 服务器监听地址(格式 -> 127.0.0.1:6532)
 //
 // 如果不存在，则返回 ""
-func (app *Application) GetCTcpAddr() string {
+func (this *Application) GetCTcpAddr() string {
 	// tcp 地址
 	var cTcpAddr string = ""
-	if app.serverInfo.CTcpPort > 0 {
-		cTcpAddr = fmt.Sprintf("%s:%d", app.serverInfo.ClientHost, app.serverInfo.CTcpPort) // 面向客户端的 tcp 地址
+	if this.serverInfo.CTcpPort > 0 {
+		cTcpAddr = fmt.Sprintf("%s:%d", this.serverInfo.ClientHost, this.serverInfo.CTcpPort) // 面向客户端的 tcp 地址
 	}
 
 	return cTcpAddr
@@ -143,11 +154,11 @@ func (app *Application) GetCTcpAddr() string {
 // 获取 websocket 服务器监听地址(格式 -> 127.0.0.1:6532)
 //
 // 如果不存在，则返回 ""
-func (app *Application) GetCWsAddr() string {
+func (this *Application) GetCWsAddr() string {
 	// websocket 地址
 	var cWsAddr string = ""
-	if app.serverInfo.CWsPort > 0 {
-		cWsAddr = fmt.Sprintf("%s:%d", app.serverInfo.ClientHost, app.serverInfo.CWsPort) // 面向客户端的 websocket 地址
+	if this.serverInfo.CWsPort > 0 {
+		cWsAddr = fmt.Sprintf("%s:%d", this.serverInfo.ClientHost, this.serverInfo.CWsPort) // 面向客户端的 websocket 地址
 	}
 
 	return cWsAddr
