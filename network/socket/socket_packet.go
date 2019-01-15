@@ -6,6 +6,7 @@ package socket
 import (
 	"github.com/zpab123/world/model"   // 全局 [常量-基础数据类型-接口] 集合
 	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/world/queue"   // 消息队列
 	"github.com/zpab123/world/utils"   // 工具库
 	"github.com/zpab123/zplog"         // 日志库
 )
@@ -16,15 +17,12 @@ import (
 // PacketSocket
 type PacketSocket struct {
 	socket                model.ISocket    // 接口继承： 符合 ISocket 的对象
-	sendQueue             *network.Pipe    // 发送队列
 	connector             model.IConnector // connector 组件
 	network.PacketManager                  // 对象继承： packet 消息管理对象
 }
 
 // 创建1个新的 PacketSocket 对象
 func NewPacketSocket(st model.ISocket, cntor model.IConnector) *PacketSocket {
-	// 创建发送队列
-	que := network.NewPipe()
 
 	// 设置 packet 处理器
 
@@ -32,7 +30,6 @@ func NewPacketSocket(st model.ISocket, cntor model.IConnector) *PacketSocket {
 	pktSocket := &PacketSocket{
 		socket:    st,
 		connector: cntor,
-		sendQueue: que,
 	}
 
 	return pktSocket

@@ -10,6 +10,7 @@ import (
 
 	"github.com/zpab123/world/model"          // 全局 [常量-基础数据类型-接口] 集合
 	"github.com/zpab123/world/network/packet" // packet 管理
+	"github.com/zpab123/world/queue"          // 消息队列
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -38,13 +39,18 @@ type TcpDataManager struct {
 	pType     uint16                        // 本次 packet 类型
 	bodylen   uint32                        // 本次 pcket body 总大小
 	newPacket *packet.Packet                // 用于存储 本次即将接收的 Packet 对象
+	sendQueue *queue.Pipe                   // 发送队列
 }
 
 // 创建1个 TcpDataManager 对象
 func NewTcpDataManager(handler model.IPacketHandler) *TcpDataManager {
+	// 创建发送队列
+	que := queue.NewPipe()
+
 	// 创建 dm
 	dm := &TcpDataManager{
-		handler: handler,
+		handler:   handler,
+		sendQueue: que,
 	}
 
 	return dm
@@ -87,16 +93,44 @@ func (this *TcpDataManager) RecvPacket(socket model.IPacketSocket) (interface{},
 		// 创建新的 packet 对象
 		this.recvedLen = 0 // 重置
 		this.newPacket = packet.NewPacket()
-		//this.newPacket.allocBuffer(this.bodylen)
+		this.newPacket.AllocBuffer(this.bodylen)
 	}
 
 	// 接收 pcket 数据的 body 部分
+	bytes := this.newPacket.GetBytes()
+	n, err := socket.GetSocket().Read(bytes[_HEAD_LEN+this.recvedLen : _HEAD_LEN+this.bodylen])
+	this.recvedLen += uint32(n)
 
-	return
+	// 接收完成， packet 数据包完整
+	if this.recvedLen == this.bodylen {
+		// 解密
+		packet := this.newPacket
+		this.resetRecvStates()
+
+		return packet, nil
+	}
+
+	if nil == err {
+		err == errRecvAgain
+	}
+
+	return nil, err
 }
 
 // 发送1个 packet [IDataManager 接口]
 func (this *TcpDataManager) SendPacket(socket model.IPacketSocket, pkt interface{}) (err error) {
+	// 类型转化
+	writer, ok := socket.GetSocket().(io.Writer)
+	if !ok || nil == writer {
+		return nil // 转换错误，或者连接已经关闭时退出
+	}
+
+	// 有写超时时，设置超时
+	cntor := socket.GetConnector()
+	cntor.SetSocketWriteTimeout(writer.(net.Conn), func() {
+
+	})
+
 	return
 }
 
@@ -105,6 +139,7 @@ func (this *TcpDataManager) resetRecvStates() {
 	this.recvedLen = 0
 	this.bodylen = 0
 	this.pType = model.C_MSG_TYPE_INVALID
+	this.newPacket = nil
 }
 
 // /////////////////////////////////////////////////////////////////////////////

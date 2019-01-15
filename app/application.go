@@ -48,7 +48,7 @@ func NewApplication(appType string) *Application {
 	app.baseInfo.ServerType = appType
 
 	// 设置为无效状态
-	app.state.Store(consts.APP_STATE_INVALID)
+	app.state.Store(model.C_APP_STATE_INVALID)
 
 	return app
 }
@@ -114,6 +114,10 @@ func (app *Application) Run() {
 
 // 停止 app
 func (app *Application) Stop() error {
+	// 停止所有组件
+	for _, cpt := range app.componentMap {
+		cpt.Stop()
+	}
 
 	return nil
 }

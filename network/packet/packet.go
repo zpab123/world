@@ -57,6 +57,11 @@ func NewPacket() *Packet {
 	return getPacketFromPool()
 }
 
+// 获取 bytes
+func (this *Packet) GetBytes() []byte {
+	return this.bytes
+}
+
 // 获取 packet 的 body 字节长度
 func (this *Packet) GetBodyLen() uint16 {
 	bodyLen := *(*uint16)(unsafe.Pointer(&this.bytes[_LEN_POS])) & _BODY_LEN_MASK
@@ -65,7 +70,7 @@ func (this *Packet) GetBodyLen() uint16 {
 // 在 Packet 的 bytes 后面添加1个 byte 数据
 func (this *Packet) AppendByte(b byte) {
 	// 申请buffer
-	this.allocBuffer(1)
+	this.AllocBuffer(1)
 
 	// 赋值
 	wPos := this.getWirtePos()
@@ -106,7 +111,7 @@ func (this *Packet) ReadBool() bool {
 // 在 Packet 的 bytes 后面，添加1个 uint16 数据
 func (this *Packet) AppendUint16(v uint16) {
 	// 申请buffer
-	this.allocBuffer(2)
+	this.AllocBuffer(2)
 
 	// 赋值
 	wPos := this.getWirtePos()
@@ -131,7 +136,7 @@ func (this *Packet) ReadUint16() (v uint16) {
 // 在 Packet 的 bytes 后面，添加1个 uint32 数据
 func (this *Packet) AppendUint32(v uint32) {
 	// 申请buffer
-	this.allocBuffer(4)
+	this.AllocBuffer(4)
 
 	// 赋值
 	wPos := this.getWirtePos()
@@ -156,7 +161,7 @@ func (this *Packet) ReadUint32() (v uint32) {
 // 在 Packet 的 bytes 后面，添加1个 uint64 数据
 func (this *Packet) AppendUint64(v uint64) {
 	// 申请内存
-	this.allocBuffer(8)
+	this.AllocBuffer(8)
 
 	// 添加数据
 	wPos := this.getWirtePos()
@@ -224,7 +229,7 @@ func (this *Packet) AppendBytes(v []byte) {
 	bytesLen := uint32(len(v))
 
 	// 申请内存
-	thi.allocBuffer(bytesLen)
+	thi.AllocBuffer(bytesLen)
 
 	// 复制数据
 	wPos := this.getWirtePos()
@@ -319,7 +324,7 @@ func (this *Packet) Release() {
 }
 
 // 根据 need 数量， 为 packet 的 bytes 扩大内存，并完成旧数据复制
-func (this *Packet) allocBuffer(need uint32) {
+func (this *Packet) AllocBuffer(need uint32) {
 	// 现有长度满足需求
 	newLen := this.GetBodyLen() + need //body 新长度 = 旧长度 + size
 	payloadLen := this.getPayloadLen() // 有效载荷长度
@@ -336,7 +341,7 @@ func (this *Packet) allocBuffer(need uint32) {
 	}
 
 	// 新旧 buff 数据交换
-	copy(newBuffer, this.data())
+	copy(newBuffer, this.Data())
 	oldPayloadLen := this.getPayloadLen()
 	oldBytes := this.bytes
 	this.bytes = newBuffer
@@ -355,7 +360,7 @@ func (this *Packet) getPayloadLen() uint32 {
 }
 
 // Packet.bytes 中的所有有效数据
-func (this *Packet) data() []byte {
+func (this *Packet) Data() []byte {
 	return this.bytes[0 : _HEAD_LEN+this.GetBodyLen()]
 }
 
