@@ -16,6 +16,6 @@ type Socket struct {
 }
 
 // 刷新缓冲区
-func (self Socket) Flush() error {
+func (this Socket) Flush() error {
 	return nil
 }

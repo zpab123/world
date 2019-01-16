@@ -6,7 +6,8 @@ package session
 import (
 	"net"
 
-	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/model"          // 全局模型
+	"github.com/zpab123/world/network/socket" // socket
 )
 
 type ClientSession struct {
