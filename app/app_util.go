@@ -63,7 +63,7 @@ func getServerInfo(app *Application) {
 
 	// 获取类型列表
 	list := config.GetServerMap()[serverType]
-	if len(list) <= 0 {
+	if nil == list || len(list) <= 0 {
 		return
 	}
 
@@ -100,7 +100,7 @@ func regDefaultComponent(app *Application) {
 // 注册1个 Connector 组件
 func regConnector(app *Application) {
 	// 地址参数
-	laddr := &model.Laddr{
+	laddr := &model.TLaddr{
 		TcpAddr: app.GetCTcpAddr(),
 		WsAddr:  app.GetCWsAddr(),
 	}
@@ -119,11 +119,10 @@ func regConnector(app *Application) {
 }
 
 // 获取默认 ConnectorOpt
-func getDefaultConnectorOpt() *model.ConnectorOpt {
+func getDefaultConnectorOpt() *model.TConnectorOpt {
 	// 创建默认
-	opts := &model.ConnectorOpt{
-		TypeName: connector.CONNECTOR_TYPE_COM, // 默认支持多种
-	}
+	opts := &model.TConnectorOpt{}
+	opts.SetDefault()
 
 	return opts
 }

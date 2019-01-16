@@ -18,13 +18,13 @@ import (
 
 // 变量
 var (
-	configMutex      sync.Mutex              // 进程互斥锁
-	mainPath         string                  // 程序启动目录
-	iniConfig        *model.WorldIni         // world.ini 配置信息
-	iniFilePath      = consts.PATH_WORLD_INI // world.ini 默认路径
-	serverConfig     *model.ServerConfig     // server.json 配置表
-	serverConfigPath = consts.PATH_SERVER    // servers.json 配置文件路径
-	serverMap        model.ServerMap         // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
+	configMutex      sync.Mutex               // 进程互斥锁
+	mainPath         string                   // 程序启动目录
+	iniConfig        *model.TWorldIni         // world.ini 配置信息
+	iniFilePath      = model.C_PATH_WORLD_INI // world.ini 默认路径
+	serverConfig     *model.TServerConfig     // server.json 配置表
+	serverConfigPath = model.C_PATH_SERVER    // servers.json 配置文件路径
+	serverMap        model.TServerMap         // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
 )
 
 // 初始化
@@ -43,19 +43,19 @@ func init() {
 // 对外 api
 
 // 获取 world.ini 配置对象
-func GetWorldIni() *model.WorldIni {
+func GetWorldIni() *model.TWorldIni {
 	return iniConfig
 }
 
 // 获取 servers.json 配置信息
 //
 // 返回： map[string][]ServerInfo 数据集合
-func GetServerConfig() *model.ServerConfig {
+func GetServerConfig() *model.TServerConfig {
 	return serverConfig
 }
 
 // 获取 当前环境的 服务器信息集合
-func GetServerMap() model.ServerMap {
+func GetServerMap() model.TServerMap {
 	return serverMap
 }
 
@@ -112,8 +112,8 @@ func getServerConfig() {
 
 		// 创建对象
 		serverConfig = &model.ServerConfig{
-			Development: map[string][]model.ServerInfo{},
-			Production:  map[string][]model.ServerInfo{},
+			Development: model.TServerMap{},
+			Production:  model.TServerMap{},
 		}
 
 		// 加载文件
@@ -121,7 +121,7 @@ func getServerConfig() {
 		LoadJsonToMap(fPath, serverConfig)
 
 		// 根据运行环境赋值
-		if consts.ENV_DEV == iniConfig.Env {
+		if model.C_ENV_DEV == iniConfig.Env {
 			serverMap = serverConfig.Development
 		} else {
 			serverMap = serverConfig.Production

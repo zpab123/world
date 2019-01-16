@@ -42,7 +42,7 @@ func RegisterAcceptor(typeName string, f AcceptorCreateFunc) {
 
 // 根据类型，创建1个 acceptor 对象
 //
-// typeName 方便自己定义类型，不受 connectorOpt 影响
+// typeName 方便自己定义类型，不受 TConnectorOpt 影响
 func NewAcceptor(typeName string, cntor model.IConnector) model.IAcceptor {
 	// 类型检查
 	creator := acceptorMap[typeName]
@@ -66,9 +66,9 @@ func NewAcceptor(typeName string, cntor model.IConnector) model.IAcceptor {
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
 	name                   string                // 组件名字
-	laddr                  *model.Laddr          // 监听地址集合
+	laddr                  *model.TLaddr         // 监听地址集合
+	opt                    *model.TConnectorOpt  // 配置参数
 	connNum                syncutil.AtomicUint32 // 当前连接数
-	opt                    *model.ConnectorOpt   // 配置参数
 	state                  syncutil.AtomicInt32  // connector 当前状态
 	acceptor               model.IAcceptor       // 某种类型的 acceptor 连接器
 	SockerManager                                // 对象继承： socket 管理
@@ -77,7 +77,7 @@ type Connector struct {
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *model.Laddr, opts *model.ConnectorOpt) model.IConnector {
+func NewConnector(addrs *model.TLaddr, opts *model.TConnectorOpt) model.IConnector {
 	// 参数效验
 	if nil != opts.Check() {
 		return nil
@@ -93,7 +93,7 @@ func NewConnector(addrs *model.Laddr, opts *model.ConnectorOpt) model.IConnector
 	}
 
 	// 创建 Acceptor
-	aptor := NewAcceptor(opts.TypeName, cntor)
+	aptor := NewAcceptor(opts.AcceptorType, cntor)
 
 	// 保存 Acceptor
 	cntor.acceptor = aptor
@@ -119,12 +119,12 @@ func (this *Connector) Stop() {
 }
 
 // 获取地址集合信息 [IConnector 接口]
-func (this *Connector) GetAddr() *model.Laddr {
+func (this *Connector) GetAddr() *model.TLaddr {
 	return this.laddr
 }
 
 // 获取 connector 配置信息 [IConnector 接口]
-func (this *Connector) GetConnectorOpt() *model.ConnectorOpt {
+func (this *Connector) GetConnectorOpt() *model.TConnectorOpt {
 	return this.opt
 }
 

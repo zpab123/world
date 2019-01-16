@@ -7,20 +7,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-ini/ini"           // ini 库
-	"github.com/zpab123/world/consts" // 全局常量
-	"github.com/zpab123/world/model"  // 全局 struct
-	"github.com/zpab123/zplog"        // log 工具
+	"github.com/go-ini/ini"          // ini 库
+	"github.com/zpab123/world/model" // 全局 struct
+	"github.com/zpab123/zplog"       // log 工具
 )
 
 // /////////////////////////////////////////////////////////////////////////////
 // 私有 api
 
 // 读取 world.ini 配置文件
-func readWorldIni() *model.WorldIni {
+func readWorldIni() *model.TWorldIni {
 	// 创建 WorldIni 对象
-	config := &model.WorldIni{
-		Env: consts.ENV_DEV, // 默认开发环境
+	config := &model.TWorldIni{
+		Env: model.C_ENV_DEV, // 默认开发环境
 	}
 
 	// 读取配置文件
@@ -61,18 +60,18 @@ func checkConfigError(err error, msg string) {
 }
 
 // 读取 env 开发环境
-func readEnv(sec *ini.Section, config *model.WorldIni) {
+func readEnv(sec *ini.Section, config *model.TWorldIni) {
 	// 设置成默认
-	config.Env = consts.ENV_DEV
+	config.Env = model.C_ENV_DEV
 
 	// 读取属性
 	for _, key := range sec.Keys() {
 		name := strings.ToLower(key.Name()) //转化成小写
 		if name == "env" {
 			config.Env = key.MustString(config.Env)
-			if config.Env != consts.ENV_DEV && config.Env != consts.ENV_PRO {
-				config.Env = consts.ENV_DEV
-				zplog.Fatal("world.ini 中 [env] 参数配置错误，设置成默认 development")
+			if config.Env != model.C_ENV_DEV && config.Env != model.C_ENV_PRO {
+				config.Env = model.C_ENV_DEV
+				zplog.Fatal("world.ini 中 [env] 参数配置错误。设置成默认 development")
 			}
 		} else {
 			zplog.Fatal("读取 world.ini [env] 失败")

@@ -16,17 +16,17 @@ import (
 
 // app 组件管理
 type componentManager struct {
-	connectorOpt *model.ConnectorOpt         // connector 组件配置参数
+	connectorOpt *model.TConnectorOpt        // connector 组件配置参数
 	componentMap map[string]model.IComponent // 名字-> 组件 集合
 }
 
 // 获取 connector 组件参数 [IComponentManager] 接口
-func (this *componentManager) GetConnectorOpt() *model.ConnectorOpt {
+func (this *componentManager) GetConnectorOpt() *model.TConnectorOpt {
 	return this.connectorOpt
 }
 
 // 设置 connector 组件参数 [IComponentManager] 接口
-func (this *componentManager) SetConnectorOpt(opts *model.ConnectorOpt) {
+func (this *componentManager) SetConnectorOpt(opts *model.TConnectorOpt) {
 	this.connectorOpt = opts
 }
 

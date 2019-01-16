@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zpab123/world/consts"                  // 全局常量
 	"github.com/zpab123/world/model"                   // 全局数据结构
 	_ "github.com/zpab123/world/network/connector/com" // 注册 ws 包
 	_ "github.com/zpab123/world/network/connector/mul" // 注册 mul 包
@@ -29,7 +28,7 @@ import (
 // 1个通用服务器对象
 type Application struct {
 	baseInfo         *model.TBaseInfo      // 服务器基础信息
-	serverInfo       model.TServerConfig   // 服务器配置信息
+	serverInfo       *model.TServerInfo    // 服务器配置信息
 	state            syncutil.AtomicUint32 // app 当前状态
 	goGroup          sync.WaitGroup        // 线程同步组
 	componentManager                       // 对象继承： app 组件管理
@@ -43,7 +42,7 @@ func NewApplication(appType string, appDelegate model.IAppDelegate) *Application
 	// 创建对象
 	app := &Application{
 		baseInfo:    &model.TBaseInfo{},
-		serverInfo:  model.TServerConfig{},
+		serverInfo:  &model.TServerConfig{},
 		appDelegate: appDelegate,
 	}
 
@@ -85,18 +84,19 @@ func (this *Application) Init() bool {
 
 // 启动 app
 func (this *Application) Run() {
+	// 设置随机种子
+	rand.Seed(time.Now().UnixNano())
+
 	// 记录启动时间
 	this.baseInfo.RunTime = time.Now()
 
 	// 状态效验
-	if this.state.Load() != consts.APP_STATE_INIT {
+	if this.state.Load() != model.C_APP_STATE_INIT {
 		//err := new error
-		zplog.Error("this 非 init 状态，启动失败")
+		zplog.Error("app 非 init 状态，启动失败")
+
 		return
 	}
-
-	// 设置随机种子
-	rand.Seed(time.Now().UnixNano())
 
 	// 注册默认组件
 	regDefaultComponent(this)
