@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zpab123/world/base"                    // 基础信息
 	"github.com/zpab123/world/consts"                  // 全局常量
 	"github.com/zpab123/world/model"                   // 全局数据结构
 	_ "github.com/zpab123/world/network/connector/com" // 注册 ws 包
@@ -29,8 +28,8 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	baseInfo         *base.BaseInfo        // 服务器基础信息
-	serverInfo       model.ServerInfo      // 服务器配置信息
+	baseInfo         *model.TBaseInfo      // 服务器基础信息
+	serverInfo       model.TServerConfig   // 服务器配置信息
 	state            syncutil.AtomicUint32 // app 当前状态
 	goGroup          sync.WaitGroup        // 线程同步组
 	componentManager                       // 对象继承： app 组件管理
@@ -43,8 +42,8 @@ type Application struct {
 func NewApplication(appType string, appDelegate model.IAppDelegate) *Application {
 	// 创建对象
 	app := &Application{
-		baseInfo:    &base.BaseInfo{},
-		serverInfo:  model.ServerInfo{},
+		baseInfo:    &model.TBaseInfo{},
+		serverInfo:  model.TServerConfig{},
 		appDelegate: appDelegate,
 	}
 
