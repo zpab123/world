@@ -23,12 +23,12 @@ var (
 // /////////////////////////////////////////////////////////////////////////////
 // 对外 api
 
-// 将 addr 解析成 *model.Address 对象
+// 将 addr 解析成 *model.TAddress 对象
 //
 // 参数 addr 的格式为 scheme://host:minPort~maxPort/path
-func ParseAddress(addr string) (addrObj *model.Address, err error) {
+func ParseAddress(addr string) (addrObj *model.TAddress, err error) {
 	// 创建对象指针
-	addrObj = new(model.Address)
+	addrObj = new(model.TAddress)
 
 	// 解析并保存 scheme
 	schemePos := strings.Index(addr, "://")
@@ -88,8 +88,8 @@ func ParseAddress(addr string) (addrObj *model.Address, err error) {
 }
 
 // 在给定的端口范围内找到一个能用的端口 格式:
-func DetectPort(addr string, fn func(a *model.Address, port int) (interface{}, error)) (interface{}, error) {
-	// 将 addr 解析为 *model.Address 对象
+func DetectPort(addr string, fn func(a *model.TAddress, port int) (interface{}, error)) (interface{}, error) {
+	// 将 addr 解析为 *model.TAddress 对象
 	addrObj, err := ParseAddress(addr)
 	if nil != err {
 		return nil, err

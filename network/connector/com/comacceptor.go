@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/zpab123/world/model"             // 全局 [常量-基础数据类型-接口] 集合
+	"github.com/zpab123/world/model"             // 全局模型
 	"github.com/zpab123/world/network/connector" // 连接器
+	"github.com/zpab123/world/network/socket"    // socket 库
+	"github.com/zpab123/world/session"           // socket会话
 	"github.com/zpab123/world/utils"             // 工具库
 	"github.com/zpab123/zplog"                   // 日志库
 	"golang.org/x/net/websocket"                 // websocket 库
@@ -20,7 +22,7 @@ import (
 
 func init() {
 	// 注册创建函数
-	connector.RegisterAcceptor(connector.CONNECTOR_TYPE_COM, newComAcceptor)
+	connector.RegisterAcceptor(model.C_ACCEPTOR_TYPE_COM, newComAcceptor)
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -90,7 +92,7 @@ func (this *comAcceptor) GetTcpAddr() string {
 // 启动 tcp 侦听
 func (this *comAcceptor) runTcpListener() {
 	// 创建侦听器
-	f := func(addr *model.Address, port int) (interface{}, error) {
+	f := func(addr *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
 	ln, err := utils.DetectPort(this.GetAddr().TcpAddr, f)
@@ -114,7 +116,7 @@ func (this *comAcceptor) runTcpListener() {
 func (this *comAcceptor) acceptTcpConn() {
 	//  出现错误，关闭监听
 	closeF := func() {
-		zplog.Error("comAcceptor 侦听 tcp 新连接出现错误。关闭 comAcceptor")
+		zplog.Error("comAcceptor 侦听 tcp 新连接出现错误。关闭 comAcceptor-tcp")
 		this.tcpListener.Close()
 	}
 	defer closeF()
@@ -137,26 +139,26 @@ func (this *comAcceptor) acceptTcpConn() {
 
 // 收到1个新的 tcp 连接
 func (this *comAcceptor) onNewTcpConn(conn net.Conn) {
+	// 日志
+	zplog.Debugf("收到1个新的 tcp 连接。客户端ip=%s", conn.RemoteAddr())
+
 	// 配置 io 参数
 	this.ApplySocketOption(conn)
 
-	// 创建 packetSocket
-	packetSocket := connector.CreatePacketSocket(conn, this.connector)
-
-	// 通知 Connector 组件
-	this.connector.OnNewSocket(packetSocket)
+	// 创建 session
+	this.createSession(conn)
 }
 
 // 启动 websocket 侦听
 func (this *comAcceptor) runWsListener() {
 	// 变量定义
 	var (
-		addrObj *model.Address // 地址变量
-		wsPort  int            // 监听成功的 websocket 端口
+		addrObj *model.TAddress // 地址变量
+		wsPort  int             // 监听成功的 websocket 端口
 	)
 
 	// 查找1个 可用端口
-	f := func(addr *model.Address, port int) (interface{}, error) {
+	f := func(addr *model.TAddress, port int) (interface{}, error) {
 		addrObj = addr
 		wsPort = port
 		return net.Listen("tcp", addr.HostPortString(port))
@@ -197,15 +199,24 @@ func (this *comAcceptor) runWsListener() {
 
 // 收到1个新的 websocket 连接
 func (this *comAcceptor) onNewWsConn(wsConn *websocket.Conn) {
-	zplog.Debugf("收到1个新的 websocket 连接。客户端ip=", wsConn.RemoteAddr())
+	// 日志
+	zplog.Debugf("收到1个新的 websocket 连接。客户端ip=%s", wsConn.RemoteAddr())
+
 	// 设置为接收二进制数据
 	wsConn.PayloadType = websocket.BinaryFrame
 
-	// 创建 packetSocket
-	packetSocket := connector.CreatePacketSocket(wsConn, this.connector)
+	// 创建 session
+	this.createSession(wsConn)
+}
+
+// 创建 session
+func (this *comAcceptor) createSession(conn net.Conn) {
+	// 创建 session
+	bufferSocket := connector.CreateBufferSocket(conn)
+	ses := session.NewClientSession(bufferSocket, this.connector, nil)
 
 	// 通知 Connector 组件
-	this.connector.OnNewSocket(packetSocket)
+	this.connector.OnNewSession(ses)
 }
 
 // /////////////////////////////////////////////////////////////////////////////

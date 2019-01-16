@@ -12,14 +12,11 @@ import (
 
 // connector 组件
 type IConnector interface {
-	IComponent                            // 接口继承： 组件接口
-	IRecoverIoPanic                       // 接口继承： 设置是否捕获 io 异常
-	ISocketOpt                            // 接口继承： socket IO 参数设置/获取
-	GetAddr() *Laddr                      // 获取地址信息集合
-	GetConnectorOpt() *ConnectorOpt       // 网络连接配置
-	OnNewSocket(socket IPacketSocket)     // 收到1个新的 socket 连接
-	OnSocketClose(socket IPacketSocket)   // 某个 socket  断开
-	OnSocketMessage(socket IPacketSocket) // 某个 socket  收到数据
+	IComponent                      // 接口继承： 组件接口
+	IRecoverIoPanic                 // 接口继承： 设置是否捕获 io 异常
+	ISocketOpt                      // 接口继承： socket IO 参数设置/获取
+	GetConnectorOpt() *ConnectorOpt // 网络连接配置
+	ISessionManage                  // 接口继承： session 管理
 }
 
 // 开启 IO 层异常捕获, 在生产版本对外端口应该打开此设置
@@ -35,6 +32,12 @@ type ISocketOpt interface {
 	SetSocketWriteTimeout(conn net.Conn, callback func()) // 设置 socket 写超时时间
 }
 
+// session 管理
+type ISessionManage interface {
+	OnNewSession(ISession)   // 1个新的 session 创建成功
+	OnSessionClose(ISession) // 某个 session 关闭
+}
+
 // /////////////////////////////////////////////////////////////////////////////
 // acceptor 相关
 
@@ -47,8 +50,8 @@ type IAcceptor interface {
 
 // 地址接口
 type IAddress interface {
-	SetAddr(addr *Laddr) // 设置监听地址
-	GetAddr() *Laddr     // 获取监听地址
+	SetAddr(addr *TLaddr) // 设置监听地址
+	GetAddr() *TLaddr     // 获取监听地址
 }
 
 // socket 组件
