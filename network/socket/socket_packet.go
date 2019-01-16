@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/zpab123/world/model"          // 全局模型
 	"github.com/zpab123/world/network"        // 网络库
@@ -49,8 +50,6 @@ type PacketSocket struct {
 
 // 创建1个新的 PacketSocket 对象
 func NewPacketSocket(st model.ISocket, cntor model.IConnector) *PacketSocket {
-	// 设置 packet 处理器
-
 	// 创建对象
 	pktSocket := &PacketSocket{
 		socket:    st,
@@ -130,6 +129,11 @@ func (this *PacketSocket) SendPacket(pkt *packet.Packet) error {
 	this.goMutex.Unlock()
 
 	return nil
+}
+
+// 设置 读 超时
+func (this *PacketSocket) SetRecvDeadline(deadline time.Time) error {
+	return this.socket.SetReadDeadline(deadline)
 }
 
 // 将消息队列中的数据写入 writebuff

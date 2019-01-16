@@ -7,21 +7,27 @@ import (
 	"net"
 
 	"github.com/zpab123/world/model"          // 全局模型
+	"github.com/zpab123/world/network/packet" // packet 消息包
 	"github.com/zpab123/world/network/socket" // socket
 )
 
 type ClientSession struct {
-	// socket
+	packetSocket *socket.PacketSocket // 对象继承： 继承至 PacketSocket 对象
+	connector    model.IConnector     // connector 组件
 	// session_id
 	// 用户id
-	// 发送队列
 	pktHandler model.ICilentPktHandler // 客户端 packet 消息处理器
 }
 
-func NewClientSession(handler model.ICilentPktHandler) *ClientSession {
+func NewClientSession(st model.ISocket, cntor model.IConnector, handler model.ICilentPktHandler) *ClientSession {
+	// 创建 pktSocket
+	pktSocket := socket.NewPacketSocket(st, cntor)
+
 	// 创建对象
 	cs := &ClientSession{
-		pktHandler: handler,
+		packetSocket: pktSocket,
+		connector:    cntor,
+		pktHandler:   handler,
 	}
 
 	return cs
@@ -41,8 +47,12 @@ func (this *ClientSession) Run() {
 // 接收线程
 func (this *ClientSession) recvLoop() {
 	for {
-
-		var pkt interface{}
+		// 接收消息
+		var pkt *packet.Packet
+		pkt = this.packetSocket.RecvPacket()
+		if nil == pkt {
+			continue
+		}
 
 		// 处理消息
 		this.pktHandler.OnClientPkt(this, pkt)
@@ -51,5 +61,7 @@ func (this *ClientSession) recvLoop() {
 
 // 发送线程
 func (this *ClientSession) sendLoop() {
-
+	for {
+		this.packetSocket.Flush()
+	}
 }
