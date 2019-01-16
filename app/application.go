@@ -13,7 +13,7 @@ import (
 
 	"github.com/zpab123/world/base"                    // 基础信息
 	"github.com/zpab123/world/consts"                  // 全局常量
-	"github.com/zpab123/world/model"                   // 全局 struct
+	"github.com/zpab123/world/model"                   // 全局数据结构
 	_ "github.com/zpab123/world/network/connector/com" // 注册 ws 包
 	_ "github.com/zpab123/world/network/connector/mul" // 注册 mul 包
 	_ "github.com/zpab123/world/network/connector/tcp" // 注册 tcp 包
@@ -34,16 +34,18 @@ type Application struct {
 	state            syncutil.AtomicUint32 // app 当前状态
 	goGroup          sync.WaitGroup        // 线程同步组
 	componentManager                       // 对象继承： app 组件管理
+	appDelegate      model.IAppDelegate    // app 代理对象
 }
 
 // 创建1个新的 Application 对象
 //
 // appType=server.json 中配置的类型
-func NewApplication(appType string) *Application {
+func NewApplication(appType string, appDelegate model.IAppDelegate) *Application {
 	// 创建对象
 	app := &Application{
-		baseInfo:   &base.BaseInfo{},
-		serverInfo: model.ServerInfo{},
+		baseInfo:    &base.BaseInfo{},
+		serverInfo:  model.ServerInfo{},
+		appDelegate: appDelegate,
 	}
 
 	// 设置类型
@@ -162,6 +164,11 @@ func (this *Application) GetCWsAddr() string {
 	}
 
 	return cWsAddr
+}
+
+// 获取 appDelegate
+func (this *Application) GetAppDelegate() model.IAppDelegate {
+	return this.appDelegate
 }
 
 // /////////////////////////////////////////////////////////////////////////////
