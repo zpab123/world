@@ -10,5 +10,5 @@ type Application interface {
 
 // App 代理
 type IAppDelegate interface {
-	OnClientMsg(ses ISession, msg interface{}) // 收到客户端消息
+	ICilentPktHandler // 接口继承： 客户端 packet 消息处理
 }
