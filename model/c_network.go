@@ -35,5 +35,5 @@ const (
 	C_PACKET_MAX_LEN       = 64 * 1024  // 最大单个 packet 数据，= head + body （64K = 65536）
 	C_PACKET_TYPE_TCP_TLV  = "tcp.tlv"  // type-length-value 形式的 packet 数据
 	C_PACKET_TYPE_TCP_JSON = "tcp.josn" // type-length-json 形式的 packet 数据
-	C_MSG_TYPE_INVALID     = iota       // 无效的消息类型
+	C_PACKET_TYPE_INVALID  = iota       // 无效的消息类型
 )
