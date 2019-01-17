@@ -35,7 +35,6 @@ var (
 
 // 客户端 <-> 服务器 服务器 <-> 服务器 之间通信使用的 Packet 数据包
 type Packet struct {
-	pType     uint16                             // Packet 类型，详见  model 类型说明
 	bytes     []byte                             // 用于存放需要通过网络 发送/接收 的数据 （head + body）
 	initBytes [_HEAD_LEN + _MIN_PAYLOAD_LEN]byte // bytes 初始化时候的 buffer 4 + 128
 	readCount uint32                             // 已经读取的字节数

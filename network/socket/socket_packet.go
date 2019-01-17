@@ -43,7 +43,7 @@ type PacketSocket struct {
 	sendQueue []*packet.Packet // 发送队列
 	recvedLen uint32           // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
 	headBuff  [_HEAD_LEN]byte  // 存放消息头二进制数据
-	pType     uint16           // 本次 packet 类型
+	msgType   uint16           // 本次 packet 中所封装的 message 消息类型
 	bodylen   uint32           // 本次 pcket body 总大小
 	newPacket *packet.Packet   // 用于存储 本次即将接收的 Packet 对象
 }
@@ -76,7 +76,7 @@ func (this *PacketSocket) RecvPacket() (*packet.Packet, error) {
 		}
 
 		// 收到消息头: 保存消息类型
-		this.pType = NETWORK_ENDIAN.Uint16(this.headBuff[0:2])
+		this.msgType = NETWORK_ENDIAN.Uint16(this.headBuff[0:2])
 
 		// 收到消息头: 保存本次 packet 消息 body 总大小
 		this.bodylen = NETWORK_ENDIAN.Uint16(this.headBuff[2:])
@@ -202,7 +202,7 @@ func (pc *PacketSocket) String() string {
 func (this *PacketSocket) resetRecvStates() {
 	this.recvedLen = 0
 	this.bodylen = 0
-	this.pType = model.C_MSG_TYPE_INVALID
+	this.msgType = model.C_MSG_TYPE_INVALID
 	this.newPacket = nil
 }
 
