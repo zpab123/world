@@ -33,14 +33,16 @@ type comAcceptor struct {
 	keyFile                 string               // TLS解密key
 	laddr                   *model.TLaddr        // 监听地址集合
 	sessionMgr              model.ISessionManage // session 管理
+	opts                    *model.TAcceptorOpts // 配置参数
 }
 
 // 创建1个 comAcceptor 对象
-func NewComAcceptor(addr model.TLaddr, mgr model.ISessionManage) model.IAcceptor {
+func NewComAcceptor(addr model.TLaddr, opt *model.TAcceptorOpts, mgr model.ISessionManage) model.IAcceptor {
 	// 创建 comAcceptor
 	comaptor := &comAcceptor{
-		sessionMgr: mgr,
 		laddr:      addr,
+		opts:       opt,
+		sessionMgr: mgr,
 	}
 
 	return comaptor
@@ -208,7 +210,11 @@ func (this *comAcceptor) onNewWsConn(wsConn *websocket.Conn) {
 
 // 创建 session
 func (this *comAcceptor) createSession(conn net.Conn) {
-	// 创建 session
+	// 创建 socket
 	bufferSocket := network.NewBufferSocket(conn)
-	ses := session.NewClientSession(bufferSocket, this.sessionMgr, nil)
+
+	// 创建 session
+	if this.opts.SessionType == model.C_SES_TYPE_CLINET {
+		session.NewClientSession(bufferSocket, this.sessionMgr, nil)
+	}
 }
