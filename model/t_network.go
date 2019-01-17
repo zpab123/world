@@ -85,6 +85,28 @@ type TLaddr struct {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
+// 网络接收器配置参数
+
+// 监听地址集合
+type TAcceptorOpts struct {
+	SessionType string // 创建 session 类型
+}
+
+// 新建1个 TAcceptorOpts 对象
+func NewTAcceptorOpts() *TAcceptorOpts {
+	// 创建对象
+	aptor := &TAcceptorOpts{}
+	aptor.SetDefaultOpts()
+
+	return aptor
+}
+
+// 设置默认参数
+func (this *TAcceptorOpts) SetDefaultOpts() {
+	this.SessionType = C_SES_TYPE_CLINET
+}
+
+// /////////////////////////////////////////////////////////////////////////////
 // TConnectorOpt 对象
 
 // connector 组件配置参数

@@ -211,12 +211,4 @@ func (this *comAcceptor) createSession(conn net.Conn) {
 	// 创建 session
 	bufferSocket := network.NewBufferSocket(conn)
 	ses := session.NewClientSession(bufferSocket, this.sessionMgr, nil)
-
-	// 通知管理器
-	if nil != this.sessionMgr {
-		this.sessionMgr.OnNewSession(ses)
-	}
 }
-
-// /////////////////////////////////////////////////////////////////////////////
-// private api

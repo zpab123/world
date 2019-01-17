@@ -1,0 +1,9 @@
+// /////////////////////////////////////////////////////////////////////////////
+// 全局常量 -- session 包
+
+package model
+
+// Session 类型
+const (
+	C_SES_TYPE_CLINET = "client" // 客户端类型的 session
+)
