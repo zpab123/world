@@ -4,7 +4,7 @@
 package model
 
 // App
-type Application interface {
+type IApplication interface {
 	GetAppDelegate() IAppDelegate // 获取 appDelegate
 }
 

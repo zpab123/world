@@ -13,20 +13,20 @@ import (
 
 type ClientSession struct {
 	packetSocket *socket.PacketSocket // 对象继承： 继承至 PacketSocket 对象
-	connector    model.IConnector     // connector 组件
+	sesssionMgr  model.ISessionManage // sessiong 管理对象
 	// session_id
 	// 用户id
 	pktHandler model.ICilentPktHandler // 客户端 packet 消息处理器
 }
 
-func NewClientSession(st model.ISocket, cntor model.IConnector, handler model.ICilentPktHandler) *ClientSession {
+func NewClientSession(st model.ISocket, mgr model.ISessionManage, handler model.ICilentPktHandler) *ClientSession {
 	// 创建 pktSocket
 	pktSocket := socket.NewPacketSocket(st, cntor)
 
 	// 创建对象
 	cs := &ClientSession{
 		packetSocket: pktSocket,
-		connector:    cntor,
+		sesssionMgr:  mgr,
 		pktHandler:   handler,
 	}
 

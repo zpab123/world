@@ -32,12 +32,6 @@ type ISocketOpt interface {
 	SetSocketWriteTimeout(conn net.Conn, callback func()) // 设置 socket 写超时时间
 }
 
-// session 管理
-type ISessionManage interface {
-	OnNewSession(ISession)   // 1个新的 session 创建成功
-	OnSessionClose(ISession) // 某个 session 关闭
-}
-
 // /////////////////////////////////////////////////////////////////////////////
 // acceptor 相关
 

@@ -89,11 +89,21 @@ type TLaddr struct {
 
 // connector 组件配置参数
 type TConnectorOpt struct {
+	SessionOpts  *TSessionOpts // 对象继承： session 设置
 	AcceptorType string        // 接收器 类型
-	PktType      string        // packet 数据结构类型
-	Heartbeat    time.Duration // 心跳间隔
-	Handshake    func()        // 自定义的握手处理函数
 	MaxConn      uint32        // 最大连接数量，超过此数值后，不再接收新连接
+}
+
+// 创建1个新的 TConnectorOpt
+func NewTConnectorOpt() *TConnectorOpt {
+	// 创建对象
+	opts := &TConnectorOpt{
+		SessionOpts: NewTSessionOpts(),
+	}
+
+	opts.SetDefaultOpts()
+
+	return opts
 }
 
 // 检查 ConnectorConfig 参数是否存在错误
@@ -102,9 +112,9 @@ func (this *TConnectorOpt) Check() error {
 }
 
 // 设置默认参数
-func (this *TConnectorOpt) SetDefault() {
+func (this *TConnectorOpt) SetDefaultOpts() {
 	this.AcceptorType = C_ACCEPTOR_TYPE_COM
-	this.PktType = C_PACKET_TYPE_TCP_TLV
+	this.SessionOpts.SetDefaultOpts()
 }
 
 // /////////////////////////////////////////////////////////////////////////////
