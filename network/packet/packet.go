@@ -56,6 +56,11 @@ func NewPacket() *Packet {
 	return getPacketFromPool()
 }
 
+// 获取 packet 类型
+func (this *Packet) GetType() uint16 {
+	return packetEndian.PutUint16(this.bytes[0:2])
+}
+
 // 获取 bytes
 func (this *Packet) GetBytes() []byte {
 	return this.bytes

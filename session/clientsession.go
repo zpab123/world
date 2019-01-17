@@ -11,7 +11,15 @@ import (
 	"github.com/zpab123/world/network/socket" // socket
 )
 
+// /////////////////////////////////////////////////////////////////////////////
+// 包初始化
+
+// /////////////////////////////////////////////////////////////////////////////
+// ClientSession 对象
+
+// 面向客户端的 session 对象
 type ClientSession struct {
+	opts         *model.TSessionOpts  // session 配置参数
 	packetSocket *socket.PacketSocket // 对象继承： 继承至 PacketSocket 对象
 	sesssionMgr  model.ISessionManage // sessiong 管理对象
 	// session_id
@@ -19,12 +27,13 @@ type ClientSession struct {
 	pktHandler model.ICilentPktHandler // 客户端 packet 消息处理器
 }
 
-func NewClientSession(st model.ISocket, mgr model.ISessionManage, handler model.ICilentPktHandler) *ClientSession {
+func NewClientSession(opt *model.TSessionOpts) *ClientSession {
 	// 创建 pktSocket
-	pktSocket := socket.NewPacketSocket(st, cntor)
+	pktSocket := socket.NewPacketSocket(opt.Socket)
 
 	// 创建对象
 	cs := &ClientSession{
+		opts:         opt,
 		packetSocket: pktSocket,
 		sesssionMgr:  mgr,
 		pktHandler:   handler,
@@ -55,7 +64,7 @@ func (this *ClientSession) recvLoop() {
 		}
 
 		// 处理消息
-		this.pktHandler.OnClientPkt(this, pkt)
+		this.handlePacket(pkt)
 	}
 }
 
@@ -63,5 +72,21 @@ func (this *ClientSession) recvLoop() {
 func (this *ClientSession) sendLoop() {
 	for {
 		this.packetSocket.Flush()
+	}
+}
+
+// 处理 packet
+func (this *ClientSession) handlePacket(pkt *packet.Packet) {
+	// 获取类型
+	pktType := pkt.GetType()
+
+	// 根据类型处理数据
+	switch pktType {
+	case model.C_PACKET_TYPE_HANDSHAKE: // 握手消息
+		break
+	case model.C_PACKET_TYPE_HEARTBEAT: // 心跳消息
+		break
+	default:
+		break
 	}
 }

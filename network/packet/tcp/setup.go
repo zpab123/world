@@ -15,7 +15,7 @@ import (
 
 // 包 初始化函数
 func init() {
-	packet.RegDataManager(model.C_PACKET_TYPE_TCP_TLV, creator)
+	packet.RegDataManager(model.C_PACKET_DATA_TCP_TLV, creator)
 }
 
 // /////////////////////////////////////////////////////////////////////////////
