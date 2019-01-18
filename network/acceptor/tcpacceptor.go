@@ -103,8 +103,8 @@ func (this *tcpAcceptor) Stop() {
 	// 关闭侦听器
 	this.listener.Close()
 
-	// 断开所有 Session
-	this.CloseAllSession()
+	// 断开所有连接
+	this.socketMgr.CloseAllConn()
 
 	// 等待线程结束 - 阻塞
 	this.WaitAllStop()
