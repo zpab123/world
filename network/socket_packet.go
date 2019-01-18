@@ -38,7 +38,6 @@ var (
 // PacketSocket
 type PacketSocket struct {
 	socket    model.ISocket    // 接口继承： 符合 ISocket 的对象
-	connector model.IConnector // connector 组件
 	goMutex   sync.Mutex       // 线程互斥锁
 	sendQueue []*packet.Packet // 发送队列
 	recvedLen uint32           // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
@@ -48,11 +47,10 @@ type PacketSocket struct {
 }
 
 // 创建1个新的 PacketSocket 对象
-func NewPacketSocket(st model.ISocket, cntor model.IConnector) *PacketSocket {
+func NewPacketSocket(st model.ISocket) *PacketSocket {
 	// 创建对象
 	pktSocket := &PacketSocket{
-		socket:    st,
-		connector: cntor,
+		socket: st,
 	}
 
 	return pktSocket

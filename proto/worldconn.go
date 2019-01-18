@@ -23,13 +23,28 @@ import (
 // world 框架内部需要用到的一些常用网络消息
 type WorldConnection struct {
 	opts         *model.TWorldSocketOpts // 配置参数
-	packetSocket model.IPacketSocket     // 接口继承： 符合 IPacketSocket 的对象
+	packetSocket *network.PacketSocket   // 接口继承： 符合 IPacketSocket 的对象
 }
 
 // 新建1个 WorldConnection 对象
-func NewWorldConnection(opt *model.TWorldSocketOpts) *WorldConnection {
+func NewWorldConnection(socket model.ISocket, opt *model.TWorldSocketOpts) *WorldConnection {
+	// 创建 packetSocket
+	pktSocket := network.NewPacketSocket(socket)
+
 	// 创建对象
-	wc := &WorldConnection{}
+	wc := &WorldConnection{
+		packetSocket: pktSocket,
+	}
 
 	return wc
+}
+
+// 接收1个 msg 消息
+func (this *WorldConnection) RecvMsg() {
+
+}
+
+// 回应握手消息
+func (this *WorldConnection) HandshakeResponse() {
+
 }
