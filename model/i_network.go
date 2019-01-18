@@ -8,31 +8,6 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////
-// connector 相关
-
-// connector 组件
-type IConnector interface {
-	IComponent                      // 接口继承： 组件接口
-	IRecoverIoPanic                 // 接口继承： 设置是否捕获 io 异常
-	ISocketOpt                      // 接口继承： socket IO 参数设置/获取
-	GetConnectorOpt() *ConnectorOpt // 网络连接配置
-	ISessionManage                  // 接口继承： session 管理
-}
-
-// 开启 IO 层异常捕获, 在生产版本对外端口应该打开此设置
-type IRecoverIoPanic interface {
-	SetRecoverIoPanic(v bool) // 设置是否捕获 Io 异常
-	GetRecoverIoPanic() bool  // 获取是否捕获 Io 异常
-}
-
-// socket IO 参数接口
-type ISocketOpt interface {
-	GetMaxPacketSize() int                                // 获取 packet 最大字节
-	SetSocketReadTimeout(conn net.Conn, callback func())  // 设置 socket 读超时时间
-	SetSocketWriteTimeout(conn net.Conn, callback func()) // 设置 socket 写超时时间
-}
-
-// /////////////////////////////////////////////////////////////////////////////
 // acceptor 相关
 
 // acceptor 接口
@@ -82,4 +57,29 @@ type IPacketManager interface {
 // packet 处理接口
 type IPacketHandler interface {
 	OnMessage(ses ISession, msg interface{})
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// connector 相关
+
+// connector 组件
+type IConnector interface {
+	IComponent                      // 接口继承： 组件接口
+	IRecoverIoPanic                 // 接口继承： 设置是否捕获 io 异常
+	ISocketOpt                      // 接口继承： socket IO 参数设置/获取
+	GetConnectorOpt() *ConnectorOpt // 网络连接配置
+	ISessionManage                  // 接口继承： session 管理
+}
+
+// 开启 IO 层异常捕获, 在生产版本对外端口应该打开此设置
+type IRecoverIoPanic interface {
+	SetRecoverIoPanic(v bool) // 设置是否捕获 Io 异常
+	GetRecoverIoPanic() bool  // 获取是否捕获 Io 异常
+}
+
+// socket IO 参数接口
+type ISocketOpt interface {
+	GetMaxPacketSize() int                                // 获取 packet 最大字节
+	SetSocketReadTimeout(conn net.Conn, callback func())  // 设置 socket 读超时时间
+	SetSocketWriteTimeout(conn net.Conn, callback func()) // 设置 socket 写超时时间
 }
