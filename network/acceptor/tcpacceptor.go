@@ -26,22 +26,26 @@ func init() {
 
 // tcp 接收器
 type tcpAcceptor struct {
-	laddr                     model.TLaddr // 地址集合
-	name                      string       // 连接器名字
-	State                                  // 对象继承：运行状态操作
-	connector.ISessionManager              // 接口继承：符合 SessionManager 接口对象的
-	connector.TcpSocketOption              // 对象继承：tcp socket io 参数配置
-	connector.RecoverIoPanic               // 对象继承: io 异常捕获
-	connector.PacketManager                // 对象继承：packet 消息管理
-	listener                  net.Listener // 侦听器
+	name                      string                  // 连接器名字
+	laddr                     model.TLaddr            // 地址集合
+	opts                      *model.TTcpSocketOpts   // 配置参数
+	State                                             // 对象继承：运行状态操作
+	socketMgr                 model.ITcpSocketManager // 符合 tcpsocket 连接管理接口的对象
+	connector.ISessionManager                         // 接口继承：符合 SessionManager 接口对象的
+	connector.TcpSocketOption                         // 对象继承：tcp socket io 参数配置
+	connector.RecoverIoPanic                          // 对象继承: io 异常捕获
+	connector.PacketManager                           // 对象继承：packet 消息管理
+	listener                  net.Listener            // 侦听器
 }
 
 // 创建1个新的 tcpAcceptor 对象
-func NewTcpAcceptor(addr *model.TLaddr) worldnet.IConnector {
+func NewTcpAcceptor(addr *model.TLaddr, opt *model.TTcpSocketOpts, mgr model.ITcpSocketManager) worldnet.IConnector {
 	// 创建对象
 	aptor := &tcpAcceptor{
-		name:  model.C_ACCEPTOR_NAME_TCP,
-		laddr: addr,
+		name:      model.C_ACCEPTOR_NAME_TCP,
+		laddr:     addr,
+		opts:      opt,
+		socketMgr: mgr,
 	}
 
 	// 配置基础数据
@@ -157,22 +161,10 @@ func (this *tcpAcceptor) accept() {
 		}
 
 		// 处理连接进入独立线程, 防止 accept 无法响应
-		go this.createSession(conn)
+		go this.socketMgr.OnNewTcpConn(conn)
 	}
 
 	// 监听异常
 	this.SetRunning(false) // 设置为非运行状态
 	this.EndStop()         // 结束停止
-}
-
-// 创建新的 tcpSession
-func (this *tcpAcceptor) createSession(conn net.Conn) {
-	// 设置 conn io 参数
-	this.SetSocketOption(conn)
-
-	// 创建 session
-	ses := newSession(conn, this, nil)
-
-	// 启动 session
-	ses.Run()
 }
