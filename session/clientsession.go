@@ -6,9 +6,11 @@ package session
 import (
 	"net"
 
+	"github.com/zpab123/syncutil"             // 原子变量
 	"github.com/zpab123/world/model"          // 全局模型
 	"github.com/zpab123/world/network/packet" // packet 消息包
 	"github.com/zpab123/world/network/socket" // socket
+	"github.com/zpab123/zplog"                // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -25,6 +27,7 @@ type ClientSession struct {
 	// session_id
 	// 用户id
 	pktHandler model.ICilentPktHandler // 客户端 packet 消息处理器
+	state      syncutil.AtomicUint32   // 状态变量
 }
 
 func NewClientSession(opt *model.TSessionOpts) *ClientSession {
@@ -38,6 +41,9 @@ func NewClientSession(opt *model.TSessionOpts) *ClientSession {
 		sesssionMgr:  mgr,
 		pktHandler:   handler,
 	}
+
+	// 修改为初始化状态
+	cs.state.Store(model.C_SES_STATE_INITED)
 
 	return cs
 }
@@ -53,6 +59,21 @@ func (this *ClientSession) Run() {
 	go this.sendLoop()
 }
 
+// 获取 session 状态 [IState 接口]
+func (this *ClientSession) GetState() uint32 {
+	return this.state.Load()
+}
+
+// 设置 session 状态 [IState 接口]
+func (this *ClientSession) SetState(v uint32) {
+	this.state.Store(v)
+}
+
+// 获取配置参数
+func (this *ClientSession) GetOpts() *model.TSessionOpts {
+	return this.opts
+}
+
 // 接收线程
 func (this *ClientSession) recvLoop() {
 	for {
@@ -64,7 +85,7 @@ func (this *ClientSession) recvLoop() {
 		}
 
 		// 处理消息
-		this.handlePacket(pkt)
+		handlePacket(pkt)
 	}
 }
 
@@ -72,21 +93,5 @@ func (this *ClientSession) recvLoop() {
 func (this *ClientSession) sendLoop() {
 	for {
 		this.packetSocket.Flush()
-	}
-}
-
-// 处理 packet
-func (this *ClientSession) handlePacket(pkt *packet.Packet) {
-	// 获取类型
-	pktType := pkt.GetType()
-
-	// 根据类型处理数据
-	switch pktType {
-	case model.C_PACKET_TYPE_HANDSHAKE: // 握手消息
-		break
-	case model.C_PACKET_TYPE_HEARTBEAT: // 心跳消息
-		break
-	default:
-		break
 	}
 }

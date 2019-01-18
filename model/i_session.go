@@ -6,6 +6,8 @@ package model
 // Session 组件
 type ISession interface {
 	SendMessage(msg interface{})
+	IState                  // 接口继承： 状态接口
+	GetOpts() *TSessionOpts // 获取配置参数
 }
 
 // 客户端 packet 处理
