@@ -14,8 +14,6 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // 包初始化
 
-// 注册创建函数
-
 // /////////////////////////////////////////////////////////////////////////////
 // TcpAcceptor 对象
 
@@ -29,7 +27,7 @@ type TcpAcceptor struct {
 }
 
 // 创建1个新的 TcpAcceptor 对象
-func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpSocketManager) model.IComponent {
+func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpSocketManager) model.IAcceptor {
 	// 创建对象
 	aptor := &TcpAcceptor{
 		name:      model.C_ACCEPTOR_NAME_TCP,
@@ -40,7 +38,7 @@ func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpSocketManager) model.IComp
 	return aptor
 }
 
-// 异步侦听新连接 [worldnet.IConnector 接口]
+// 异步侦听新连接 [IAcceptor 接口]
 func (this *TcpAcceptor) Run() {
 	// 阻塞，等到所有线程结束
 	this.WaitAllStop()
@@ -71,7 +69,7 @@ func (this *TcpAcceptor) Run() {
 	go this.accept()
 }
 
-// 停止侦听器 [worldnet.IConnector 接口]
+// 停止侦听器 [IAcceptor 接口]
 func (this *TcpAcceptor) Stop() {
 	// 非运行状态
 	if this.IsRuning() {
@@ -90,7 +88,7 @@ func (this *TcpAcceptor) Stop() {
 	this.listener.Close()
 
 	// 断开所有连接
-	this.socketMgr.CloseAllConn()
+	this.socketMgr.CloseAllTcpConn()
 
 	// 等待线程结束 - 阻塞
 	this.WaitAllStop()

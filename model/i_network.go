@@ -15,20 +15,25 @@ import (
 // tcpSocket 连接管理
 type ITcpSocketManager interface {
 	OnNewTcpConn(conn net.Conn) // 收到1个新的 Tcp 连接对象
-	CloseAllConn()              // 关闭所有连接
+	CloseAllTcpConn()           // 关闭所有连接
 }
 
 // websocket 连接管理
 type IWebsocketManager interface {
 	OnNewWsConn(wsconn *websocket.Conn) // 收到1个新的 websocket 连接对象
-	CloseAllConn()                      // 关闭所有连接
+	CloseAllWsConn()                    // 关闭所有连接
+}
+
+// MulAcceptor 连接管理
+type IMulSocketManager interface {
+	ITcpSocketManager // 接口继承： tcp 连接管理
+	IWebsocketManager // 接口继承： websocket 连接管理
 }
 
 // acceptor 接口
 type IAcceptor interface {
-	Run()    // 启动 acceptor
-	Stop()   // 停止 acceptor
-	IAddress // 接口继承： IAddress 接口
+	Run()  // 组件开始运行
+	Stop() // 组件停止运行
 }
 
 // 地址接口

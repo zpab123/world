@@ -18,12 +18,12 @@ const (
 	C_TCP_NO_DELAY          = true        // net.tcpConn 对象写入数据后，是否立即发送
 )
 
-// acceptor 类型
+// acceptor 名字
 const (
 	C_ACCEPTOR_NAME_TCP       = "tcpAcceptor"  // 支持 tcp
-	C_ACCEPTOR_TYPE_WEBSOCKET = "wsAcceptor"   // 支持 websocket
-	C_ACCEPTOR_TYPE_MUL       = "multiformity" // 同时支持 tcp 和 websocket
-	C_ACCEPTOR_TYPE_COM       = "composite"    // 同时支持 tcp 和 websocket
+	C_ACCEPTOR_NAME_WEBSOCKET = "wsAcceptor"   // 支持 websocket
+	C_ACCEPTOR_NAME_MUL       = "multiformity" // 同时支持 tcp 和 websocket
+	C_ACCEPTOR_NAME_COM       = "composite"    // 同时支持 tcp 和 websocket
 )
 
 const (

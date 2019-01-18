@@ -29,10 +29,10 @@ type WsAcceptor struct {
 }
 
 // 创建1个新的 wsAcceptor 对象
-func NewWsAcceptor(addr *model.TLaddr, mgr model.IWebsocketManager) *WsAcceptor {
+func NewWsAcceptor(addr *model.TLaddr, mgr model.IWebsocketManager) model.IAcceptor {
 	// 创建接收器
 	aptor := &WsAcceptor{
-		name:         model.C_ACCEPTOR_TYPE_WEBSOCKET,
+		name:         model.C_ACCEPTOR_NAME_WEBSOCKET,
 		laddr:        addr,
 		websocketMgr: mgr,
 	}
@@ -40,7 +40,7 @@ func NewWsAcceptor(addr *model.TLaddr, mgr model.IWebsocketManager) *WsAcceptor 
 	return aptor
 }
 
-// 启动 wsAcceptor
+// 启动 wsAcceptor [IAcceptor 接口]
 func (this *WsAcceptor) Run() {
 	// 变量定义
 	var (
@@ -69,6 +69,11 @@ func (this *WsAcceptor) Run() {
 
 	// 侦听新连接
 	go this.accept()
+
+}
+
+// 停止 wsAcceptor [IAcceptor 接口]
+func (this *WsAcceptor) Stop() {
 
 }
 
