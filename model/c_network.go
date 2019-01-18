@@ -20,8 +20,8 @@ const (
 
 // acceptor 类型
 const (
-	C_ACCEPTOR_NAME_TCP       = "tcp"          // tcp
-	C_ACCEPTOR_TYPE_WEBSOCKET = "websocket"    // websocket
+	C_ACCEPTOR_NAME_TCP       = "tcpAcceptor"  // 支持 tcp
+	C_ACCEPTOR_TYPE_WEBSOCKET = "wsAcceptor"   // 支持 websocket
 	C_ACCEPTOR_TYPE_MUL       = "multiformity" // 同时支持 tcp 和 websocket
 	C_ACCEPTOR_TYPE_COM       = "composite"    // 同时支持 tcp 和 websocket
 )

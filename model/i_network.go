@@ -5,6 +5,8 @@ package model
 
 import (
 	"net"
+
+	"golang.org/x/net/websocket" // websocket 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -14,6 +16,12 @@ import (
 type ITcpSocketManager interface {
 	OnNewTcpConn(conn net.Conn) // 收到1个新的 Tcp 连接对象
 	CloseAllConn()              // 关闭所有连接
+}
+
+// websocket 连接管理
+type IWebsocketManager interface {
+	OnNewWsConn(wsconn *websocket.Conn) // 收到1个新的 websocket 连接对象
+	CloseAllConn()                      // 关闭所有连接
 }
 
 // acceptor 接口
