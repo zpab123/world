@@ -17,7 +17,7 @@ import (
 
 // websocket 接收器
 type WsAcceptor struct {
-	State                                // 对象继承：运行状态操作
+	state                                // 对象继承：运行状态操作
 	name         string                  // 连接器名字
 	laddr        model.TLaddr            // 地址集合
 	websocketMgr model.IWebsocketManager // websocket 连接管理

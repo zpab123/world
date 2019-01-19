@@ -9,6 +9,7 @@ import (
 	"github.com/zpab123/world/consts" // 全局常量
 	"github.com/zpab123/world/model"  // 全局模型
 	"github.com/zpab123/world/utils"  // 工具库
+	"github.com/zpab123/zplog"        //日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +20,7 @@ import (
 
 // tcp 接收器
 type TcpAcceptor struct {
-	State                             // 对象继承：运行状态操作
+	state                             // 对象继承：运行状态操作
 	name      string                  // 连接器名字
 	laddr     model.TLaddr            // 地址集合
 	socketMgr model.ITcpSocketManager // 符合 tcpsocket 连接管理接口的对象
@@ -55,7 +56,7 @@ func (this *TcpAcceptor) Run() {
 
 	// 创建失败
 	if nil != err {
-		zplog.Errorf("tcp.TcpAcceptor 创建失败。错误=%v", err.Error())
+		zplog.Fatalf("TcpAcceptor 启动失败。ip=%s，err=%v", this.laddr.TcpAddr, err.Error())
 		this.SetRunning(false)
 
 		return
@@ -63,7 +64,7 @@ func (this *TcpAcceptor) Run() {
 
 	// 创建成功
 	this.listener = ln.(net.Listener)
-	zplog.Infof("tcp.TcpAcceptor 启动成功。监听地址=%s", this.GetListenAddress())
+	zplog.Infof("TcpAcceptor 启动成功。ip=%s", this.GetListenAddress())
 
 	// 侦听连接
 	go this.accept()
@@ -72,7 +73,7 @@ func (this *TcpAcceptor) Run() {
 // 停止侦听器 [IAcceptor 接口]
 func (this *TcpAcceptor) Stop() {
 	// 非运行状态
-	if this.IsRuning() {
+	if !this.IsRuning() {
 		return
 	}
 
@@ -135,7 +136,7 @@ func (this *TcpAcceptor) accept() {
 
 		// 监听错误
 		if nil != err {
-			zplog.Errorf("tcp.TcpAcceptor 接收新连接出现错误。错误=%v", err.Error())
+			zplog.Errorf("TcpAcceptor 接收新连接出现错误。err=%v", err.Error())
 			break
 		}
 
@@ -143,7 +144,7 @@ func (this *TcpAcceptor) accept() {
 		go this.socketMgr.OnNewTcpConn(conn)
 	}
 
-	// 监听异常
+	// 侦听线程退出
 	this.SetRunning(false) // 设置为非运行状态
 	this.EndStop()         // 结束停止
 }

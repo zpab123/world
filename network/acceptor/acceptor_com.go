@@ -22,34 +22,33 @@ import (
 // 包初始化
 
 // /////////////////////////////////////////////////////////////////////////////
-// comAcceptor 对象
+// ComAcceptor 对象
 
 // 支持 tcp websocket 连接
-type comAcceptor struct {
-	network.TCPSocketOption                      // 对象继承： socket 基础参数管理
-	tcpListener             net.Listener         // tcp 侦听器
-	wsListenAddr            string               // 监听成功的 websocket
-	certFile                string               // TLS加密文件
-	keyFile                 string               // TLS解密key
-	laddr                   *model.TLaddr        // 监听地址集合
-	sessionMgr              model.ISessionManage // session 管理
-	opts                    *model.TAcceptorOpts // 配置参数
+type ComAcceptor struct {
+	name         string                // 侦听器名字
+	tcpListener  net.Listener          // tcp 侦听器
+	wsListenAddr string                // 监听成功的 websocket
+	certFile     string                // TLS加密文件
+	keyFile      string                // TLS解密key
+	laddr        *model.TLaddr         // 监听地址集合
+	connMgr      model.IComConnManager // 连接管理
 }
 
-// 创建1个 comAcceptor 对象
-func NewComAcceptor(addr model.TLaddr, opt *model.TAcceptorOpts, mgr model.ISessionManage) model.IAcceptor {
-	// 创建 comAcceptor
-	comaptor := &comAcceptor{
-		laddr:      addr,
-		opts:       opt,
-		sessionMgr: mgr,
+// 创建1个 ComAcceptor 对象
+func NewComAcceptor(addr model.TLaddr, mgr model.IComConnManager) model.IAcceptor {
+	// 创建 ComAcceptor
+	comaptor := &ComAcceptor{
+		name:    model.C_ACCEPTOR_NAME_COM,
+		laddr:   addr,
+		connMgr: mgr,
 	}
 
 	return comaptor
 }
 
 // 启动 Acceptor [IAcceptor 接口]
-func (this *comAcceptor) Run() {
+func (this *ComAcceptor) Run() {
 	// 启动 tcp 侦听
 	this.runTcpListener()
 
@@ -58,12 +57,12 @@ func (this *comAcceptor) Run() {
 }
 
 // 停止 Acceptor [IAcceptor 接口]
-func (this *comAcceptor) Stop() {
+func (this *ComAcceptor) Stop() {
 
 }
 
 // 获取 侦听成功的 tcp 端口
-func (this *comAcceptor) GetTcpPort() int {
+func (this *ComAcceptor) GetTcpPort() int {
 	if nil == this.tcpListener {
 		return 0
 	}
@@ -74,7 +73,7 @@ func (this *comAcceptor) GetTcpPort() int {
 }
 
 // 获取 侦听成功的 tcpAddr 端口
-func (this *comAcceptor) GetTcpAddr() string {
+func (this *ComAcceptor) GetTcpAddr() string {
 	// 获取 host
 	pos := strings.Index(this.laddr.TcpAddr, ":")
 	if pos == -1 {
@@ -89,7 +88,7 @@ func (this *comAcceptor) GetTcpAddr() string {
 }
 
 // 启动 tcp 侦听
-func (this *comAcceptor) runTcpListener() {
+func (this *ComAcceptor) runTcpListener() {
 	// 创建侦听器
 	f := func(addr *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", addr.HostPortString(port))
@@ -98,24 +97,24 @@ func (this *comAcceptor) runTcpListener() {
 
 	// 创建失败
 	if nil != err {
-		zplog.Errorf("tcpAcceptor-tcp 启动失败。错误=%v", err.Error())
+		zplog.Errorf("ComAcceptor-tcp 启动失败。err=%v", err.Error())
 
 		return
 	}
 
 	// 创建成功
 	this.tcpListener = ln.(net.Listener)
-	zplog.Infof("comAcceptor-tcp 启动成功。ip=%s", this.GetTcpAddr())
+	zplog.Infof("ComAcceptor-tcp 启动成功。ip=%s", this.GetTcpAddr())
 
 	// 侦听 tcp 连接
 	go this.acceptTcpConn()
 }
 
 // 接收新的 tcp 连接
-func (this *comAcceptor) acceptTcpConn() {
+func (this *ComAcceptor) acceptTcpConn() {
 	//  出现错误，关闭监听
 	closeF := func() {
-		zplog.Error("comAcceptor 侦听 tcp 新连接出现错误。关闭 comAcceptor-tcp")
+		zplog.Error("ComAcceptor 侦听 tcp 新连接出现错误。关闭 ComAcceptor-tcp")
 		this.tcpListener.Close()
 	}
 	defer closeF()
@@ -131,25 +130,13 @@ func (this *comAcceptor) acceptTcpConn() {
 			}
 		}
 
-		// 开启新线程 处理新 tcp 连接
-		go this.onNewTcpConn(newConn)
+		// 开启新线程，处理新 tcp 连接
+		go this.connMgr.OnNewTcpConn(newConn)
 	}
 }
 
-// 收到1个新的 tcp 连接
-func (this *comAcceptor) onNewTcpConn(conn net.Conn) {
-	// 日志
-	zplog.Debugf("收到1个新的 tcp 连接。客户端ip=%s", conn.RemoteAddr())
-
-	// 配置 io 参数
-	this.ApplySocketOption(conn)
-
-	// 创建 session
-	this.createSession(conn)
-}
-
 // 启动 websocket 侦听
-func (this *comAcceptor) runWsListener() {
+func (this *ComAcceptor) runWsListener() {
 	// 变量定义
 	var (
 		addrObj *model.TAddress // 地址变量
@@ -167,7 +154,7 @@ func (this *comAcceptor) runWsListener() {
 
 	// 查找失败
 	if nil != err {
-		zplog.Errorf("comAcceptor-websocket 启动失败。错误=%v", err.Error())
+		zplog.Errorf("ComAcceptor-websocket 启动失败。err=%v", err.Error())
 		return
 	}
 
@@ -179,42 +166,26 @@ func (this *comAcceptor) runWsListener() {
 	http.Handle("/ws", websocket.Handler(this.onNewWsConn)) // 有新连接的时候，会调用 onNewWsConn 处理新连接
 
 	// 侦听新连接
-	go func() {
-		var err error
-		zplog.Infof("comAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
-		if "" == this.keyFile && "" == this.certFile {
-			err = http.ListenAndServe(this.wsListenAddr, nil)
-		} else {
-			zplog.Infof("comAcceptor-websocket 使用 TLS。 key=%s, cert=%s", this.keyFile, this.certFile)
-			err = http.ListenAndServeTLS(this.wsListenAddr, this.certFile, this.keyFile, nil)
-		}
-
-		// 错误信息
-		if nil != err {
-			zplog.Fatalf("comAcceptor-websocket 启动失败。ip=%s，错误=%s", this.wsListenAddr, err)
-		}
-	}()
+	go this.acceptWsConn()
 }
 
-// 收到1个新的 websocket 连接
-func (this *comAcceptor) onNewWsConn(wsConn *websocket.Conn) {
-	// 日志
-	zplog.Debugf("收到1个新的 websocket 连接。客户端ip=%s", wsConn.RemoteAddr())
+// 接收新的 tcp 连接
+func (this *ComAcceptor) acceptWsConn() {
+	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
+	http.Handle("/ws", websocket.Handler(this.connMgr.OnNewWsConn)) // 有新连接的时候，会调用 OnNewWsConn 处理新连接
 
-	// 设置为接收二进制数据
-	wsConn.PayloadType = websocket.BinaryFrame
+	// 侦听新连接
+	var err error
+	zplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
+	if "" != this.keyFile && "" != this.certFile {
+		zplog.Debugf("ComAcceptor-websocket 使用 TLS。 key=%s, cert=%s", this.keyFile, this.certFile)
+		err = http.ListenAndServeTLS(this.wsListenAddr, this.certFile, this.keyFile, nil)
+	} else {
+		err = http.ListenAndServe(this.wsListenAddr, nil)
+	}
 
-	// 创建 session
-	this.createSession(wsConn)
-}
-
-// 创建 session
-func (this *comAcceptor) createSession(conn net.Conn) {
-	// 创建 socket
-	bufferSocket := network.NewBufferSocket(conn)
-
-	// 创建 session
-	if this.opts.SessionType == model.C_SES_TYPE_CLINET {
-		session.NewClientSession(bufferSocket, this.sessionMgr, nil)
+	// 错误信息
+	if nil != err {
+		zplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，错误=%s", this.wsListenAddr, err)
 	}
 }

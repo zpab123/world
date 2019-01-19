@@ -25,7 +25,13 @@ type IWebsocketManager interface {
 }
 
 // MulAcceptor 连接管理
-type IMulSocketManager interface {
+type IMulConnManager interface {
+	ITcpSocketManager // 接口继承： tcp 连接管理
+	IWebsocketManager // 接口继承： websocket 连接管理
+}
+
+// ComAcceptor 连接管理
+type IComConnManager interface {
 	ITcpSocketManager // 接口继承： tcp 连接管理
 	IWebsocketManager // 接口继承： websocket 连接管理
 }
