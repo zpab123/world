@@ -1,7 +1,7 @@
 // /////////////////////////////////////////////////////////////////////////////
 // 同时支持 tcp websocket
 
-package acceptor
+package network
 
 import (
 	"github.com/zpab123/world/model" // 全局模型
