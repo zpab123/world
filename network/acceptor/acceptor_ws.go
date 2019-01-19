@@ -88,7 +88,7 @@ func (this *WsAcceptor) accept() {
 	}
 
 	var err error // 错误信息
-	zplog.Infof("WsAcceptor 启动成功。监听地址=%s", this.wsListenAddr)
+	zplog.Infof("WsAcceptor 启动成功。ip=%s", this.wsListenAddr)
 
 	// 开启服务器
 	if this.certFile != "" && this.keyFile != "" {
@@ -100,6 +100,6 @@ func (this *WsAcceptor) accept() {
 
 	// 错误信息
 	if nil != err {
-		zplog.Fatalf("WsAcceptor 启动失败。监听地址=%s，错误=%s", this.wsListenAddr, err)
+		zplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
 	}
 }
