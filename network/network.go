@@ -9,8 +9,3 @@ import (
 
 // /////////////////////////////////////////////////////////////////////////////
 // public api
-
-// 根据 acceptor 名字创建1个 acceptor 对象
-func NewAcceptor(name string) model.IAcceptor {
-
-}

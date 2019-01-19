@@ -85,10 +85,10 @@ type TLaddr struct {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// Laddr 对象
+// TTcpConnOpts 对象
 
 // TcpSocket 配置参数
-type TTcpSocketOpts struct {
+type TTcpConnOpts struct {
 	ReadBufferSize  int           // 读取 buffer 字节大小
 	WriteBufferSize int           // 写入 buffer 字节大小
 	NoDelay         bool          // 写入数据后，是否立即发送
@@ -97,69 +97,18 @@ type TTcpSocketOpts struct {
 	WriteTimeout    time.Duration // 写数据超时时间
 }
 
+// 创建1个新的 TTcpConnOpts 对象
+func NewTTcpConnOpts() *TTcpConnOpts {
+	// 创建对象
+	tcpOpts := &TTcpConnOpts{}
+	tcpOpts.SetDefaultOpts()
+
+	return tcpOpts
+}
+
 // 设置默认参数
-func (this *TTcpSocketOpts) SetDefaultOpts() {
+func (this *TTcpConnOpts) SetDefaultOpts() {
 	this.ReadBufferSize = C_TCP_BUFFER_READ_SIZE   // 张鹏：原先是-1，这里被修改了
 	this.WriteBufferSize = C_TCP_BUFFER_WRITE_SIZE // 张鹏：原先是-1，这里被修改了
 	this.NoDelay = C_TCP_NO_DELAY                  // 张鹏：原先没有这个设置项，这里被修改了
 }
-
-// /////////////////////////////////////////////////////////////////////////////
-// 网络接收器配置参数
-
-// 监听地址集合
-type TAcceptorOpts struct {
-	SessionType string // 创建 session 类型
-}
-
-// 新建1个 TAcceptorOpts 对象
-func NewTAcceptorOpts() *TAcceptorOpts {
-	// 创建对象
-	aptor := &TAcceptorOpts{}
-	aptor.SetDefaultOpts()
-
-	return aptor
-}
-
-// 设置默认参数
-func (this *TAcceptorOpts) SetDefaultOpts() {
-	this.SessionType = C_SES_TYPE_CLINET
-}
-
-// /////////////////////////////////////////////////////////////////////////////
-// TConnectorOpt 对象
-
-// connector 组件配置参数
-type TConnectorOpt struct {
-	SessionOpts  *TSessionOpts // 对象继承： session 设置
-	AcceptorType string        // 接收器 类型
-	MaxConn      uint32        // 最大连接数量，超过此数值后，不再接收新连接
-}
-
-// 创建1个新的 TConnectorOpt
-func NewTConnectorOpt() *TConnectorOpt {
-	// 创建对象
-	opts := &TConnectorOpt{
-		SessionOpts: NewTSessionOpts(),
-	}
-
-	opts.SetDefaultOpts()
-
-	return opts
-}
-
-// 检查 ConnectorConfig 参数是否存在错误
-func (this *TConnectorOpt) Check() error {
-	return nil
-}
-
-// 设置默认参数
-func (this *TConnectorOpt) SetDefaultOpts() {
-	this.AcceptorType = C_ACCEPTOR_TYPE_COM
-	this.SessionOpts.SetDefaultOpts()
-}
-
-// /////////////////////////////////////////////////////////////////////////////
-// TConnectorOpt 对象
-
-type TDataMgrCreator func(pm IPacketManager, handler IPacketHandler)

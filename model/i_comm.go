@@ -3,13 +3,6 @@
 
 package model
 
-// 组件基础
-type IComponent interface {
-	Name() string // 获取组件名字
-	Run()         // 组件开始运行
-	Stop()        // 组件停止运行
-}
-
 // 状态管理
 type IState interface {
 	SetState(v uint32) // 设置状态

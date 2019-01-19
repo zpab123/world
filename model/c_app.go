@@ -15,3 +15,8 @@ const (
 	C_APP_STATE_STOPING        // 正在停止
 	C_APP_STATE_STOP           // 停止状态
 )
+
+// APP 组件名字
+const (
+	C_CPT_NAME_CONNECTOR = "connector.connector" // connector 组件
+)

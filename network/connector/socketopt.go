@@ -58,7 +58,17 @@ func (this *TCPSocketOption) SetSocketDeadline(read, write time.Duration) {
 	this.writeTimeout = write
 }
 
-// 设置 net.Conn 连接对象基础参数
+// 设置 Packet 最大字节
+func (this *TCPSocketOption) SetMaxPacketSize(maxSize int) {
+	this.maxPacketSize = maxSize
+}
+
+// 获取 Packet 最大字节 [iSocketOpt 接口]
+func (this *TCPSocketOption) GetMaxPacketSize() int {
+	return this.maxPacketSize
+}
+
+// 设置 *net.TCPConn 连接对象基础参数
 //
 // conn 符合 *net.TCPConn 接口, 才会成功
 func (this *TCPSocketOption) ApplySocketOption(conn net.Conn) {
@@ -73,16 +83,6 @@ func (this *TCPSocketOption) ApplySocketOption(conn net.Conn) {
 
 		cc.SetNoDelay(this.noDelay)
 	}
-}
-
-// 设置 Packet 最大字节
-func (this *TCPSocketOption) SetMaxPacketSize(maxSize int) {
-	this.maxPacketSize = maxSize
-}
-
-// 获取 Packet 最大字节 [iSocketOpt 接口]
-func (this *TCPSocketOption) GetMaxPacketSize() int {
-	return this.maxPacketSize
 }
 
 // 设置 net.Conn 连接对象读取超时 [iSocketOpt 接口]
