@@ -8,14 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/zpab123/world/model"             // 全局模型
-	"github.com/zpab123/world/network"           // 网络库
-	"github.com/zpab123/world/network/connector" // 连接器
-	"github.com/zpab123/world/network/socket"    // socket 库
-	"github.com/zpab123/world/session"           // socket会话
-	"github.com/zpab123/world/utils"             // 工具库
-	"github.com/zpab123/zplog"                   // 日志库
-	"golang.org/x/net/websocket"                 // websocket 库
+	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/utils" // 工具库
+	"github.com/zpab123/zplog"       // 日志库
+	"golang.org/x/net/websocket"     // websocket 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////

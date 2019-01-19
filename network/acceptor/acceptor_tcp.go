@@ -6,10 +6,9 @@ package acceptor
 import (
 	"net"
 
-	"github.com/zpab123/world/consts" // 全局常量
-	"github.com/zpab123/world/model"  // 全局模型
-	"github.com/zpab123/world/utils"  // 工具库
-	"github.com/zpab123/zplog"        //日志库
+	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/utils" // 工具库
+	"github.com/zpab123/zplog"       //日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
