@@ -90,6 +90,8 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	tcpConn.SetWriteBuffer(this.opts.TcpConnOpts.WriteBufferSize)
 	tcpConn.SetReadBuffer(this.opts.TcpConnOpts.ReadBufferSize)
 	tcpConn.SetNoDelay(this.opts.TcpConnOpts.NoDelay)
+
+	// 创建 session 对象
 }
 
 // 收到1个新的 websocket 连接对象

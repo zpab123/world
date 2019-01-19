@@ -11,12 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zpab123/world/model"                   // 全局数据结构
-	_ "github.com/zpab123/world/network/connector/com" // 注册 ws 包
-	_ "github.com/zpab123/world/network/connector/mul" // 注册 mul 包
-	_ "github.com/zpab123/world/network/connector/tcp" // 注册 tcp 包
-	_ "github.com/zpab123/world/network/connector/ws"  // 注册 ws 包
-	"github.com/zpab123/zplog"                         // log 库
+	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/zplog"       // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -47,7 +43,7 @@ func NewApplication(appType string, appDelegate model.IAppDelegate) *Application
 	}
 
 	// 设置类型
-	app.baseInfo.ServerType = appType
+	app.baseInfo.AppType = appType
 
 	// 设置为无效状态
 	app.state.Store(model.C_APP_STATE_INVALID)
