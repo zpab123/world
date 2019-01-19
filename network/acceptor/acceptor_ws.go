@@ -58,7 +58,7 @@ func (this *WsAcceptor) Run() {
 
 	// 查找失败
 	if nil != err {
-		zplog.Errorf("WsAcceptor 启动失败。错误=%v", err.Error())
+		zplog.Errorf("WsAcceptor 启动失败。err=%v", err.Error())
 		return
 	}
 
