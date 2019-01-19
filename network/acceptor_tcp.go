@@ -88,7 +88,7 @@ func (this *TcpAcceptor) Stop() {
 	this.listener.Close()
 
 	// 断开所有连接
-	this.socketMgr.CloseAllTcpConn()
+	this.socketMgr.CloseAllConn()
 
 	// 等待线程结束 - 阻塞
 	this.WaitAllStop()

@@ -15,13 +15,13 @@ import (
 // tcpSocket 连接管理
 type ITcpSocketManager interface {
 	OnNewTcpConn(conn net.Conn) // 收到1个新的 Tcp 连接对象
-	CloseAllTcpConn()           // 关闭所有连接
+	CloseAllConn()              // 关闭所有连接
 }
 
 // websocket 连接管理
 type IWebsocketManager interface {
 	OnNewWsConn(wsconn *websocket.Conn) // 收到1个新的 websocket 连接对象
-	CloseAllWsConn()                    // 关闭所有连接
+	CloseAllConn()                      // 关闭所有连接
 }
 
 // MulAcceptor 连接管理

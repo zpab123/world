@@ -16,11 +16,6 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // 包初始化
 
-//  变量
-var (
-	acceptorMap = map[string]AcceptorCreateFunc{} // typeName->AcceptorCreateFunc 集合
-)
-
 // 常量
 const (
 	_maxConnNum uint32 = 100000 // 默认最大连接数
@@ -29,57 +24,26 @@ const (
 // /////////////////////////////////////////////////////////////////////////////
 // public api
 
-// 注册1个 connector 创建函数
-func RegisterAcceptor(typeName string, f AcceptorCreateFunc) {
-	// 已经存在
-	if _, ok := acceptorMap[typeName]; ok {
-		panic(fmt.Sprintf("注册 connector 重复，类型=%s", typeName))
-	}
-
-	// 保存类型
-	acceptorMap[typeName] = f
-}
-
-// 根据类型，创建1个 acceptor 对象
-//
-// typeName 方便自己定义类型，不受 TConnectorOpt 影响
-func NewAcceptor(typeName string, addrs model.TLaddr, cntor model.IConnector) model.IAcceptor {
-	// 类型检查
-	creator := acceptorMap[typeName]
-	if nil == creator {
-		zplog.Panicf("创建 Acceptor 出错：找不到 %s 类型的 Acceptor", typeName)
-		panic(fmt.Sprintf("创建 Acceptor 出错：找不到 %s 类型的 Acceptor", typeName))
-	}
-
-	// 创建 acceptor
-	aptor := creator(cntor)
-
-	// 设置地址参数
-	aptor.SetAddr(addrs)
-
-	return aptor
-}
-
 // /////////////////////////////////////////////////////////////////////////////
 // connector 对象
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
-	name                   string                // 组件名字
-	laddr                  *model.TLaddr         // 监听地址集合
-	opt                    *model.TConnectorOpt  // 配置参数
-	connNum                syncutil.AtomicUint32 // 当前连接数
-	state                  syncutil.AtomicInt32  // connector 当前状态
-	acceptor               model.IAcceptor       // 某种类型的 acceptor 连接器
-	SockerManager                                // 对象继承： socket 管理
-	session.SessionManager                       // 对象继承： session 管理
-	network.RecoverIoPanic                       // 对象继承： 设置是否 io 异常捕获
+	laddr       *model.TLaddr         // 监听地址集合
+	opts        *model.TConnectorOpt  // 配置参数
+	acceptor    model.IAcceptor       // 某种类型的 acceptor 连接器
+	connNum     syncutil.AtomicUint32 // 当前连接数
+	state       syncutil.AtomicInt32  // connector 当前状态
+	tcpAcceptor *network.TcpAcceptor  // tcpAcceptor 连接器
+	wsAcceptor  *network.WsAcceptor   // wsAcceptor 连接器
+	mulAcceptor *network.MulAcceptor  // mulAcceptor 连接器
+	comAcceptor *network.ComAcceptor  // comAcceptor 连接器
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *model.TLaddr, opts *model.TConnectorOpt) model.IConnector {
+func NewConnector(addrs *model.TLaddr, opt *model.TConnectorOpt) model.IConnector {
 	// 参数效验
-	if nil != opts.Check() {
+	if nil != opt.Check() {
 		return nil
 	}
 
@@ -87,65 +51,21 @@ func NewConnector(addrs *model.TLaddr, opts *model.TConnectorOpt) model.IConnect
 
 	// 创建组件
 	cntor := &Connector{
-		name:  model.C_COMPONENT_NAME_CONNECTOR,
 		laddr: addrs,
-		opt:   opts,
+		opts:  opt,
 	}
 
 	// 创建 Acceptor
 	aptor := NewAcceptor(opts.AcceptorType, cntor)
-
-	// 保存 Acceptor
 	cntor.acceptor = aptor
 
 	return cntor
 }
 
-// 组件名字 [IComponent 实现]
-func (this *Connector) Name() string {
-	return this.name
-}
-
-// 运行 Connector 组件 [IComponent 实现]
-func (this *Connector) Run() {
-	// 启动 acceptor
-	this.acceptor.Run()
-}
-
-// 停止运行 [IComponent 实现]
-func (this *Connector) Stop() {
-	// 停止 acceptor
-	this.acceptor.Stop()
-}
-
-// 获取 connector 配置信息 [IConnector 接口]
-func (this *Connector) GetConnectorOpt() *model.TConnectorOpt {
-	return this.opt
-}
-
 // /////////////////////////////////////////////////////////////////////////////
-// AcceptorCreateFunc 对象
+// private api
 
-type AcceptorCreateFunc func(cntor model.IConnector) model.IAcceptor
-
-// /////////////////////////////////////////////////////////////////////////////
-// socketManager
-
-// socket 管理
-type SockerManager struct {
-}
-
-// 收到1个新的 socket 连接 [IConnector] 接口
-func (this *SockerManager) OnNewSocket(socket model.IPacketSocket) {
-
-}
-
-// 某个 socket  断开 [IConnector] 接口
-func (this *SockerManager) OnSocketClose(socket model.IPacketSocket) {
-
-}
-
-// 某个 socket  收到数据 [IConnector] 接口
-func (this *SockerManager) OnSocketMessage(socket model.IPacketSocket) {
+// 创建1个新的 Acceptor
+func newAcceptor(name string) model.IAcceptor {
 
 }
