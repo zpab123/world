@@ -104,3 +104,26 @@ func (this *WsAcceptor) accept() {
 		zplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
 	}
 }
+
+// 侦听连接
+func (this *WsAcceptor) liten() {
+	// 创建 mux
+	mux := http.NewServeMux()
+	// 路由函数
+	handler := websocket.Handler(this.websocketMgr.OnNewWsConn)
+	mux.HandleFunc("/ws", handler)
+
+	// 创建 httpServer
+	this.httpServer = &http.Server{
+		Addr:    this.wsListenAddr,
+		Handler: mux,
+	}
+
+	// 开启服务器
+	var err error
+	if this.certFile != "" && this.keyFile != "" {
+		err = this.httpServer.ServeTLS(this.listener, this.certFile, this.keyFile)
+	} else {
+		err = this.httpServer.Serve(this.listener)
+	}
+}
