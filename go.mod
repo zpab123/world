@@ -1,4 +1,4 @@
-module mtworld
+module world
 
 require (
 	"github.com/zpab123/zplog"

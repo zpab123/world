@@ -53,5 +53,4 @@ func (this *TConnectorOpt) Check() error {
 func (this *TConnectorOpt) SetDefaultOpts() {
 	this.AcceptorName = C_ACCEPTOR_NAME_COM
 	this.MaxConn = C_CNTOR_MAX_CONN
-
 }

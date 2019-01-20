@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/zpab123/syncutil"      // 原子操作工具
-	"github.com/zpab123/world/model"   // 全局模型
-	"github.com/zpab123/world/network" // 网络库
-	"github.com/zpab123/zplog"         // 日志库
-	"golang.org/x/net/websocket"       // websocket 库
+	"github.com/zpab123/syncutil"    // 原子操作工具
+	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/zplog"       // 日志库
+	"golang.org/x/net/websocket"     // websocket 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////

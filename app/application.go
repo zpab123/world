@@ -94,8 +94,8 @@ func (this *Application) Run() {
 		return
 	}
 
-	// 注册默认组件
-	regDefaultComponent(this)
+	// 设置默认组件
+	setDefaultComponent(this)
 
 	// 设置为启动中
 	this.state.Store(model.C_APP_STATE_RUNING)

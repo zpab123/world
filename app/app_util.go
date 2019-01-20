@@ -6,9 +6,9 @@ package app
 import (
 	"flag"
 
-	"github.com/zpab123/world/config"            // 配置读取工具
-	"github.com/zpab123/world/model"             // 全局 [常量-基础数据类型-接口] 集合
-	"github.com/zpab123/world/network/connector" // 网络连接库
+	"github.com/zpab123/world/config"    // 配置读取工具
+	"github.com/zpab123/world/connector" // 网络连接库
+	"github.com/zpab123/world/model"     // 全局 [常量-基础数据类型-接口] 集合
 )
 
 // 完成 app 的默认设置
@@ -76,14 +76,14 @@ func getServerInfo(app *Application) {
 }
 
 // 设置默认组件
-func regDefaultComponent(app *Application) {
+func setDefaultComponent(app *Application) {
 	// master 服务器 - 注册 master 组件
 
 	// 前端服务器
 	if app.serverInfo.Frontend {
 
 		// 注册1个 Connector 组件
-		regConnector(app)
+		setConnector(app)
 
 		// 注册 session 组件
 	}
@@ -97,8 +97,8 @@ func regDefaultComponent(app *Application) {
 	// 注册 monitor 组件
 }
 
-// 注册1个 Connector 组件
-func regConnector(app *Application) {
+// 设置 Connector 组件
+func setConnector(app *Application) {
 	// 地址参数
 	laddr := &model.TLaddr{
 		TcpAddr: app.GetCTcpAddr(),
@@ -122,7 +122,7 @@ func regConnector(app *Application) {
 func getDefaultConnectorOpt() *model.TConnectorOpt {
 	// 创建默认
 	opts := &model.TConnectorOpt{}
-	opts.SetDefault()
+	opts.SetDefaultOpts()
 
 	return opts
 }

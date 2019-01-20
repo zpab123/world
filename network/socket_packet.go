@@ -9,12 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zpab123/world/model"          // 全局模型
-	"github.com/zpab123/world/network"        // 网络库
-	"github.com/zpab123/world/network/packet" // 消息包
-	"github.com/zpab123/world/queue"          // 消息队列
-	"github.com/zpab123/world/utils"          // 工具库
-	"github.com/zpab123/zplog"                // 日志库
+	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/queue" // 消息队列
+	"github.com/zpab123/world/utils" // 工具库
+	"github.com/zpab123/zplog"       // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -37,13 +35,13 @@ var (
 
 // PacketSocket
 type PacketSocket struct {
-	socket    model.ISocket    // 接口继承： 符合 ISocket 的对象
-	goMutex   sync.Mutex       // 线程互斥锁
-	sendQueue []*packet.Packet // 发送队列
-	recvedLen uint32           // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
-	headBuff  [_HEAD_LEN]byte  // 存放消息头二进制数据
-	bodylen   uint32           // 本次 pcket body 总大小
-	newPacket *packet.Packet   // 用于存储 本次即将接收的 Packet 对象
+	socket    model.ISocket   // 接口继承： 符合 ISocket 的对象
+	goMutex   sync.Mutex      // 线程互斥锁
+	sendQueue []*Packet       // 发送队列
+	recvedLen uint32          // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
+	headBuff  [_HEAD_LEN]byte // 存放消息头二进制数据
+	bodylen   uint32          // 本次 pcket body 总大小
+	newPacket *Packet         // 用于存储 本次即将接收的 Packet 对象
 }
 
 // 创建1个新的 PacketSocket 对象
@@ -59,7 +57,7 @@ func NewPacketSocket(st model.ISocket) *PacketSocket {
 // 接收下1个 packet 数据
 //
 // 返回, rerutn=nil=没收到完整的 packet 数据; rerutn=packet=完整的 packet 数据包
-func (this *PacketSocket) RecvPacket() (*packet.Packet, error) {
+func (this *PacketSocket) RecvPacket() (*Packet, error) {
 	// 还未收到消息头
 	if this.recvedLen < _HEAD_LEN {
 		n, err := this.socket.Read(this.headBuff[this.recvedLen:]) // 读取数据
@@ -121,7 +119,7 @@ func (this *PacketSocket) RecvPacket() (*packet.Packet, error) {
 }
 
 // 发送1个 *Packe 数据
-func (this *PacketSocket) SendPacket(pkt *packet.Packet) error {
+func (this *PacketSocket) SendPacket(pkt *Packet) error {
 	// 添加到消息队列
 	this.goMutex.Lock()
 	this.sendQueue = append(this.sendQueue, pkt)
@@ -146,7 +144,7 @@ func (this *PacketSocket) Flush(reason *string) (err error) {
 	}
 
 	// 交换数据, 并把原来的数据置空
-	packets := make([]*packet.Packet, 0, len(this.sendQueue))
+	packets := make([]*Packet, 0, len(this.sendQueue))
 	packets, this.sendQueue = this.sendQueue, packets // 交换值
 	this.goMutex.Unlock()
 
