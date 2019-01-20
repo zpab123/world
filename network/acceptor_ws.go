@@ -65,7 +65,7 @@ func (this *WsAcceptor) Run() {
 
 	// 端口查找成功
 	this.listener = ln.(net.Listener)
-	this.listener.Close() // 解除端口占用
+	//this.listener.Close() // 解除端口占用
 	this.wsListenAddr = addrObj.String(wsPort)
 
 	// 侦听新连接
@@ -79,7 +79,7 @@ func (this *WsAcceptor) Stop() {
 }
 
 // 侦听连接
-func (this *WsAcceptor) accept() {
+func (this *WsAcceptor) liten() {
 
 	// 创建 http 服务器
 
@@ -106,12 +106,13 @@ func (this *WsAcceptor) accept() {
 }
 
 // 侦听连接
-func (this *WsAcceptor) liten() {
+func (this *WsAcceptor) accept() {
 	// 创建 mux
 	mux := http.NewServeMux()
 	// 路由函数
 	handler := websocket.Handler(this.websocketMgr.OnNewWsConn)
-	mux.HandleFunc("/ws", handler)
+	//mux.HandleFunc("/ws", handler)
+	mux.Handle("/ws", handler)
 
 	// 创建 httpServer
 	this.httpServer = &http.Server{
@@ -121,9 +122,15 @@ func (this *WsAcceptor) liten() {
 
 	// 开启服务器
 	var err error
+	zplog.Infof("WsAcceptor 启动成功。ip=%s", this.wsListenAddr)
 	if this.certFile != "" && this.keyFile != "" {
 		err = this.httpServer.ServeTLS(this.listener, this.certFile, this.keyFile)
 	} else {
 		err = this.httpServer.Serve(this.listener)
+	}
+
+	// 错误信息
+	if nil != err {
+		zplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
 	}
 }

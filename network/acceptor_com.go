@@ -29,6 +29,8 @@ type ComAcceptor struct {
 	keyFile      string                // TLS解密key
 	laddr        *model.TLaddr         // 监听地址集合
 	connMgr      model.IComConnManager // 连接管理
+	httpServer   *http.Server          // http 服务器
+	wsListener   net.Listener          // websocket 侦听器
 }
 
 // 创建1个 ComAcceptor 对象
@@ -156,14 +158,44 @@ func (this *ComAcceptor) runWsListener() {
 
 	// 端口查找成功
 	this.wsListenAddr = addrObj.String(wsPort)
-	ln.(net.Listener).Close() // 解除端口占用
+	this.wsListener = ln.(net.Listener)
+	//this.wsListener.Close() // 解除端口占用
 
 	// 侦听新连接
 	go this.acceptWsConn()
+	//go this.acceptWebsocket()
 }
 
-// 接收新的 tcp 连接
+// 接收新的 websocket 连接
 func (this *ComAcceptor) acceptWsConn() {
+	// 创建 mux
+	mux := http.NewServeMux()
+	handler := websocket.Handler(this.connMgr.OnNewWsConn)
+	mux.Handle("/ws", handler)
+
+	// 创建 httpServer
+	this.httpServer = &http.Server{
+		Addr:    this.wsListenAddr,
+		Handler: mux,
+	}
+
+	// 开启服务器
+	var err error
+	zplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
+	if this.certFile != "" && this.keyFile != "" {
+		err = this.httpServer.ServeTLS(this.wsListener, this.certFile, this.keyFile)
+	} else {
+		err = this.httpServer.Serve(this.wsListener)
+	}
+
+	// 错误信息
+	if nil != err {
+		zplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
+	}
+}
+
+// 接收新的 websocket 连接
+func (this *ComAcceptor) acceptWebsocket() {
 	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
 	http.Handle("/ws", websocket.Handler(this.connMgr.OnNewWsConn)) // 有新连接的时候，会调用 OnNewWsConn 处理新连接
 
