@@ -33,7 +33,7 @@ var (
 // network 初始化函数
 func init() {
 	// 添加 256 512 2048 ... 等各个body长度数组
-	length := (_MIN_PAYLOAD_LEN << _CAP_GROW_SHIFT)
+	length := uint32(_MIN_PAYLOAD_LEN) << _CAP_GROW_SHIFT
 	for length < _MAX_BODY_LEN {
 		buffLenSlice = append(buffLenSlice, length)
 		length <<= _CAP_GROW_SHIFT
@@ -50,7 +50,7 @@ func init() {
 		}
 
 		// 创建对象池
-		bufferPools[ln] = &sync.Pool{
+		bufferPools[bufLen] = &sync.Pool{
 			New: newBuf,
 		}
 	}

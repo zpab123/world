@@ -5,14 +5,14 @@ package network
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net"
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"          // 错误集合
 	"github.com/zpab123/world/model" // 全局模型
-	"github.com/zpab123/world/queue" // 消息队列
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zplog"       // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,6 @@ import (
 
 // 常量
 const (
-	_HEAD_LEN        = model.C_PACKET_HEAD_LEN                          // 消息头长度
 	_MAX_BODY_LENGTH = model.C_PACKET_MAX_LEN - model.C_PACKET_HEAD_LEN // body 数据最大长度 （ pcket总长度 - 消息头）
 )
 
@@ -71,13 +70,13 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 		}
 
 		// 收到消息头: 保存本次 packet 消息 body 总大小
-		this.bodylen = NETWORK_ENDIAN.Uint16(this.headBuff[2:])
+		this.bodylen = NETWORK_ENDIAN.Uint32(this.headBuff[_LEN_POS:])
 
 		// 解密
 
 		// 长度效验
 		if this.bodylen > _MAX_BODY_LENGTH {
-			err := errors.Errorf("packet 消息包数据 body 长度大于最大长度。长度=：%v", pc.bodylen)
+			err := errors.Errorf("packet 消息包数据 body 长度大于最大长度。长度=：%v", this.bodylen)
 			this.resetRecvStates()
 			this.Close()
 
@@ -86,7 +85,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 		// 创建新的 packet 对象
 		this.recvedLen = 0 // 重置，准备记录 body
-		this.newPacket = packet.NewPacket()
+		this.newPacket = NewPacket()
 		this.newPacket.AllocBuffer(this.bodylen)
 	}
 
@@ -191,7 +190,7 @@ func (this *PacketSocket) LocalAddr() net.Addr {
 }
 
 // fmt 字符串输出接口
-func (pc *PacketSocket) String() string {
+func (this *PacketSocket) String() string {
 	return fmt.Sprintf("[%s >>> %s]", this.LocalAddr(), this.RemoteAddr())
 }
 

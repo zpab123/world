@@ -8,9 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/zpab123/world/consts" // 全局常量
-	"github.com/zpab123/world/model"  // 全局 struct
-	"github.com/zpab123/zplog"        // 日志库
+	"github.com/zpab123/world/model" // 全局 struct
+	"github.com/zpab123/zplog"       // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -111,7 +110,7 @@ func getServerConfig() {
 		}
 
 		// 创建对象
-		serverConfig = &model.ServerConfig{
+		serverConfig = &model.TServerConfig{
 			Development: model.TServerMap{},
 			Production:  model.TServerMap{},
 		}

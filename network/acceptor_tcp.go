@@ -5,6 +5,7 @@ package network
 
 import (
 	"net"
+	"strings"
 
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
@@ -21,7 +22,7 @@ import (
 type TcpAcceptor struct {
 	state                             // 对象继承：运行状态操作
 	name      string                  // 连接器名字
-	laddr     model.TLaddr            // 地址集合
+	laddr     *model.TLaddr           // 地址集合
 	socketMgr model.ITcpSocketManager // 符合 tcpsocket 连接管理接口的对象
 	listener  net.Listener            // 侦听器
 }

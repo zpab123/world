@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zpab123/syncutil"    // 同步工具
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/zplog"       // log 库
 )
@@ -38,7 +39,7 @@ func NewApplication(appType string, appDelegate model.IAppDelegate) *Application
 	// 创建对象
 	app := &Application{
 		baseInfo:    &model.TBaseInfo{},
-		serverInfo:  &model.TServerConfig{},
+		serverInfo:  &model.TServerInfo{},
 		appDelegate: appDelegate,
 	}
 
@@ -128,11 +129,6 @@ func (this *Application) Stop() error {
 	}
 
 	return nil
-}
-
-// 设置 this 类型
-func (this *Application) SetType(v string) {
-	this.baseInfo.ServerType = v
 }
 
 // 获取 tcp 服务器监听地址(格式 -> 127.0.0.1:6532)

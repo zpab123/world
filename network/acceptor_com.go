@@ -32,7 +32,7 @@ type ComAcceptor struct {
 }
 
 // 创建1个 ComAcceptor 对象
-func NewComAcceptor(addr model.TLaddr, mgr model.IComConnManager) model.IAcceptor {
+func NewComAcceptor(addr *model.TLaddr, mgr model.IComConnManager) model.IAcceptor {
 	// 创建 ComAcceptor
 	comaptor := &ComAcceptor{
 		name:    model.C_ACCEPTOR_NAME_COM,
@@ -157,9 +157,6 @@ func (this *ComAcceptor) runWsListener() {
 	// 端口查找成功
 	this.wsListenAddr = addrObj.String(wsPort)
 	ln.(net.Listener).Close() // 解除端口占用
-
-	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
-	http.Handle("/ws", websocket.Handler(this.onNewWsConn)) // 有新连接的时候，会调用 onNewWsConn 处理新连接
 
 	// 侦听新连接
 	go this.acceptWsConn()

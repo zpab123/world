@@ -56,13 +56,13 @@ func parseArgs(app *Application) {
 // 获取服务器信息
 func getServerInfo(app *Application) {
 	// 获取服务器类型
-	serverType := app.baseInfo.ServerType
+	appType := app.baseInfo.AppType
 
 	// 获取服务器名字
 	name := app.baseInfo.Name
 
 	// 获取类型列表
-	list := config.GetServerMap()[serverType]
+	list := config.GetServerMap()[appType]
 	if nil == list || len(list) <= 0 {
 		return
 	}

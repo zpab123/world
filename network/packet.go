@@ -16,13 +16,10 @@ import (
 
 // 常量 -- packet 数据大小定义
 const (
-	_HEAD_LEN                      = model.C_PACKET_HEAD_LEN // 消息头长度
-	_LEN_POS                       = 2                       // Packet 的 buffer 中，记录长度信息开始的位置： 用于 body 长度计算
-	_MIN_PAYLOAD_LEN               = uint32(128)             // 有效载荷的最小长度（对象池使用）
-	_BODY_LEN_MASK           int16 = 0x7fff                  // 16 位最大带符号整数 32767
-	_BODY_COMPRESSEDBIT_MASK int16 = 0x8000                  // 16 位最小带符号整数 -32768
-	//_PAYLOAD_LEN_MASK            = 0x7FFFFFFF              // 等于 2147483647 32位最大带符号整数
-	//_PAYLOAD_COMPRESSED_BIT_MASK = 0x80000000              // 等于-2147483648 32位最小带符号整数
+	_HEAD_LEN        = model.C_PACKET_HEAD_LEN // 消息头长度
+	_LEN_POS         = 2                       // Packet 的 buffer 中，记录长度信息开始的位置： 用于 body 长度计算
+	_MIN_PAYLOAD_LEN = 128                     // 有效载荷的最小长度（对象池使用）
+	_BODY_LEN_MASK   = 0x7FFFFFFF              // 等于 1111111111111111111111111111111 (32个1)
 )
 
 var (
@@ -61,11 +58,11 @@ func (this *Packet) GetBytes() []byte {
 	return this.bytes
 }
 
-// 获取 packet 类型
-
 // 获取 packet 的 body 字节长度
-func (this *Packet) GetBodyLen() uint16 {
-	bodyLen := *(*uint16)(unsafe.Pointer(&this.bytes[_LEN_POS])) & _BODY_LEN_MASK
+func (this *Packet) GetBodyLen() uint32 {
+	bodyLen := *(*uint32)(unsafe.Pointer(&this.bytes[_LEN_POS])) & _BODY_LEN_MASK
+
+	return bodyLen
 }
 
 // 在 Packet 的 bytes 后面添加1个 byte 数据
@@ -176,7 +173,7 @@ func (this *Packet) AppendUint64(v uint64) {
 func (this *Packet) ReadUint64() (v uint64) {
 	// 读取
 	pPos := this.getReadPos()
-	V = packetEndian.PutUint64(this.bytes[pPos : pPos+8])
+	v = packetEndian.Uint64(this.bytes[pPos : pPos+8])
 
 	// 记录读取数量
 	this.readCount += 8
@@ -230,7 +227,7 @@ func (this *Packet) AppendBytes(v []byte) {
 	bytesLen := uint32(len(v))
 
 	// 申请内存
-	thi.AllocBuffer(bytesLen)
+	this.AllocBuffer(bytesLen)
 
 	// 复制数据
 	wPos := this.getWirtePos()
@@ -314,7 +311,7 @@ func (this *Packet) Release() {
 			this.bytes = this.initBytes[:]
 
 			// 放回对象池
-			bufferPools[payloadLn].Put(buffer)
+			bufferPools[uint32(payloadLn)].Put(buffer)
 		}
 
 		// 将 pakcet 放回对象池
@@ -335,7 +332,7 @@ func (this *Packet) AllocBuffer(need uint32) {
 	}
 
 	// 根据 newLen 大小，从 bufferPools 中获取 buffer 对象池
-	poolKey := getPoolKey(newLen)
+	poolKey := getPoolKey(uint32(newLen))
 	newBuffer := bufferPools[poolKey].Get().([]byte)
 	if len(newBuffer) != int(poolKey+_HEAD_LEN) {
 		zplog.Panicf("buffer 申请错误，申请的长度=%d,获得的长度=%d", poolKey+_HEAD_LEN, len(newBuffer))
@@ -348,16 +345,18 @@ func (this *Packet) AllocBuffer(need uint32) {
 	this.bytes = newBuffer
 
 	// 将旧 buffer 放入对象池
-	if oldLoadLen > _MIN_PAYLOAD_LEN {
-		bufferPools[oldLoadLen].Put(oldBytes)
+	if oldPayloadLen > _MIN_PAYLOAD_LEN {
+		bufferPools[oldPayloadLen].Put(oldBytes)
 	}
 }
 
 // 获取 packet 的 bytes 中有效载荷字节长度（总长度 - 消息头）
 func (this *Packet) getPayloadLen() uint32 {
-	payloadLen := len(this.bytes) - _HEAD_LEN
+	// bytes 长度
+	byteLen := len(this.bytes)
+	payloadLen := uint32(byteLen) - _HEAD_LEN
 
-	return uint32(payloadLen)
+	return payloadLen
 }
 
 // Packet.bytes 中的所有有效数据
@@ -366,8 +365,8 @@ func (this *Packet) Data() []byte {
 }
 
 // 增加 body 长度
-func (this *Packet) addBodyLen(ln uint16) {
-	*(*uint16)(unsafe.Pointer(&this.bytes[_LEN_POS])) += ln
+func (this *Packet) addBodyLen(ln uint32) {
+	*(*uint32)(unsafe.Pointer(&this.bytes[_LEN_POS])) += ln
 }
 
 // 获取读取位置

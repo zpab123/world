@@ -4,12 +4,10 @@
 package connector
 
 import (
-	"fmt"
 	"net"
 
 	"github.com/zpab123/syncutil"    // 原子操作工具
 	"github.com/zpab123/world/model" // 全局模型
-	"github.com/zpab123/zplog"       // 日志库
 	"golang.org/x/net/websocket"     // websocket 库
 )
 
@@ -38,7 +36,7 @@ type Connector struct {
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addrs *model.TLaddr, opt *model.TConnectorOpt) model.IConnector {
+func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IConnector {
 	// 参数效验
 	if nil != opt.Check() {
 		return nil
@@ -49,12 +47,12 @@ func NewConnector(addrs *model.TLaddr, opt *model.TConnectorOpt) model.IConnecto
 	// 创建组件
 	cntor := &Connector{
 		name:  model.C_CPT_NAME_CONNECTOR,
-		laddr: addrs,
+		laddr: addr,
 		opts:  opt,
 	}
 
 	// 创建 Acceptor
-	aptor := newAcceptor(opt.AcceptorName, cntor)
+	aptor, _ := newAcceptor(opt.AcceptorName, addr, cntor)
 	cntor.acceptor = aptor
 
 	return cntor
@@ -72,7 +70,7 @@ func (this *Connector) Run() {
 }
 
 // 停止 Connector [IComponent 接口]
-func (this *Connector) Run() {
+func (this *Connector) Stop() {
 	// 停止 acceptor
 	this.acceptor.Stop()
 }

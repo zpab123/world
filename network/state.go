@@ -5,7 +5,6 @@ package network
 
 import (
 	"sync"
-	"sync/atomic"
 
 	"github.com/zpab123/syncutil" // 原子变量工具
 )

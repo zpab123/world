@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zplog"       // log 日志库
 	"golang.org/x/net/websocket"     // websocket 库
 )
@@ -19,7 +20,7 @@ import (
 type WsAcceptor struct {
 	state                                // 对象继承：运行状态操作
 	name         string                  // 连接器名字
-	laddr        model.TLaddr            // 地址集合
+	laddr        *model.TLaddr           // 地址集合
 	websocketMgr model.IWebsocketManager // websocket 连接管理
 	listener     net.Listener            // 侦听器： 用于http服务器
 	httpServer   *http.Server            // http 服务器
@@ -93,7 +94,7 @@ func (this *WsAcceptor) accept() {
 	// 开启服务器
 	if this.certFile != "" && this.keyFile != "" {
 		zplog.Debugf("WsAcceptor 使用 TLS。 cert=%s, key=%s", this.certFile, this.keyFile)
-		err = http.ListenAndServeTLS(this.wsListenAddr, certFile, keyFile, nil)
+		err = http.ListenAndServeTLS(this.wsListenAddr, this.certFile, this.keyFile, nil)
 	} else {
 		err = http.ListenAndServe(this.wsListenAddr, nil)
 	}

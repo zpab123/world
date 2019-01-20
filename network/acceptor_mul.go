@@ -15,11 +15,11 @@ import (
 
 // 同时支持 tcp websocket 的对象
 type MulAcceptor struct {
-	State                    // 对象继承：运行状态操作
-	name        string       // 连接器名字
-	laddr       model.TLaddr // 地址集合
-	tcpAcceptor *TcpAcceptor // tcpAcceptor 对象
-	wsAcceptor  *WsAcceptor  // wsAcceptor 对象
+	state                       // 对象继承：运行状态操作
+	name        string          // 连接器名字
+	laddr       *model.TLaddr   // 地址集合
+	tcpAcceptor model.IAcceptor // tcpAcceptor 对象
+	wsAcceptor  model.IAcceptor // wsAcceptor 对象
 }
 
 // 创建1个 mulAcceptor 对象
@@ -31,7 +31,7 @@ func NewMulAcceptor(addr *model.TLaddr, mgr model.IMulConnManager) model.IAccept
 	wsaptor := NewWsAcceptor(addr, mgr)
 
 	// 创建对象
-	mulaptor := &mulAcceptor{
+	mulaptor := &MulAcceptor{
 		name:        model.C_ACCEPTOR_NAME_MUL,
 		laddr:       addr,
 		tcpAcceptor: tcpaptor,
