@@ -29,7 +29,8 @@ type WorldConnection struct {
 // 新建1个 WorldConnection 对象
 func NewWorldConnection(socket model.ISocket, opt *model.TWorldSocketOpts) *WorldConnection {
 	// 创建 packetSocket
-	pktSocket := network.NewPacketSocket(socket)
+	bufSocket := network.NewBufferSocket(socket)
+	pktSocket := network.NewPacketSocket(bufSocket)
 
 	// 创建对象
 	wc := &WorldConnection{
@@ -53,3 +54,7 @@ func (this *WorldConnection) SendMsg() {
 func (this *WorldConnection) HandshakeResponse() {
 
 }
+
+// 心跳消息
+
+// 游戏常用内部消息

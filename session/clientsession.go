@@ -31,10 +31,7 @@ type ClientSession struct {
 
 func NewClientSession(opt *model.TSessionOpts) *ClientSession {
 	// 创建 pktSocket
-	socket := &network.Socket{
-		conn: netconn,
-	}
-	bufSocket := network.NewBufferSocket(socket)
+	bufSocket := network.NewBufferSocket(opt.Socket)
 	pktSocket := network.NewPacketSocket(bufSocket)
 
 	// 创建对象
