@@ -6,7 +6,7 @@ package network
 import (
 	"errors"
 
-	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
+	"github.com/zpab123/world/model" // 全局模型
 )
 
 // /////////////////////////////////////////////////////////////////////////////

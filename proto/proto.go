@@ -2,3 +2,11 @@
 // 通信协议相关
 
 package proto
+
+// /////////////////////////////////////////////////////////////////////////////
+// message
+
+type Message struct {
+	MsgId uint16      // 消息id
+	Data  interface{} // 消息数据
+}

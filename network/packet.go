@@ -49,8 +49,19 @@ func newPacket() interface{} {
 }
 
 // 新建1个 Packet 对象 (从对象池创建)
-func NewPacket() *Packet {
-	return getPacketFromPool()
+func NewPacket(pktId uint16) *Packet {
+	pkt := getPacketFromPool()
+
+	pkt.SetId(pktId)
+
+	return pkt
+}
+
+// 设置 Packet 的 id
+func (this *Packet) SetId(v uint16) {
+	NETWORK_ENDIAN.PutUint16(this.bytes[0:2], v)
+
+	return this.bytes
 }
 
 // 获取 bytes

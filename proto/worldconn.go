@@ -44,6 +44,11 @@ func (this *WorldConnection) RecvMsg() {
 
 }
 
+// 发送1个 msg 消息
+func (this *WorldConnection) SendMsg() {
+
+}
+
 // 回应握手消息
 func (this *WorldConnection) HandshakeResponse() {
 

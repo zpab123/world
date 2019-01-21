@@ -6,11 +6,10 @@ package session
 import (
 	"net"
 
-	"github.com/zpab123/syncutil"             // 原子变量
-	"github.com/zpab123/world/model"          // 全局模型
-	"github.com/zpab123/world/network/packet" // packet 消息包
-	"github.com/zpab123/world/network/socket" // socket
-	"github.com/zpab123/zplog"                // 日志库
+	"github.com/zpab123/syncutil"      // 原子变量
+	"github.com/zpab123/world/model"   // 全局模型
+	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/zplog"         // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +31,11 @@ type ClientSession struct {
 
 func NewClientSession(opt *model.TSessionOpts) *ClientSession {
 	// 创建 pktSocket
-	pktSocket := socket.NewPacketSocket(opt.Socket)
+	socket := &network.Socket{
+		conn: netconn,
+	}
+	bufSocket := network.NewBufferSocket(socket)
+	pktSocket := network.NewPacketSocket(bufSocket)
 
 	// 创建对象
 	cs := &ClientSession{

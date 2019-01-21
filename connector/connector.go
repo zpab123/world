@@ -6,9 +6,11 @@ package connector
 import (
 	"net"
 
-	"github.com/zpab123/syncutil"    // 原子操作工具
-	"github.com/zpab123/world/model" // 全局模型
-	"golang.org/x/net/websocket"     // websocket 库
+	"github.com/zpab123/syncutil"      // 原子操作工具
+	"github.com/zpab123/world/model"   // 全局模型
+	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/zplog"         // 日志库
+	"golang.org/x/net/websocket"       // websocket 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -77,11 +79,20 @@ func (this *Connector) Stop() {
 
 // 收到1个新的 Tcp 连接对象
 func (this *Connector) OnNewTcpConn(conn net.Conn) {
+	// 超过最大连接数
+	if this.connNum.Load() >= this.opts.MaxConn {
+		conn.Close()
+		zplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
+		zplog.Debugf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
+	}
+
 	// 不符合 tcp 连接对象
 	tcpConn, ok := conn.(*net.TCPConn)
 	if !ok {
 		return
 	}
+
+	zplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
 
 	// 配置 iO 参数
 	tcpConn.SetWriteBuffer(this.opts.TcpConnOpts.WriteBufferSize)
@@ -93,7 +104,17 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 
 // 收到1个新的 websocket 连接对象
 func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
+	// 超过最大连接数
+	if this.connNum.Load() >= this.opts.MaxConn {
+		wsconn.Close()
+		zplog.Debugf("收到1个新的 websocket 连接。ip=%s", wsconn.RemoteAddr())
+		zplog.Debugf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
+	}
 
+	// 参数设置
+	wsconn.PayloadType = websocket.BinaryFrame // 以二进制方式接受数据
+
+	// 创建 session 对象
 }
 
 // 关闭所有连接
@@ -103,5 +124,10 @@ func (this *Connector) CloseAllConn() {
 
 // 创建 session 对象
 func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
+	// 创建 socket
+	socket := &network.Socket{
+		conn: netconn,
+	}
 
+	// 创建 session
 }

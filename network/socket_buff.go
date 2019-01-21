@@ -20,15 +20,20 @@ type BufferSocket struct {
 }
 
 // 创建1个新的 BufferSocket 对象
-func NewBufferSocket(socket model.ISocket) *BufferSocket {
+func NewBufferSocket(socket model.ISocket, opts *model.TBufferSocketOpts) *BufferSocket {
+	// 参数效验
+	if nil == opts {
+		opts = model.NewTBufferSocketOpts()
+	}
+
 	// 创建对象
 	bufsocket := &BufferSocket{
 		ISocket: socket,
 	}
 
 	// 创建 buffer
-	bufsocket.bufReader = bufio.NewReaderSize(socket, model.C_SOCKET_READ_BUFFSIZE)
-	bufsocket.bufWriter = bufio.NewWriterSize(socket, model.C_SOCKET_WRITE_BUFFSIZE)
+	bufsocket.bufReader = bufio.NewReaderSize(socket, opts.ReadBufferSize)
+	bufsocket.bufWriter = bufio.NewWriterSize(socket, opts.WriteBufferSize)
 
 	return bufsocket
 }

@@ -14,13 +14,6 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // 常量
 
-// tcp socket 默认参数
-const (
-	C_TCP_BUFFER_READ_SIZE  = 1024 * 1024 // 读 buffer 默认大小
-	C_TCP_BUFFER_WRITE_SIZE = 1024 * 1024 // 写 buffer 默认大小
-	C_TCP_NO_DELAY          = true        // net.tcpConn 对象写入数据后，是否立即发送
-)
-
 // acceptor 名字
 const (
 	C_ACCEPTOR_NAME_TCP       = "tcpAcceptor"  // 支持 tcp
@@ -83,12 +76,6 @@ type IComConnManager interface {
 type IAcceptor interface {
 	Run()  // 组件开始运行
 	Stop() // 组件停止运行
-}
-
-// 地址接口
-type IAddress interface {
-	SetAddr(addr *TLaddr) // 设置监听地址
-	GetAddr() *TLaddr     // 获取监听地址
 }
 
 // socket 组件
@@ -204,30 +191,19 @@ type TLaddr struct {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TTcpConnOpts 对象
 
-// TcpSocket 配置参数
-type TTcpConnOpts struct {
-	ReadBufferSize  int           // 读取 buffer 字节大小
-	WriteBufferSize int           // 写入 buffer 字节大小
-	NoDelay         bool          // 写入数据后，是否立即发送
-	MaxPacketSize   int           // 单个 packet 最大字节数
-	ReadTimeout     time.Duration // 读数据超时时间
-	WriteTimeout    time.Duration // 写数据超时时间
+// BufferSocket 配置参数
+type TBufferSocketOpts struct {
+	ReadBufferSize  int // 读取 buffer 字节大小
+	WriteBufferSize int // 写入 buffer 字节大小
 }
 
-// 创建1个新的 TTcpConnOpts 对象
-func NewTTcpConnOpts() *TTcpConnOpts {
-	// 创建对象
-	tcpOpts := &TTcpConnOpts{}
-	tcpOpts.SetDefaultOpts()
+// 新建1个 TBufferSocketOpts 对象
+func NewTBufferSocketOpts() *TBufferSocketOpts {
+	bs := &TBufferSocketOpts{
+		ReadBufferSize:  C_SOCKET_READ_BUFFSIZE,
+		WriteBufferSize: C_SOCKET_WRITE_BUFFSIZE,
+	}
 
-	return tcpOpts
-}
-
-// 设置默认参数
-func (this *TTcpConnOpts) SetDefaultOpts() {
-	this.ReadBufferSize = C_TCP_BUFFER_READ_SIZE   // 张鹏：原先是-1，这里被修改了
-	this.WriteBufferSize = C_TCP_BUFFER_WRITE_SIZE // 张鹏：原先是-1，这里被修改了
-	this.NoDelay = C_TCP_NO_DELAY                  // 张鹏：原先没有这个设置项，这里被修改了
+	return bs
 }
