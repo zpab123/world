@@ -34,13 +34,13 @@ const (
 
 // packet 常量
 const (
-	C_PACKET_HEAD_LEN                  = 6                // 消息头大小:字节 type(2字节) + length(4字节)
-	C_PACKET_MAX_LEN                   = 25 * 1024 * 1024 // 最大单个 packet 数据，= head + body = 25M
-	C_PACKET_DATA_TCP_TLV              = "tcp.tlv"        // type-length-value 形式的 packet 数据
-	C_PACKET_TYPE_INVALID       uint16 = iota             // 无效的消息类型
-	C_PACKET_TYPE_HANDSHAKE                               // 握手消息
-	C_PACKET_TYPE_HANDSHAKE_ACK                           // 握手 ACK
-	C_PACKET_TYPE_HEARTBEAT                               // 心跳消息
+	C_PACKET_HEAD_LEN                = 6                // 消息头大小:字节 type(2字节) + length(4字节)
+	C_PACKET_MAX_LEN                 = 25 * 1024 * 1024 // 最大单个 packet 数据，= head + body = 25M
+	C_PACKET_DATA_TCP_TLV            = "tcp.tlv"        // type-length-value 形式的 packet 数据
+	C_PACKET_ID_INVALID       uint16 = iota             // 无效的消息类型
+	C_PACKET_ID_HANDSHAKE                               // 握手消息
+	C_PACKET_ID_HANDSHAKE_ACK                           // 握手 ACK
+	C_PACKET_ID_HEARTBEAT                               // 心跳消息
 )
 
 // /////////////////////////////////////////////////////////////////////////////

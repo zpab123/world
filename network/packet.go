@@ -32,6 +32,7 @@ var (
 
 // 客户端 <-> 服务器 服务器 <-> 服务器 之间通信使用的 Packet 数据包
 type Packet struct {
+	pktId     uint16                             // packet Id 用于记录 packet 类型
 	bytes     []byte                             // 用于存放需要通过网络 发送/接收 的数据 （head + body）
 	initBytes [_HEAD_LEN + _MIN_PAYLOAD_LEN]byte // bytes 初始化时候的 buffer 4 + 128
 	readCount uint32                             // 已经读取的字节数
@@ -51,17 +52,22 @@ func newPacket() interface{} {
 // 新建1个 Packet 对象 (从对象池创建)
 func NewPacket(pktId uint16) *Packet {
 	pkt := getPacketFromPool()
-
 	pkt.SetId(pktId)
+
+	pkt.pktId = pktId
 
 	return pkt
 }
 
 // 设置 Packet 的 id
 func (this *Packet) SetId(v uint16) {
-	NETWORK_ENDIAN.PutUint16(this.bytes[0:2], v)
+	// 记录消息类型
+	NETWORK_ENDIAN.PutUint16(this.bytes[0:_LEN_POS], v)
+}
 
-	return this.bytes
+// 获取 Packet 的 id
+func (this *Packet) GetId() uint16 {
+	return this.pktId
 }
 
 // 获取 bytes

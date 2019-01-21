@@ -39,6 +39,7 @@ type PacketSocket struct {
 	sendQueue []*Packet       // 发送队列
 	recvedLen uint32          // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
 	headBuff  [_HEAD_LEN]byte // 存放消息头二进制数据
+	pktId     uint16          // packet id 用于记录消息类型
 	bodylen   uint32          // 本次 pcket body 总大小
 	newPacket *Packet         // 用于存储 本次即将接收的 Packet 对象
 }
@@ -69,6 +70,9 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 			}
 		}
 
+		// 收到消息头: 保存本次 packet 消息 id
+		this.pktId = NETWORK_ENDIAN.Uint16(this.headBuff[0:_LEN_POS])
+
 		// 收到消息头: 保存本次 packet 消息 body 总大小
 		this.bodylen = NETWORK_ENDIAN.Uint32(this.headBuff[_LEN_POS:])
 
@@ -85,7 +89,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 		// 创建新的 packet 对象
 		this.recvedLen = 0 // 重置，准备记录 body
-		this.newPacket = NewPacket()
+		this.newPacket = NewPacket(this.pktId)
 		this.newPacket.AllocBuffer(this.bodylen)
 	}
 

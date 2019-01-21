@@ -8,6 +8,17 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////
+// 常量
+
+// WorldConnection 状态
+const (
+	C_WCONN_STATE_INIT     = iota // 初始化状态
+	C_WCONN_STATE_WAIT_ACK        // 等待客户端握手ACK
+	C_WCONN_STATE_WORKING         // 工作中
+	C_WCONN_STATE_CLOSED          // 关闭状态
+)
+
+// /////////////////////////////////////////////////////////////////////////////
 // TWorldConnOpts 对象
 
 // WorldConnection 配置参数
