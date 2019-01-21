@@ -70,6 +70,11 @@ func (this *Packet) GetId() uint16 {
 	return this.pktId
 }
 
+// 获取 Packet 的 body 部分
+func (this *Packet) GetBody() []byte {
+	return this.bytes[_HEAD_LEN:this.GetBodyLen()]
+}
+
 // 获取 bytes
 func (this *Packet) GetBytes() []byte {
 	return this.bytes

@@ -16,13 +16,13 @@ import (
 
 // world 框架内部需要用到的一些常用网络消息
 type WorldConnection struct {
-	state        syncutil.AtomicUint32   // conn 状态
-	opts         *model.TWorldSocketOpts // 配置参数
-	packetSocket *network.PacketSocket   // 接口继承： 符合 IPacketSocket 的对象
+	state        syncutil.AtomicUint32 // conn 状态
+	opts         *model.TWorldConnOpts // 配置参数
+	packetSocket *network.PacketSocket // 接口继承： 符合 IPacketSocket 的对象
 }
 
 // 新建1个 WorldConnection 对象
-func NewWorldConnection(socket model.ISocket, opt *model.TWorldSocketOpts) *WorldConnection {
+func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldConnection {
 	// 创建 packetSocket
 	bufSocket := network.NewBufferSocket(socket)
 	pktSocket := network.NewPacketSocket(bufSocket)
@@ -74,7 +74,7 @@ func (this *WorldConnection) HandlePacket(pkt *network.Packet) {
 }
 
 //  处理握手消息
-func (this *WorldConnection) HandleHandshake() {
+func (this *WorldConnection) HandleHandshake(pkt *network.Packet) {
 	// 状态效验
 	if this.state.Load() != model.C_WCONN_STATE_INIT {
 		return
