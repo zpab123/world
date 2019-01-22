@@ -1,7 +1,7 @@
 // /////////////////////////////////////////////////////////////////////////////
 // 对 PacketSocket 的封装，定义一些 world 内部常用的消息
 
-package proto
+package network
 
 import (
 	"github.com/zpab123/syncutil"      // 原子变量库
@@ -110,4 +110,7 @@ func (this *WorldConnection) HandleHeartbeat() {
 	// 发送心跳数据
 }
 
-// 游戏常用内部消息
+// 返回握手结果
+func (this *WorldConnection) HandshakeResponse() {
+
+}
