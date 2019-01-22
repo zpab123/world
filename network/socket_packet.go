@@ -95,7 +95,9 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 	// 长度为0类型数据处理
 	if this.bodylen == 0 {
-		return this.newPacket, nil
+		packet := this.newPacket
+		this.resetRecvStates()
+		return packet, nil
 	}
 
 	// 接收 pcket 数据的 body 部分

@@ -39,7 +39,7 @@ func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldC
 }
 
 // 接收1个 msg 消息
-func (this *WorldConnection) RecvPacket() {
+func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	// 接收 packet
 	pkt, err := this.packetSocket.RecvPacket()
 	if nil != err {
@@ -47,8 +47,9 @@ func (this *WorldConnection) RecvPacket() {
 	}
 
 	// 处理 packet
-	this.HandlePacket(pkt)
+	pkt = this.HandlePacket(pkt)
 
+	return pkt, nil
 }
 
 // 发送1个 msg 消息
@@ -57,24 +58,24 @@ func (this *WorldConnection) SendMsg() {
 }
 
 // 回应握手消息
-func (this *WorldConnection) HandlePacket(pkt *network.Packet) {
+func (this *WorldConnection) HandlePacket(pkt *Packet) *Packet {
 	// 根据类型处理数据
 	switch pkt.GetId() {
 	case model.C_PACKET_ID_INVALID: // 无效类型
-		break
+		return nil
 	case model.C_PACKET_ID_HANDSHAKE: // 客户端握手请求
-		break
+		return nil
 	case model.C_PACKET_ID_HANDSHAKE_ACK: // 客户端握手 ACK
-		break
+		return nil
 	case model.C_PACKET_ID_HEARTBEAT: // 心跳数据
-		break
+		return nil
 	default:
-		break
+		return nil
 	}
 }
 
 //  处理握手消息
-func (this *WorldConnection) HandleHandshake(pkt *network.Packet) {
+func (this *WorldConnection) HandleHandshake(body []byte) {
 	// 状态效验
 	if this.state.Load() != model.C_WCONN_STATE_INIT {
 		return
