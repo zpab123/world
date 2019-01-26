@@ -4,6 +4,8 @@
 package network
 
 import (
+	"time"
+
 	"github.com/gogo/protobuf/proto"  // protobuf 库
 	"github.com/zpab123/syncutil"     // 原子变量库
 	"github.com/zpab123/world/config" // 配置文件读取
@@ -21,6 +23,8 @@ type WorldConnection struct {
 	state        syncutil.AtomicUint32 // conn 状态
 	opts         *model.TWorldConnOpts // 配置参数
 	packetSocket *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
+	lastSendTime time.Time             // 上次发送消息的时间
+	lasrRecvTime time.Time             // 上次接收到消息的时间
 }
 
 // 新建1个 WorldConnection 对象
@@ -29,9 +33,15 @@ func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldC
 	bufSocket := network.NewBufferSocket(socket)
 	pktSocket := network.NewPacketSocket(bufSocket)
 
+	// 创建参数
+	if nil != opt {
+		opt = model.NewTWorldConnOpts()
+	}
+
 	// 创建对象
 	wc := &WorldConnection{
 		packetSocket: pktSocket,
+		opts:         opt,
 	}
 
 	// 设置为初始化状态
@@ -49,7 +59,7 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	}
 
 	// 处理 packet
-	pkt = this.HandlePacket(pkt)
+	pkt = this.handlePacket(pkt)
 
 	return pkt, nil
 }
@@ -59,17 +69,46 @@ func (this *WorldConnection) SendMsg() {
 
 }
 
+// 发送1个 packet 消息
+func (this *WorldConnection) SendPacket(pkt *Packet) error {
+	this.lastSendTime = time.Now()
+
+	return this.packetSocket.SendPacket(pkt)
+}
+
+// 发送1个 packet 消息，然后将 packet 放回对象池
+func (this *WorldConnection) SendPacketRelease(pkt *Packet) error {
+	err := this.SendPacket(pkt)
+	pkt.Release()
+
+	return err
+}
+
+// 关闭 WorldConnection
+func (this *WorldConnection) Close() {
+	this.packetSocket.Close()
+}
+
 // 回应握手消息
-func (this *WorldConnection) HandlePacket(pkt *Packet) *Packet {
+func (this *WorldConnection) handlePacket(pkt *Packet) *Packet {
 	// 根据类型处理数据
 	switch pkt.GetId() {
 	case model.C_PACKET_ID_INVALID: // 无效类型
+		zplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection ")
+		this.Close()
+
 		return nil
 	case model.C_PACKET_ID_HANDSHAKE: // 客户端握手请求
+		this.handleHandshake(pkt.GetBody())
+
 		return nil
 	case model.C_PACKET_ID_HANDSHAKE_ACK: // 客户端握手 ACK
+		this.handleHandshakeAck()
+
 		return nil
 	case model.C_PACKET_ID_HEARTBEAT: // 心跳数据
+		this.handleHeartbeat()
+
 		return nil
 	default:
 		return nil
@@ -91,13 +130,13 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	}
 
 	// 回复消息
-	res := msg.HandshakeRes{}
+	res := &msg.HandshakeRes{}
 
 	// 版本验证
 	if shakeInfo.Key != config.GetWorldIni().Key {
 		res.Code = msg.SHAKE_KEY_ERROR
 		body := proto.Marshal(res)
-		this.handshakeResponse(body)
+		this.handshakeResponse(false, body)
 		this.packetSocket.Close()
 
 		return
@@ -107,7 +146,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	if shakeInfo.Acceptor != config.GetWorldIni().Acceptor {
 		res.Code = msg.SHAKE_ACCEPTOR_ERROR
 		body := proto.Marshal(res)
-		this.handshakeResponse(body)
+		this.handshakeResponse(false, body)
 		this.packetSocket.Close()
 
 		return
@@ -118,12 +157,25 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 }
 
 //  返回握手消息
-func (this *WorldConnection) handshakeResponse(body []byte) {
-	//body :=
+func (this *WorldConnection) handshakeResponse(sucess bool, body []byte) {
+	// 状态效验
+	if this.state.Load() != model.C_WCONN_STATE_INIT {
+		return
+	}
+
+	// 返回数据
+	pkt := NewPacket(model.C_PACKET_ID_HANDSHAKE)
+	pkt.AppendBytes(body)
+	this.SendPacketRelease(pkt)
+
+	// 改变状态
+	if sucess {
+		this.state.Store(model.C_WCONN_STATE_WAIT_ACK)
+	}
 }
 
 //  处理握手ACK
-func (this *WorldConnection) HandleHandshakeAck() {
+func (this *WorldConnection) handleHandshakeAck() {
 	// 状态效验
 	if this.state.Load() != model.C_WCONN_STATE_WAIT_ACK {
 		return
@@ -133,19 +185,17 @@ func (this *WorldConnection) HandleHandshakeAck() {
 	this.state.Store(model.C_WCONN_STATE_WORKING)
 
 	// 发送心跳数据
+	this.handleHeartbeat()
 }
 
 //  处理心跳消息
-func (this *WorldConnection) HandleHeartbeat() {
+func (this *WorldConnection) handleHeartbeat() {
 	// 状态效验
 	if this.state.Load() != model.C_WCONN_STATE_WORKING {
 		return
 	}
 
 	// 发送心跳数据
-}
-
-// 返回握手结果
-func (this *WorldConnection) HandshakeResponse() {
-
+	pkt := NewPacket(model.C_PACKET_ID_HEARTBEAT)
+	this.SendPacketRelease(pkt)
 }

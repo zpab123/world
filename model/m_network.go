@@ -43,6 +43,14 @@ const (
 	C_PACKET_ID_HEARTBEAT                               // 心跳消息
 )
 
+// WorldConnection 状态
+const (
+	C_WCONN_STATE_INIT     = iota // 初始化状态
+	C_WCONN_STATE_WAIT_ACK        // 等待客户端握手ACK
+	C_WCONN_STATE_WORKING         // 工作中
+	C_WCONN_STATE_CLOSED          // 关闭状态
+)
+
 // /////////////////////////////////////////////////////////////////////////////
 // 接口
 
@@ -206,4 +214,20 @@ func NewTBufferSocketOpts() *TBufferSocketOpts {
 	}
 
 	return bs
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// TWorldConnOpts 对象
+
+// WorldConnection 配置参数
+type TWorldConnOpts struct {
+	Heartbeat time.Duration // 心跳间隔
+	Handshake func()        // 自定义的握手处理函数
+}
+
+// 新建1个 WorldConnection 对象
+func NewTWorldConnOpts() *TWorldConnOpts {
+	wc := &TWorldConnOpts{
+		Heartbeat: time.Second,
+	}
 }
