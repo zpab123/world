@@ -25,4 +25,5 @@ require (
 	"github.com/xtaci/kcp-go"
 	"github.com/davyxu/goobjfmt"
 	"github.com/davyxu/protoplus/proto"
+	"github.com/gogo/protobuf/proto"
 )

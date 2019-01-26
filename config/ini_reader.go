@@ -39,8 +39,8 @@ func readWorldIni() *model.TWorldIni {
 		// 读取配置
 		if secName == "env" {
 			readEnv(sec, config) // 开发环境
-		} else if "gate" == secName {
-			//readGate(sec, config) // gate 服务器配置
+		} else if "handshake" == secName {
+			readHandshake(sec, config) // 握手信息配置
 		} else if "world" == secName {
 			//readWorld(sec, worldConfig) // world 服务器配置
 		}
@@ -75,6 +75,21 @@ func readEnv(sec *ini.Section, config *model.TWorldIni) {
 			}
 		} else {
 			zplog.Fatal("读取 world.ini [env] 失败")
+		}
+	}
+}
+
+// 读取 handshake 信息
+func readHandshake(sec *ini.Section, config *model.TWorldIni) {
+	// 读取属性
+	for _, key := range sec.Keys() {
+		name := strings.ToLower(key.Name()) //转化成小写
+		if "shake_key" == name {
+			config.Key = key.MustString(config.Key)
+		} else if "acceptor" {
+			var aptor int = 0
+			aptor = key.MustInt(aptor)
+			config.Acceptor = uint32(aptor)
 		}
 	}
 }

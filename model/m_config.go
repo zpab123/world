@@ -8,7 +8,9 @@ package model
 
 // world.ini 配置信息
 type TWorldIni struct {
-	Env string // 当前运行环境，production= 开发环境；development = 运营环境
+	Env      string // 当前运行环境，production= 开发环境；development = 运营环境
+	Key      string // 握手密钥 key
+	Acceptor uint32 // 通信方式 	1=tcp 2=websocket 3=tcp+websocket 4= tcp+websocket
 }
 
 // /////////////////////////////////////////////////////////////////////////////

@@ -4,11 +4,13 @@
 package network
 
 import (
-	"github.com/zpab123/syncutil"      // 原子变量库
-	"github.com/zpab123/world/model"   // 全局模型
-	"github.com/zpab123/world/network" // 网络库
-	"github.com/zpab123/world/utils"   // 工具库
-	"github.com/zpab123/zplog"         // 日志库
+	"github.com/gogo/protobuf/proto"  // protobuf 库
+	"github.com/zpab123/syncutil"     // 原子变量库
+	"github.com/zpab123/world/config" // 配置文件读取
+	"github.com/zpab123/world/model"  // 全局模型
+	"github.com/zpab123/world/msg"    // world 内部通信消息
+	"github.com/zpab123/world/utils"  // 工具库
+	"github.com/zpab123/zplog"        // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +20,7 @@ import (
 type WorldConnection struct {
 	state        syncutil.AtomicUint32 // conn 状态
 	opts         *model.TWorldConnOpts // 配置参数
-	packetSocket *network.PacketSocket // 接口继承： 符合 IPacketSocket 的对象
+	packetSocket *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
 }
 
 // 新建1个 WorldConnection 对象
@@ -75,17 +77,49 @@ func (this *WorldConnection) HandlePacket(pkt *Packet) *Packet {
 }
 
 //  处理握手消息
-func (this *WorldConnection) HandleHandshake(body []byte) {
+func (this *WorldConnection) handleHandshake(body []byte) {
 	// 状态效验
 	if this.state.Load() != model.C_WCONN_STATE_INIT {
 		return
 	}
 
 	// 解码消息
+	shakeInfo := &msg.HandshakeReq{}
+	err := proto.Unmarshal(body, shakeInfo)
+	if nil != err {
+		zplog.Error("protobuf 解码握手消息出错")
+	}
 
-	// 处理消息
+	// 回复消息
+	res := msg.HandshakeRes{}
+
+	// 版本验证
+	if shakeInfo.Key != config.GetWorldIni().Key {
+		res.Code = msg.SHAKE_KEY_ERROR
+		body := proto.Marshal(res)
+		this.handshakeResponse(body)
+		this.packetSocket.Close()
+
+		return
+	}
+
+	// 通信方式验证
+	if shakeInfo.Acceptor != config.GetWorldIni().Acceptor {
+		res.Code = msg.SHAKE_ACCEPTOR_ERROR
+		body := proto.Marshal(res)
+		this.handshakeResponse(body)
+		this.packetSocket.Close()
+
+		return
+	}
 
 	// 回复处理结果
+
+}
+
+//  返回握手消息
+func (this *WorldConnection) handshakeResponse(body []byte) {
+	//body :=
 }
 
 //  处理握手ACK
