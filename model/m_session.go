@@ -28,9 +28,8 @@ const (
 
 // Session 组件
 type ISession interface {
-	SendMessage(msg interface{})
-	IState                  // 接口继承： 状态接口
-	GetOpts() *TSessionOpts // 获取配置参数
+	GetId() int64  // 获取 session ID
+	SetId(v int64) // 设置 session ID
 }
 
 // 客户端 packet 处理

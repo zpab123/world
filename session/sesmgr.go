@@ -33,9 +33,6 @@ func (self *SessionManager) Add(ses model.ISession) {
 	self.count.Add(1)
 
 	// 设置 session ID
-	//ses.(interface {
-	//SetID(int64)
-	//}).SetID(id)
 	ses.SetId(id)
 
 	// 保存
