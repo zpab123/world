@@ -30,18 +30,13 @@ const (
 type ISession interface {
 	GetId() int64  // 获取 session ID
 	SetId(v int64) // 设置 session ID
-}
-
-// 客户端 packet 处理
-type ICilentPktHandler interface {
-	ISessionManage
-	OnClientPkt(ses ISession, pkt interface{}) // 收到客户端 packet 消息包
+	Close()        // 关闭 session
 }
 
 // session 管理
 type ISessionManage interface {
-	OnNewSession(ISession)   // 1个新的 session 创建成功
-	OnSessionClose(ISession) // 某个 session 关闭
+	OnNewSession(ses ISession)   // 添加1个新的 session
+	OnSessionClose(ses ISession) // 某个 session 关闭
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -49,9 +44,8 @@ type ISessionManage interface {
 
 // session 配置参数
 type TSessionOpts struct {
-	SessionType    string          // session 类型
-	SessionManager ISessionManage  // session 管理对象
-	WorldConnOpts  *TWorldConnOpts // WorldConnection 配置参数
+	SessionType   string          // session 类型
+	WorldConnOpts *TWorldConnOpts // WorldConnection 配置参数
 }
 
 // 创建1个新的 TSessionOpts

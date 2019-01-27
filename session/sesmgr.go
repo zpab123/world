@@ -22,50 +22,56 @@ type SessionManager struct {
 	count    syncutil.AtomicInt64 // 记录当前在使用的会话数量
 }
 
+// 收到1个新的 session [ISessionManager 接口]
+func (this *SessionManager) OnNewSession(ses model.ISession) {
+	this.Add(ses)
+}
+
+// 某个 session 关闭 [ISessionManager 接口]
+func (this *SessionManager) OnSessionClose(ses model.ISession) {
+	this.Remove(this)
+}
+
 // 添加1个符合 ISession 接口的对象
-//
-// [ISessionManager 接口]
-func (self *SessionManager) Add(ses model.ISession) {
+func (this *SessionManager) Add(ses model.ISession) {
 	// id +1
-	id := self.sesIDGen.Add(1)
+	id := this.sesIDGen.Add(1)
 
 	// 计数 +1
-	self.count.Add(1)
+	this.count.Add(1)
 
 	// 设置 session ID
 	ses.SetId(id)
 
 	// 保存
-	self.sesMap.Store(id, ses)
+	this.sesMap.Store(id, ses)
 }
 
 // 移除1个符合 ISession 接口的对象
-//
-// [ISessionManager 接口]
-func (self *SessionManager) Remove(ses model.ISession) {
+func (this *SessionManager) Remove(ses model.ISession) {
 	// 移除
-	self.sesMap.Delete(ses.GetId())
+	this.sesMap.Delete(ses.GetId())
 
 	// 计数 -1
-	self.count.Add(-1)
+	this.count.Add(-1)
 }
 
-// 获取当前 ISession 数量 [ISessionManager 接口]
-func (self *SessionManager) GetCount() int {
-	return int(self.count.Load())
+// 获取当前 ISession 数量
+func (this *SessionManager) GetCount() int {
+	return int(this.count.Load())
 }
 
-// 设置ID开始的号 [ISessionManager 接口]
-func (self *SessionManager) SetIDStart(start int64) {
-	self.sesIDGen.Store(start)
+// 设置ID开始的号
+func (this *SessionManager) SetIDStart(start int64) {
+	this.sesIDGen.Store(start)
 }
 
 // 从 session 存取器中获取一个连接 [ISessionAccessor 接口]
 //
 // 返回 nil=不存在
-func (self *SessionManager) GetSession(id int64) model.ISession {
+func (this *SessionManager) GetSession(id int64) model.ISession {
 	// 遍历查找
-	if ses, ok := self.sesMap.Load(id); ok {
+	if ses, ok := this.sesMap.Load(id); ok {
 		return ses.(model.ISession)
 	}
 
@@ -73,21 +79,21 @@ func (self *SessionManager) GetSession(id int64) model.ISession {
 }
 
 // 遍历连接 [ISessionAccessor 接口]
-func (self *SessionManager) VisitSession(callback func(model.ISession) bool) {
-	self.sesMap.Range(func(key, value interface{}) bool {
+func (this *SessionManager) VisitSession(callback func(model.ISession) bool) {
+	this.sesMap.Range(func(key, value interface{}) bool {
 		return callback(value.(model.ISession))
 	})
 }
 
 // 活跃的会话数量 [ISessionAccessor 接口]
-func (self *SessionManager) SessionCount() int {
-	v := self.count.Load()
+func (this *SessionManager) SessionCount() int {
+	v := this.count.Load()
 
 	return int(v)
 }
 
 // 关闭所有连接 [ISessionAccessor 接口]
-func (self *SessionManager) CloseAllSession() {
+func (this *SessionManager) CloseAllSession() {
 	// 处理函数
 	f := func(ses model.ISession) bool {
 		ses.Close()
@@ -96,5 +102,5 @@ func (self *SessionManager) CloseAllSession() {
 	}
 
 	// 遍历
-	self.VisitSession(f)
+	this.VisitSession(f)
 }

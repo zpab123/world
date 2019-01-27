@@ -31,7 +31,7 @@ type ClientSession struct {
 }
 
 // 创建1个新的 ClientSession 对象
-func NewClientSession(socket model.ISocket, opt *model.TSessionOpts) *ClientSession {
+func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model.TSessionOpts) *ClientSession {
 	// 创建 WorldConnection
 	if nil == opt {
 		opt = model.NewTSessionOpts()
@@ -40,8 +40,9 @@ func NewClientSession(socket model.ISocket, opt *model.TSessionOpts) *ClientSess
 
 	// 创建对象
 	cs := &ClientSession{
-		opts:      opt,
-		worldConn: wc,
+		opts:        opt,
+		worldConn:   wc,
+		sesssionMgr: mgr,
 	}
 
 	// 修改为初始化状态
@@ -62,6 +63,9 @@ func (this *ClientSession) Run() {
 	// 需要接收和发送线程都结束时才算真正的结束
 	this.stopGroup.Add(2)
 
+	// 将 session 添加到管理器, 在线程处理前添加到管理器(分配id), 避免ID还未分配,就开始使用id的竞态问题
+	this.sesssionMgr.OnNewSession(this)
+
 	// 开启接收线程
 	go this.recvLoop()
 
@@ -72,7 +76,7 @@ func (this *ClientSession) Run() {
 	this.mainLoop()
 }
 
-// 关闭 session
+// 关闭 session [ISession 接口]
 func (this *ClientSession) Close() {
 	// 非运行状态
 	if this.state.Load() != model.C_SES_STATE_RUNING {
@@ -98,6 +102,7 @@ func (this *ClientSession) mainLoop() {
 	this.state.Store(model.C_SES_STATE_CLOSED)
 
 	// 通知 session 管理
+	this.sesssionMgr.OnSessionClose(this)
 }
 
 // 接收线程
@@ -119,7 +124,7 @@ func (this *ClientSession) recvLoop() {
 		}
 
 		// 处理消息
-		handlePacket(pkt)
+		//handlePacket(pkt)
 	}
 
 	// 接收线程结束
