@@ -39,6 +39,11 @@ func (this *StateManager) GetState() uint32 {
 	return this.state.Load()
 }
 
+// 交换状态
+func (this *StateManager) CompareAndSwap(old uint32, newv uint32) bool {
+	return this.state.CompareAndSwap(old, newv)
+}
+
 // 添加 delta 个启动线程
 func (this *StateManager) AddRunGo(delta int) {
 	this.runGroup.Add(delta)

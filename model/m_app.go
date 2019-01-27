@@ -31,8 +31,8 @@ const (
 // 组件基础
 type IComponent interface {
 	Name() string // 获取组件名字
-	Run()         // 组件开始运行
-	Stop()        // 组件停止运行
+	Run() bool    // 组件开始运行
+	Stop() bool   // 组件停止运行
 }
 
 // App

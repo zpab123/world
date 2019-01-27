@@ -83,15 +83,13 @@ func (this *Connector) Name() string {
 }
 
 // 运行 Connector [IComponent 接口]
-func (this *Connector) Run() {
+func (this *Connector) Run() bool {
 	// 状态效验
-	if this.state.Load() != model.C_STATE_INIT {
-		zplog.Error("Connector 组件启动失败。状态错误，当前状态=%d", this.state.Load())
-		return
-	}
+	if !this.CompareAndSwap(model.C_STATE_INIT, model.C_STATE_RUNING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.state.Load())
 
-	// 改变状态： 正在启动中
-	this.state.Store(model.C_STATE_RUNING)
+		return false
+	}
 
 	// 添加启动线程数量
 	this.AddRunGo(1)
@@ -106,19 +104,25 @@ func (this *Connector) Run() {
 	this.RunWait()
 
 	// 改变状态： 工作中
-	this.state.Store(model.C_STATE_WORKING)
+	if !this.CompareAndSwap(model.C_STATE_RUNING, model.C_STATE_WORKING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.state.Load())
+
+		return false
+	}
+
 	zplog.Infof("Connector 组件启动成功")
+
+	return true
 }
 
 // 停止 Connector [IComponent 接口]
-func (this *Connector) Stop() {
+func (this *Connector) Stop() bool {
 	// 状态效验
-	if this.GetState() != model.C_STATE_WORKING {
-		return
-	}
+	if !this.CompareAndSwap(model.C_STATE_WORKING, model.C_STATE_CLOSEING) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.state.Load())
 
-	// 改变状态： 停止中
-	this.SetState(model.C_STATE_CLOSEING)
+		return false
+	}
 
 	// 停止 acceptor
 	this.acceptor.Stop()
@@ -129,9 +133,16 @@ func (this *Connector) Stop() {
 	// 关闭所有 session
 	this.CloseAllSession()
 
-	// 改变状态：
-	this.state.Store(model.C_STATE_CLOSED)
+	// 改变状态：关闭完成
+	if !this.CompareAndSwap(model.C_STATE_CLOSEING, model.C_STATE_CLOSED) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_CLOSEING, this.state.Load())
+
+		return false
+	}
+
 	zplog.Infof("Connector 组件停止成功")
+
+	return true
 }
 
 // 收到1个新的 Tcp 连接对象
