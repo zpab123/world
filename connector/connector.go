@@ -118,7 +118,7 @@ func (this *Connector) Run() bool {
 // 停止 Connector [IComponent 接口]
 func (this *Connector) Stop() bool {
 	// 状态效验
-	if !this.CompareAndSwap(model.C_STATE_WORKING, model.C_STATE_CLOSEING) {
+	if !this.CompareAndSwap(model.C_STATE_WORKING, model.C_STATE_STOPING) {
 		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.state.Load())
 
 		return false
@@ -134,8 +134,8 @@ func (this *Connector) Stop() bool {
 	this.CloseAllSession()
 
 	// 改变状态：关闭完成
-	if !this.CompareAndSwap(model.C_STATE_CLOSEING, model.C_STATE_CLOSED) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_CLOSEING, this.state.Load())
+	if !this.CompareAndSwap(model.C_STATE_STOPING, model.C_STATE_STOP) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.state.Load())
 
 		return false
 	}
