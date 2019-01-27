@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/zpab123/syncutil"      // 同步变量
-	"github.com/zpab123/world/model"   // 全局 [常量-基础数据类型-接口] 集合
+	"github.com/zpab123/world/model"   // 全局模型
 	"github.com/zpab123/world/network" // 网路库
 )
 
@@ -66,7 +66,7 @@ func (this *SessionManager) SetIDStart(start int64) {
 	this.sesIDGen.Store(start)
 }
 
-// 从 session 存取器中获取一个连接 [ISessionAccessor 接口]
+// 从 session 存取器中获取一个连接
 //
 // 返回 nil=不存在
 func (this *SessionManager) GetSession(id int64) model.ISession {
@@ -78,21 +78,21 @@ func (this *SessionManager) GetSession(id int64) model.ISession {
 	return nil
 }
 
-// 遍历连接 [ISessionAccessor 接口]
+// 遍历连接
 func (this *SessionManager) VisitSession(callback func(model.ISession) bool) {
 	this.sesMap.Range(func(key, value interface{}) bool {
 		return callback(value.(model.ISession))
 	})
 }
 
-// 活跃的会话数量 [ISessionAccessor 接口]
+// 活跃的会话数量
 func (this *SessionManager) SessionCount() int {
 	v := this.count.Load()
 
 	return int(v)
 }
 
-// 关闭所有连接 [ISessionAccessor 接口]
+// 关闭所有连接
 func (this *SessionManager) CloseAllSession() {
 	// 处理函数
 	f := func(ses model.ISession) bool {
