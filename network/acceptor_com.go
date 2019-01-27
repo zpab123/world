@@ -68,6 +68,9 @@ func (this *ComAcceptor) Run() {
 	// 添加启动线程数量
 	this.AddRunGo(2)
 
+	// 添加结束线程数量
+	this.AddStopGo(2)
+
 	// 启动 tcp 侦听
 	this.runTcpListener()
 
@@ -92,7 +95,7 @@ func (this *ComAcceptor) Stop() {
 	}
 
 	// 改变状态: 关闭中
-	this.SetState(model.C_STATE_CLOSEING)
+	this.SetState(model.C_STATE_STOPING)
 
 	// 关闭 tcp
 	this.tcpListener.Close()
@@ -100,8 +103,11 @@ func (this *ComAcceptor) Stop() {
 	// 关闭 websocket
 	this.httpServer.Close()
 
+	// 等待完成
+	this.StopWait()
+
 	// 改变状态: 关闭完成
-	this.SetState(model.C_STATE_CLOSED)
+	this.SetState(model.C_STATE_STOP)
 
 	// 通知管理对象
 	this.acceptorMgr.OnAcceptorClosed()
@@ -170,6 +176,11 @@ func (this *ComAcceptor) acceptTcpConn() {
 
 	// 监听新连接
 	for {
+		// 停止循环
+		if this.needStop() {
+			break
+		}
+
 		newConn, err := this.tcpListener.Accept()
 		if nil != err {
 			if utils.IsTimeoutError(err) {
@@ -182,6 +193,9 @@ func (this *ComAcceptor) acceptTcpConn() {
 		// 开启新线程，处理新 tcp 连接
 		go this.acceptorMgr.OnNewTcpConn(newConn)
 	}
+
+	// 结束线程完成1个
+	this.StopDone()
 }
 
 // 启动 websocket 侦听
@@ -246,6 +260,9 @@ func (this *ComAcceptor) acceptWsConn() {
 	if nil != err {
 		zplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
 	}
+
+	// 结束线程完成1个
+	this.StopDone()
 }
 
 // 接收新的 websocket 连接
@@ -270,4 +287,9 @@ func (this *ComAcceptor) acceptWebsocket() {
 	if nil != err {
 		zplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，错误=%s", this.wsListenAddr, err)
 	}
+}
+
+// 是否需要停止
+func (this *ComAcceptor) needStop() bool {
+	return this.GetState() == model.C_STATE_STOPING
 }

@@ -96,6 +96,9 @@ func (this *Connector) Run() {
 	// 添加启动线程数量
 	this.AddRunGo(1)
 
+	// 停止线程+1
+	this.AddStopGo(1)
+
 	// 启动 acceptor
 	this.acceptor.Run()
 
@@ -116,9 +119,6 @@ func (this *Connector) Stop() {
 
 	// 改变状态： 停止中
 	this.SetState(model.C_STATE_CLOSEING)
-
-	// 停止线程+1
-	this.AddStopGo(1)
 
 	// 停止 acceptor
 	this.acceptor.Stop()
