@@ -34,6 +34,8 @@ const (
 	C_STATE_WORKING                // 工作状态
 	C_STATE_CLOSEING               // 正在关闭中
 	C_STATE_CLOSED                 // 关闭完成
+	C_STATE_STOPING                // 正在停止中
+	C_STATE_STOP                   // 停止完成
 )
 
 // /////////////////////////////////////////////////////////////////////////////

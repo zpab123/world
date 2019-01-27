@@ -67,7 +67,8 @@ func (this *ClientSession) Run() {
 
 	// 变量重置？ 状态? 发送队列？
 
-	// 需要接收和发送线程都结束时才算真正的结束
+	// 需要接收和发送线程都启动/关闭才算完成
+	this.AddRunGo(2)
 	this.AddStopGo(2)
 
 	// 将 session 添加到管理器, 在线程处理前添加到管理器(分配id), 避免ID还未分配,就开始使用id的竞态问题
@@ -79,14 +80,17 @@ func (this *ClientSession) Run() {
 	// 开启发送线程
 	go this.sendLoop()
 
-	// 主线程
-	this.mainLoop()
+	// 阻塞
+	this.RunWait()
+
+	// 启动完成
+	this.SetState(model.C_STATE_WORKING)
 }
 
 // 关闭 session [ISession 接口]
 func (this *ClientSession) Close() {
 	// 非运行状态
-	if this.state.Load() != model.C_SES_STATE_RUNING {
+	if this.state.Load() != model.C_STATE_WORKING {
 		return
 	}
 
@@ -95,6 +99,15 @@ func (this *ClientSession) Close() {
 
 	// 关闭连接
 	this.worldConn.Close()
+
+	// 关闭阻塞
+	this.StopWait()
+
+	// 关闭完成
+	this.SetState(model.C_STATE_CLOSED)
+
+	// 通知 session 管理
+	this.sesssionMgr.OnSessionClose(this)
 }
 
 // 获取 session ID [ISession 接口]
@@ -107,23 +120,11 @@ func (this *ClientSession) SetId(v int64) int64 {
 	return this.sessionId.Store(v)
 }
 
-// session 主循环
-func (this *ClientSession) mainLoop() {
-	// 改变为运行状态
-	this.state.Store(model.C_SES_STATE_RUNING)
-
-	// 阻塞：等待接收和发送2个任务结束
-	this.stopGroup.Wait()
-
-	// 改变为关闭状态
-	this.state.Store(model.C_SES_STATE_CLOSED)
-
-	// 通知 session 管理
-	this.sesssionMgr.OnSessionClose(this)
-}
-
 // 接收线程
 func (this *ClientSession) recvLoop() {
+	// 启动线程完成1个
+	this.RunDone()
+
 	for {
 		// 退出检查
 		if exit := this.isCloseIng(); exit {
@@ -150,6 +151,9 @@ func (this *ClientSession) recvLoop() {
 
 // 发送线程
 func (this *ClientSession) sendLoop() {
+	// 启动线程完成1个
+	this.RunDone()
+
 	for {
 		// 退出检查
 		if exit := this.isCloseIng(); exit {

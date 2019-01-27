@@ -126,6 +126,9 @@ func (this *Connector) Stop() {
 	// 阻塞
 	this.StopWait()
 
+	// 关闭所有 session
+	this.CloseAllSession()
+
 	// 改变状态：
 	this.state.Store(model.C_STATE_CLOSED)
 	zplog.Infof("Connector 组件停止成功")
@@ -169,11 +172,6 @@ func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 	wsconn.PayloadType = websocket.BinaryFrame // 以二进制方式接受数据
 
 	// 创建 session 对象
-}
-
-// 关闭所有连接
-func (this *Connector) CloseAllConn() {
-
 }
 
 // 某个 Acceptor 启动完成 [IAcceptorState 接口]
