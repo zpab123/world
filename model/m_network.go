@@ -228,6 +228,6 @@ type TWorldConnOpts struct {
 // 新建1个 WorldConnection 对象
 func NewTWorldConnOpts() *TWorldConnOpts {
 	wc := &TWorldConnOpts{
-		Heartbeat: time.Second,
+		Heartbeat: time.Second * 0,
 	}
 }

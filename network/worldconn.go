@@ -23,8 +23,9 @@ type WorldConnection struct {
 	state        syncutil.AtomicUint32 // conn 状态
 	opts         *model.TWorldConnOpts // 配置参数
 	packetSocket *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
-	lastSendTime time.Time             // 上次发送消息的时间
-	lasrRecvTime time.Time             // 上次接收到消息的时间
+	lastSendTime syncutil.AtomicInt64  // 上次给客户端发送消息的时间：单位秒
+	lastRecvTime time.Time             // 上次接收到客户端消息的时间
+	timeOut      time.Duration         // 心跳超时时间
 }
 
 // 新建1个 WorldConnection 对象
@@ -42,6 +43,7 @@ func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldC
 	wc := &WorldConnection{
 		packetSocket: pktSocket,
 		opts:         opt,
+		timeOut:      opt.Heartbeat * 2,
 	}
 
 	// 设置为初始化状态
@@ -59,19 +61,15 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	}
 
 	// 处理 packet
+	this.lastRecvTime = time.Now()
 	pkt = this.handlePacket(pkt)
 
 	return pkt, nil
 }
 
-// 发送1个 msg 消息
-func (this *WorldConnection) SendMsg() {
-
-}
-
 // 发送1个 packet 消息
 func (this *WorldConnection) SendPacket(pkt *Packet) error {
-	this.lastSendTime = time.Now()
+	this.lastSendTime.Store(time.Now().Unix())
 
 	return this.packetSocket.SendPacket(pkt)
 }
@@ -84,9 +82,35 @@ func (this *WorldConnection) SendPacketRelease(pkt *Packet) error {
 	return err
 }
 
+// 刷新缓冲区
+func (this *WorldConnection) Flush() {
+	this.packetSocket.Flush()
+}
+
 // 关闭 WorldConnection
 func (this *WorldConnection) Close() {
 	this.packetSocket.Close()
+}
+
+// 检查客户端心跳
+func (this *WorldConnection) CheckClientHeartbeat() {
+	if this.timeOut > 0 {
+		outTime := this.lastRecvTime.Add(this.timeOut)
+		if this.lastRecvTime.After(outTime) {
+			zplog.Warnf("客户端心跳超时，断开连接")
+			this.Close()
+		}
+	}
+}
+
+// 检查服务器心跳
+func (this *WorldConnection) CheckServerHeartbeat() {
+	if this.timeOut > 0 {
+		passTime := time.Now().Unix() - this.lastSendTime.Load()
+		if passTime >= this.timeOut {
+			this.sendHeartbeat()
+		}
+	}
 }
 
 // 回应握手消息
@@ -107,7 +131,6 @@ func (this *WorldConnection) handlePacket(pkt *Packet) *Packet {
 
 		return nil
 	case model.C_PACKET_ID_HEARTBEAT: // 心跳数据
-		this.handleHeartbeat()
 
 		return nil
 	default:
@@ -137,7 +160,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 		res.Code = msg.SHAKE_KEY_ERROR
 		body := proto.Marshal(res)
 		this.handshakeResponse(false, body)
-		this.packetSocket.Close()
+		this.Close()
 
 		return
 	}
@@ -147,7 +170,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 		res.Code = msg.SHAKE_ACCEPTOR_ERROR
 		body := proto.Marshal(res)
 		this.handshakeResponse(false, body)
-		this.packetSocket.Close()
+		this.Close()
 
 		return
 	}
@@ -185,11 +208,11 @@ func (this *WorldConnection) handleHandshakeAck() {
 	this.state.Store(model.C_WCONN_STATE_WORKING)
 
 	// 发送心跳数据
-	this.handleHeartbeat()
+	this.sendHeartbeat()
 }
 
-//  处理心跳消息
-func (this *WorldConnection) handleHeartbeat() {
+//  发送心跳数据
+func (this *WorldConnection) sendHeartbeat() {
 	// 状态效验
 	if this.state.Load() != model.C_WCONN_STATE_WORKING {
 		return
