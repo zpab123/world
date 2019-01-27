@@ -39,8 +39,8 @@ func readWorldIni() *model.TWorldIni {
 		// 读取配置
 		if secName == "env" {
 			readEnv(sec, config) // 开发环境
-		} else if "handshake" == secName {
-			readHandshake(sec, config) // 握手信息配置
+		} else if "network" == secName {
+			readNetwork(sec, config) // 握手信息配置
 		} else if "world" == secName {
 			//readWorld(sec, worldConfig) // world 服务器配置
 		}
@@ -79,8 +79,8 @@ func readEnv(sec *ini.Section, config *model.TWorldIni) {
 	}
 }
 
-// 读取 handshake 信息
-func readHandshake(sec *ini.Section, config *model.TWorldIni) {
+// 读取 network 配置信息
+func readNetwork(sec *ini.Section, config *model.TWorldIni) {
 	// 读取属性
 	for _, key := range sec.Keys() {
 		name := strings.ToLower(key.Name()) //转化成小写

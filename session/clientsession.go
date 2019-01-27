@@ -5,6 +5,7 @@ package session
 
 import (
 	"net"
+	"sync"
 
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/model"   // 全局模型
@@ -23,12 +24,13 @@ type ClientSession struct {
 	opts        *model.TSessionOpts      // session 配置参数
 	worldConn   *network.WorldConnection // world 引擎连接对象
 	sesssionMgr model.ISessionManage     // sessiong 管理对象
+	stopGroup   sync.WaitGroup           // 结束线程组
+	state       syncutil.AtomicUint32    // 状态变量
 	// session_id
 	// 用户id
-	pktHandler model.ICilentPktHandler // 客户端 packet 消息处理器
-	state      syncutil.AtomicUint32   // 状态变量
 }
 
+// 创建1个新的 ClientSession 对象
 func NewClientSession(socket model.ISocket, opt *model.TSessionOpts) *ClientSession {
 	// 创建 WorldConnection
 	if nil == opt {
@@ -50,18 +52,62 @@ func NewClientSession(socket model.ISocket, opt *model.TSessionOpts) *ClientSess
 
 // 启动 session
 func (this *ClientSession) Run() {
-	// 结束线程
+	// 非 INIT 状态
+	if this.state.Load() != model.C_SES_STATE_INITED {
+		return
+	}
+
+	// 变量重置？ 状态? 发送队列？
+
+	// 需要接收和发送线程都结束时才算真正的结束
+	this.stopGroup.Add(2)
 
 	// 开启接收线程
 	go this.recvLoop()
 
 	// 开启发送线程
 	go this.sendLoop()
+
+	// 主线程
+	this.mainLoop()
+}
+
+// 关闭 session
+func (this *ClientSession) Close() {
+	// 非运行状态
+	if this.state.Load() != model.C_SES_STATE_RUNING {
+		return
+	}
+
+	// 关闭连接
+	this.worldConn.Close()
+
+	// 状态改变为关闭中
+	this.state.Store(model.C_SES_STATE_CLOSING)
+}
+
+// session 主循环
+func (this *ClientSession) mainLoop() {
+	// 改变为运行状态
+	this.state.Store(model.C_SES_STATE_RUNING)
+
+	// 阻塞：等待接收和发送2个任务结束
+	this.stopGroup.Wait()
+
+	// 改变为关闭状态
+	this.state.Store(model.C_SES_STATE_CLOSED)
+
+	// 通知 session 管理
 }
 
 // 接收线程
 func (this *ClientSession) recvLoop() {
 	for {
+		// 退出检查
+		if exit := this.isCloseIng(); exit {
+			break
+		}
+
 		// 心跳检查
 		this.worldConn.CheckClientHeartbeat()
 
@@ -75,15 +121,31 @@ func (this *ClientSession) recvLoop() {
 		// 处理消息
 		handlePacket(pkt)
 	}
+
+	// 接收线程结束
+	this.stopGroup.Done()
 }
 
 // 发送线程
 func (this *ClientSession) sendLoop() {
 	for {
+		// 退出检查
+		if exit := this.isCloseIng(); exit {
+			break
+		}
+
 		// 心跳检查
 		this.worldConn.CheckServerHeartbeat()
 
 		// 刷新缓冲区
 		this.worldConn.Flush()
 	}
+
+	// 发送线程结束
+	this.stopGroup.Done()
+}
+
+// 退出检查
+func (this *ClientSession) isCloseIng() bool {
+	return this.state.Load() == model.C_SES_STATE_CLOSING
 }

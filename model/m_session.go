@@ -17,10 +17,10 @@ const (
 
 // Session 状态
 const (
-	C_SES_STATE_INITED   uint32 = iota // 初始化状态
-	C_SES_STATE_WAIT_ACK               // 等待握手ACK
-	C_SES_STATE_WORKING                // 工作中
-	C_SES_STATE_CLOSED                 // 关闭状态
+	C_SES_STATE_INITED  uint32 = iota // 初始化状态
+	C_SES_STATE_RUNING                // 正在运行
+	C_SES_STATE_CLOSING               // 关闭中
+	C_SES_STATE_CLOSED                // 关闭完成
 )
 
 // /////////////////////////////////////////////////////////////////////////////
