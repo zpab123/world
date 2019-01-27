@@ -9,6 +9,7 @@ import (
 	"github.com/zpab123/syncutil"      // 原子操作工具
 	"github.com/zpab123/world/model"   // 全局模型
 	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/zplog"         // 日志库
 	"golang.org/x/net/websocket"       // websocket 库
 )
@@ -29,33 +30,48 @@ const (
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
-	name     string                // 组件名字
-	laddr    *model.TLaddr         // 监听地址集合
-	opts     *model.TConnectorOpt  // 配置参数
-	acceptor model.IAcceptor       // 某种类型的 acceptor 连接器
-	connNum  syncutil.AtomicUint32 // 当前连接数
-	state    syncutil.AtomicInt32  // connector 当前状态
+	*session.SessionManager                       // 对象继承： session 管理对象
+	name                    string                // 组件名字
+	laddr                   *model.TLaddr         // 监听地址集合
+	opts                    *model.TConnectorOpt  // 配置参数
+	acceptor                model.IAcceptor       // 某种类型的 acceptor 连接器
+	connNum                 syncutil.AtomicUint32 // 当前连接数
+	state                   syncutil.AtomicUint32 // connector 当前状态
 }
 
 // 新建1个 Connector 对象
 func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IConnector {
+	// 地址检查？
+
 	// 参数效验
+	if nil == opt {
+		opt := model.NewTConnectorOpt()
+	}
+
 	if nil != opt.Check() {
 		return nil
 	}
 
-	// 地址检查？
+	// 创建 SessionManager
+	sesMgr := session.NewSessionManager()
+
+	// 创建 Acceptor
+	aptor, _ := newAcceptor(opt.AcceptorName, addr, cntor)
 
 	// 创建组件
 	cntor := &Connector{
-		name:  model.C_CPT_NAME_CONNECTOR,
-		laddr: addr,
-		opts:  opt,
+		name:           model.C_CPT_NAME_CONNECTOR,
+		laddr:          addr,
+		opts:           opt,
+		SessionManager: sesMgr,
 	}
 
 	// 创建 Acceptor
 	aptor, _ := newAcceptor(opt.AcceptorName, addr, cntor)
 	cntor.acceptor = aptor
+
+	// 设置为初始状态
+	cntor.state.Store(model.C_STATE_INIT)
 
 	return cntor
 }
@@ -67,6 +83,14 @@ func (this *Connector) Name() string {
 
 // 运行 Connector [IComponent 接口]
 func (this *Connector) Run() {
+	// 状态效验
+	if this.state.Load() != model.C_STATE_INIT {
+		return
+	}
+
+	// 改变状态： 正在启动中
+	this.state.Store(model.C_STATE_RUNING)
+
 	// 启动 acceptor
 	this.acceptor.Run()
 }

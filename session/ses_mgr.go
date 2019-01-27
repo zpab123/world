@@ -22,6 +22,13 @@ type SessionManager struct {
 	count    syncutil.AtomicInt64 // 记录当前在使用的会话数量
 }
 
+// 创建1个 SessionManager
+func NewSessionManager() *SessionManager {
+	sesMgr := &SessionManager{}
+
+	return sesMgr
+}
+
 // 收到1个新的 session [ISessionManager 接口]
 func (this *SessionManager) OnNewSession(ses model.ISession) {
 	this.Add(ses)

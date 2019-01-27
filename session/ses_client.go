@@ -26,6 +26,7 @@ type ClientSession struct {
 	sesssionMgr model.ISessionManage     // sessiong 管理对象
 	stopGroup   sync.WaitGroup           // 结束线程组
 	state       syncutil.AtomicUint32    // 状态变量
+	sessionId   syncutil.AtomicInt64     // session ID
 	// session_id
 	// 用户id
 }
@@ -90,6 +91,16 @@ func (this *ClientSession) Close() {
 	this.state.Store(model.C_SES_STATE_CLOSING)
 }
 
+// 获取 session ID [ISession 接口]
+func (this *ClientSession) GetId() int64 {
+	return this.sessionId.Load()
+}
+
+// 设置 session ID [ISession 接口]
+func (this *ClientSession) SetId(v int64) int64 {
+	return this.sessionId.Store(v)
+}
+
 // session 主循环
 func (this *ClientSession) mainLoop() {
 	// 改变为运行状态
@@ -150,7 +161,7 @@ func (this *ClientSession) sendLoop() {
 	this.stopGroup.Done()
 }
 
-// 退出检查
+// 是否正在结束
 func (this *ClientSession) isCloseIng() bool {
 	return this.state.Load() == model.C_SES_STATE_CLOSING
 }

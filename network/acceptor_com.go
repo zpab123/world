@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/zpab123/syncutil"    // 原子变量
 	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zplog"       // 日志库
 	"golang.org/x/net/websocket"     // websocket 库
@@ -22,41 +24,79 @@ import (
 
 // 支持 tcp websocket 连接
 type ComAcceptor struct {
-	name         string                // 侦听器名字
-	tcpListener  net.Listener          // tcp 侦听器
-	wsListenAddr string                // 监听成功的 websocket
-	certFile     string                // TLS加密文件
-	keyFile      string                // TLS解密key
-	laddr        *model.TLaddr         // 监听地址集合
-	connMgr      model.IComConnManager // 连接管理
-	httpServer   *http.Server          // http 服务器
-	wsListener   net.Listener          // websocket 侦听器
+	*state.StateManager                       // 对象继承： 状态管理
+	name                string                // 侦听器名字
+	tcpListener         net.Listener          // tcp 侦听器
+	wsListenAddr        string                // 监听成功的 websocket
+	certFile            string                // TLS加密文件
+	keyFile             string                // TLS解密key
+	laddr               *model.TLaddr         // 监听地址集合
+	connMgr             model.IComConnManager // 连接管理
+	httpServer          *http.Server          // http 服务器
+	wsListener          net.Listener          // websocket 侦听器
+	//state
 }
 
 // 创建1个 ComAcceptor 对象
 func NewComAcceptor(addr *model.TLaddr, mgr model.IComConnManager) model.IAcceptor {
+	// 创建 StateManager
+	sm := state.NewStateManager()
+
 	// 创建 ComAcceptor
 	comaptor := &ComAcceptor{
-		name:    model.C_ACCEPTOR_NAME_COM,
-		laddr:   addr,
-		connMgr: mgr,
+		StateManager: sm,
+		name:         model.C_ACCEPTOR_NAME_COM,
+		laddr:        addr,
+		connMgr:      mgr,
 	}
+
+	// 设置为初始化状态
+	mulaptor.SetState(model.C_STATE_INIT)
 
 	return comaptor
 }
 
 // 启动 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Run() {
+	// 状态效验
+	if this.GetState() != model.C_STATE_INIT {
+		return
+	}
+
+	// 改变状态: 正在启动中
+	this.SetState(model.C_STATE_RUNING)
+
+	// 添加启动线程数量
+	this.AddRunGo(2)
+
 	// 启动 tcp 侦听
 	this.runTcpListener()
 
 	// 启动 websocket 侦听
 	this.runWsListener()
+
+	// 阻塞
+	this.RunWait()
+
+	// 改变状态: 工作中
+	this.SetState(model.C_STATE_WORKING)
 }
 
 // 停止 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Stop() {
+	// 状态效验
+	if this.GetState() != model.C_STATE_WORKING {
+		return
+	}
 
+	// 改变状态: 关闭中
+	this.SetState(model.C_STATE_CLOSEING)
+
+	// 关闭tcp
+	this.tcpListener.Close()
+
+	// 关闭 websocket
+	this.httpServer.Close()
 }
 
 // 获取 侦听成功的 tcp 端口
@@ -116,6 +156,9 @@ func (this *ComAcceptor) acceptTcpConn() {
 		this.tcpListener.Close()
 	}
 	defer closeF()
+
+	// 启动线程完成
+	this.RunDone()
 
 	// 监听新连接
 	for {
@@ -178,6 +221,9 @@ func (this *ComAcceptor) acceptWsConn() {
 		Addr:    this.wsListenAddr,
 		Handler: mux,
 	}
+
+	// 启动线程完成
+	this.RunDone()
 
 	// 开启服务器
 	var err error

@@ -31,7 +31,7 @@ type IConnector interface {
 
 // connector 组件配置参数
 type TConnectorOpt struct {
-	AcceptorName string        // 接收器 名字
+	AcceptorName string        // 接收器名字
 	MaxConn      uint32        // 最大连接数量，超过此数值后，不再接收新连接
 	TcpConnOpts  *TTcpConnOpts // tcpSocket 配置参数
 }
@@ -43,10 +43,10 @@ func NewTConnectorOpt() *TConnectorOpt {
 
 	// 创建对象
 	opts := &TConnectorOpt{
-		TcpConnOpts: tcpOpts,
+		AcceptorName: C_ACCEPTOR_NAME_COM,
+		MaxConn:      C_CNTOR_MAX_CONN,
+		TcpConnOpts:  tcpOpts,
 	}
-
-	opts.SetDefaultOpts()
 
 	return opts
 }
@@ -56,13 +56,8 @@ func (this *TConnectorOpt) Check() error {
 	if this.MaxConn <= 0 {
 		this.MaxConn = C_CNTOR_MAX_CONN
 	}
-	return nil
-}
 
-// 设置默认参数
-func (this *TConnectorOpt) SetDefaultOpts() {
-	this.AcceptorName = C_ACCEPTOR_NAME_COM
-	this.MaxConn = C_CNTOR_MAX_CONN
+	return nil
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -81,15 +76,11 @@ type TTcpConnOpts struct {
 // 创建1个新的 TTcpConnOpts 对象
 func NewTTcpConnOpts() *TTcpConnOpts {
 	// 创建对象
-	tcpOpts := &TTcpConnOpts{}
-	tcpOpts.SetDefaultOpts()
+	tcpOpts := &TTcpConnOpts{
+		ReadBufferSize:  C_TCP_BUFFER_READ_SIZE,  // 张鹏：原先是-1，这里被修改了
+		WriteBufferSize: C_TCP_BUFFER_WRITE_SIZE, // 张鹏：原先是-1，这里被修改了
+		NoDelay:         C_TCP_NO_DELAY,          // 张鹏：原先没有这个设置项，这里被修改了
+	}
 
 	return tcpOpts
-}
-
-// 设置默认参数
-func (this *TTcpConnOpts) SetDefaultOpts() {
-	this.ReadBufferSize = C_TCP_BUFFER_READ_SIZE   // 张鹏：原先是-1，这里被修改了
-	this.WriteBufferSize = C_TCP_BUFFER_WRITE_SIZE // 张鹏：原先是-1，这里被修改了
-	this.NoDelay = C_TCP_NO_DELAY                  // 张鹏：原先没有这个设置项，这里被修改了
 }

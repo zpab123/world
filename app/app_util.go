@@ -121,8 +121,7 @@ func setConnector(app *Application) {
 // 获取默认 ConnectorOpt
 func getDefaultConnectorOpt() *model.TConnectorOpt {
 	// 创建默认
-	opts := &model.TConnectorOpt{}
-	opts.SetDefaultOpts()
+	opts := model.NewTConnectorOpt()
 
 	return opts
 }
