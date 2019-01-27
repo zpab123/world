@@ -15,14 +15,6 @@ const (
 	C_SES_TYPE_CLINET = "client" // 客户端类型的 session
 )
 
-// Session 状态
-const (
-	C_SES_STATE_INITED  uint32 = iota // 初始化状态
-	C_SES_STATE_RUNING                // 正在运行
-	C_SES_STATE_CLOSING               // 正在关闭中
-	C_SES_STATE_CLOSED                // 关闭完成
-)
-
 // /////////////////////////////////////////////////////////////////////////////
 // 接口
 

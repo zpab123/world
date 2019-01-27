@@ -10,6 +10,7 @@ import (
 	"github.com/zpab123/world/model"   // 全局模型
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/session" // session 库
+	"github.com/zpab123/world/state"   // 状态管理
 	"github.com/zpab123/zplog"         // 日志库
 	"golang.org/x/net/websocket"       // websocket 库
 )
@@ -30,13 +31,13 @@ const (
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
+	*state.StateManager                           // 对象继承： 状态管理
 	*session.SessionManager                       // 对象继承： session 管理对象
 	name                    string                // 组件名字
 	laddr                   *model.TLaddr         // 监听地址集合
 	opts                    *model.TConnectorOpt  // 配置参数
 	acceptor                model.IAcceptor       // 某种类型的 acceptor 连接器
 	connNum                 syncutil.AtomicUint32 // 当前连接数
-	state                   syncutil.AtomicUint32 // connector 当前状态
 }
 
 // 新建1个 Connector 对象
@@ -85,20 +86,49 @@ func (this *Connector) Name() string {
 func (this *Connector) Run() {
 	// 状态效验
 	if this.state.Load() != model.C_STATE_INIT {
+		zplog.Error("Connector 组件启动失败。状态错误，当前状态=%d", this.state.Load())
 		return
 	}
 
 	// 改变状态： 正在启动中
 	this.state.Store(model.C_STATE_RUNING)
 
+	// 添加启动线程数量
+	this.AddRunGo(1)
+
 	// 启动 acceptor
 	this.acceptor.Run()
+
+	// 阻塞
+	this.RunWait()
+
+	// 改变状态： 工作中
+	this.state.Store(model.C_STATE_WORKING)
+	zplog.Infof("Connector 组件启动成功")
 }
 
 // 停止 Connector [IComponent 接口]
 func (this *Connector) Stop() {
+	// 状态效验
+	if this.GetState() != model.C_STATE_WORKING {
+		return
+	}
+
+	// 改变状态： 停止中
+	this.SetState(model.C_STATE_CLOSEING)
+
+	// 停止线程+1
+	this.AddStopGo(1)
+
 	// 停止 acceptor
 	this.acceptor.Stop()
+
+	// 阻塞
+	this.StopWait()
+
+	// 改变状态：
+	this.state.Store(model.C_STATE_CLOSED)
+	zplog.Infof("Connector 组件停止成功")
 }
 
 // 收到1个新的 Tcp 连接对象
@@ -144,6 +174,18 @@ func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 // 关闭所有连接
 func (this *Connector) CloseAllConn() {
 
+}
+
+// 某个 Acceptor 启动完成 [IAcceptorState 接口]
+func (this *Connector) OnAcceptorWorkIng() {
+	// 启动线程完成1个
+	this.RunDone()
+}
+
+// 某个 Acceptor 关闭完成 [IAcceptorState 接口]
+func (this *Connector) OnAcceptorClosed() {
+	// 结束线程完成1个
+	this.StopDone()
 }
 
 // 创建 session 对象

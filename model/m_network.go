@@ -73,11 +73,17 @@ type IMulConnManager interface {
 	CloseAllConn()                      // 关闭所有连接
 }
 
-// ComAcceptor 连接管理
-type IComConnManager interface {
+// IComAcceptorManager 管理对象
+type IComAcceptorManager interface {
 	OnNewTcpConn(conn net.Conn)         // 收到1个新的 Tcp 连接对象
 	OnNewWsConn(wsconn *websocket.Conn) // 收到1个新的 websocket 连接对象
-	CloseAllConn()                      // 关闭所有连接
+	IAcceptorState                      // 接口继承： Acceptor 状态变化
+}
+
+// Acceptor 状态变化
+type IAcceptorState interface {
+	OnAcceptorWorkIng() // 某个 Acceptor 启动完成
+	OnAcceptorClosed()  // 某个 Acceptor 关闭完成
 }
 
 // acceptor 接口

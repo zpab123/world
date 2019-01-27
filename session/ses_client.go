@@ -10,6 +10,7 @@ import (
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/model"   // 全局模型
 	"github.com/zpab123/world/network" // 网络库
+	"github.com/zpab123/world/state"   // 状态管理
 	"github.com/zpab123/zplog"         // 日志库
 )
 
@@ -21,18 +22,21 @@ import (
 
 // 面向客户端的 session 对象
 type ClientSession struct {
-	opts        *model.TSessionOpts      // session 配置参数
-	worldConn   *network.WorldConnection // world 引擎连接对象
-	sesssionMgr model.ISessionManage     // sessiong 管理对象
-	stopGroup   sync.WaitGroup           // 结束线程组
-	state       syncutil.AtomicUint32    // 状态变量
-	sessionId   syncutil.AtomicInt64     // session ID
-	// session_id
+	*state.StateManager                          // 对象继承： 状态管理
+	opts                *model.TSessionOpts      // session 配置参数
+	worldConn           *network.WorldConnection // world 引擎连接对象
+	sesssionMgr         model.ISessionManage     // sessiong 管理对象
+	stopGroup           sync.WaitGroup           // 结束线程组
+	state               syncutil.AtomicUint32    // 状态变量
+	sessionId           syncutil.AtomicInt64     // session ID
 	// 用户id
 }
 
 // 创建1个新的 ClientSession 对象
 func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model.TSessionOpts) *ClientSession {
+	// 创建 StateManager
+	st := state.NewStateManager()
+
 	// 创建 WorldConnection
 	if nil == opt {
 		opt = model.NewTSessionOpts()
@@ -41,13 +45,14 @@ func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model
 
 	// 创建对象
 	cs := &ClientSession{
-		opts:        opt,
-		worldConn:   wc,
-		sesssionMgr: mgr,
+		StateManager: st,
+		opts:         opt,
+		worldConn:    wc,
+		sesssionMgr:  mgr,
 	}
 
 	// 修改为初始化状态
-	cs.state.Store(model.C_SES_STATE_INITED)
+	cs.SetState(model.C_STATE_INIT)
 
 	return cs
 }
@@ -55,14 +60,15 @@ func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model
 // 启动 session
 func (this *ClientSession) Run() {
 	// 非 INIT 状态
-	if this.state.Load() != model.C_SES_STATE_INITED {
+	if this.state.Load() != model.C_STATE_INIT {
+		zplog.Errorf("ClientSession 启动失败。状态不在初始化状态")
 		return
 	}
 
 	// 变量重置？ 状态? 发送队列？
 
 	// 需要接收和发送线程都结束时才算真正的结束
-	this.stopGroup.Add(2)
+	this.AddStopGo(2)
 
 	// 将 session 添加到管理器, 在线程处理前添加到管理器(分配id), 避免ID还未分配,就开始使用id的竞态问题
 	this.sesssionMgr.OnNewSession(this)
@@ -84,11 +90,11 @@ func (this *ClientSession) Close() {
 		return
 	}
 
-	// 关闭连接
-	this.worldConn.Close()
-
 	// 状态改变为关闭中
 	this.state.Store(model.C_SES_STATE_CLOSING)
+
+	// 关闭连接
+	this.worldConn.Close()
 }
 
 // 获取 session ID [ISession 接口]
