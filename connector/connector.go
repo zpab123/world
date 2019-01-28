@@ -47,11 +47,15 @@ func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IComponent
 		return nil
 	}
 
+	// 创建 StateManager
+	sm := state.NewStateManager()
+
 	// 创建 SessionManager
 	sesMgr := session.NewSessionManager()
 
 	// 创建组件
 	cntor := &Connector{
+		StateManager:   sm,
 		name:           model.C_CPT_NAME_CONNECTOR,
 		laddr:          addr,
 		opts:           opt,
