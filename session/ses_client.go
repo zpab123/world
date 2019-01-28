@@ -51,7 +51,7 @@ func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model
 	return cs
 }
 
-// 启动 session
+// 启动 session [ISession 接口]
 func (this *ClientSession) Run() {
 	// 改变状态： 启动中
 	if !this.stateMgr.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
