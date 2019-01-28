@@ -77,19 +77,12 @@ type IMulConnManager interface {
 type IComAcceptorManager interface {
 	OnNewTcpConn(conn net.Conn)         // 收到1个新的 Tcp 连接对象
 	OnNewWsConn(wsconn *websocket.Conn) // 收到1个新的 websocket 连接对象
-	IAcceptorState                      // 接口继承： Acceptor 状态变化
-}
-
-// Acceptor 状态变化
-type IAcceptorState interface {
-	OnAcceptorWorkIng() // 某个 Acceptor 启动完成
-	OnAcceptorClosed()  // 某个 Acceptor 关闭完成
 }
 
 // acceptor 接口
 type IAcceptor interface {
-	Run()  // 组件开始运行
-	Stop() // 组件停止运行
+	Run() bool  // 组件开始运行
+	Stop() bool // 组件停止运行
 }
 
 // socket 组件

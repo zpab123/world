@@ -42,7 +42,7 @@ func NewWsAcceptor(addr *model.TLaddr, mgr model.IWebsocketManager) model.IAccep
 }
 
 // 启动 wsAcceptor [IAcceptor 接口]
-func (this *WsAcceptor) Run() {
+func (this *WsAcceptor) Run() bool {
 	// 变量定义
 	var (
 		addrObj *model.TAddress // 地址变量
@@ -60,7 +60,7 @@ func (this *WsAcceptor) Run() {
 	// 查找失败
 	if nil != err {
 		zplog.Errorf("WsAcceptor 启动失败。err=%v", err.Error())
-		return
+		return false
 	}
 
 	// 端口查找成功
@@ -71,11 +71,12 @@ func (this *WsAcceptor) Run() {
 	// 侦听新连接
 	go this.accept()
 
+	return true
 }
 
 // 停止 wsAcceptor [IAcceptor 接口]
-func (this *WsAcceptor) Stop() {
-
+func (this *WsAcceptor) Stop() bool {
+	return true
 }
 
 // 侦听连接

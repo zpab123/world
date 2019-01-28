@@ -40,7 +40,7 @@ func (this *StateManager) GetState() uint32 {
 }
 
 // 交换状态
-func (this *StateManager) CompareAndSwap(old uint32, newv uint32) bool {
+func (this *StateManager) SwapState(old uint32, newv uint32) bool {
 	return this.state.CompareAndSwap(old, newv)
 }
 

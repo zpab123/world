@@ -84,28 +84,21 @@ func (this *Connector) Name() string {
 
 // 运行 Connector [IComponent 接口]
 func (this *Connector) Run() bool {
-	// 状态效验
-	if !this.CompareAndSwap(model.C_STATE_INIT, model.C_STATE_RUNING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.state.Load())
+	// 改变状态： 启动中
+	if !this.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.GetState())
 
 		return false
 	}
 
-	// 添加启动线程数量
-	this.AddRunGo(1)
-
-	// 停止线程+1
-	this.AddStopGo(1)
-
 	// 启动 acceptor
-	this.acceptor.Run()
-
-	// 阻塞
-	this.RunWait()
+	if !this.acceptor.Run() {
+		return false
+	}
 
 	// 改变状态： 工作中
-	if !this.CompareAndSwap(model.C_STATE_RUNING, model.C_STATE_WORKING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.state.Load())
+	if !this.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.GetState())
 
 		return false
 	}
@@ -118,24 +111,23 @@ func (this *Connector) Run() bool {
 // 停止 Connector [IComponent 接口]
 func (this *Connector) Stop() bool {
 	// 状态效验
-	if !this.CompareAndSwap(model.C_STATE_WORKING, model.C_STATE_STOPING) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.state.Load())
+	if !this.SwapState(model.C_STATE_WORKING, model.C_STATE_STOPING) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.GetState())
 
 		return false
 	}
 
 	// 停止 acceptor
-	this.acceptor.Stop()
-
-	// 阻塞
-	this.StopWait()
+	if !this.acceptor.Stop() {
+		return false
+	}
 
 	// 关闭所有 session
 	this.CloseAllSession()
 
 	// 改变状态：关闭完成
-	if !this.CompareAndSwap(model.C_STATE_STOPING, model.C_STATE_STOP) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.state.Load())
+	if !this.SwapState(model.C_STATE_STOPING, model.C_STATE_STOP) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.GetState())
 
 		return false
 	}
@@ -183,18 +175,6 @@ func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 	wsconn.PayloadType = websocket.BinaryFrame // 以二进制方式接受数据
 
 	// 创建 session 对象
-}
-
-// 某个 Acceptor 启动完成 [IAcceptorState 接口]
-func (this *Connector) OnAcceptorWorkIng() {
-	// 启动线程完成1个
-	this.RunDone()
-}
-
-// 某个 Acceptor 关闭完成 [IAcceptorState 接口]
-func (this *Connector) OnAcceptorClosed() {
-	// 结束线程完成1个
-	this.StopDone()
 }
 
 // 创建 session 对象

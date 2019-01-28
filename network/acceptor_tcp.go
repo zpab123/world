@@ -40,13 +40,13 @@ func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpSocketManager) model.IAcce
 }
 
 // 异步侦听新连接 [IAcceptor 接口]
-func (this *TcpAcceptor) Run() {
+func (this *TcpAcceptor) Run() bool {
 	// 阻塞，等到所有线程结束
 	this.WaitAllStop()
 
 	// 正在运行
 	if this.IsRuning() {
-		return
+		return false
 	}
 
 	// 创建侦听器
@@ -59,7 +59,7 @@ func (this *TcpAcceptor) Run() {
 		zplog.Fatalf("TcpAcceptor 启动失败。ip=%s，err=%v", this.laddr.TcpAddr, err.Error())
 		this.SetRunning(false)
 
-		return
+		return false
 	}
 
 	// 创建成功
@@ -68,18 +68,20 @@ func (this *TcpAcceptor) Run() {
 
 	// 侦听连接
 	go this.accept()
+
+	return true
 }
 
 // 停止侦听器 [IAcceptor 接口]
-func (this *TcpAcceptor) Stop() {
+func (this *TcpAcceptor) Stop() bool {
 	// 非运行状态
 	if !this.IsRuning() {
-		return
+		return false
 	}
 
 	// 正在停止
 	if this.IsStopping() {
-		return
+		return false
 	}
 
 	// 开始停止
@@ -93,6 +95,8 @@ func (this *TcpAcceptor) Stop() {
 
 	// 等待线程结束 - 阻塞
 	this.WaitAllStop()
+
+	return true
 }
 
 // 获取监听成功的端口

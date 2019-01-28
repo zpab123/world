@@ -50,10 +50,10 @@ func NewMulAcceptor(addr *model.TLaddr, mgr model.IMulConnManager) model.IAccept
 }
 
 // 启动 mulAcceptor [IAcceptor 接口]
-func (this *MulAcceptor) Run() {
+func (this *MulAcceptor) Run() bool {
 	// 状态效验
 	if this.GetState() != model.C_STATE_INIT {
-		return
+		return false
 	}
 
 	// 改变状态: 正在启动中
@@ -72,13 +72,17 @@ func (this *MulAcceptor) Run() {
 	this.RunWait()
 
 	// 启动完成
+
+	return true
 }
 
 // 停止 mulAcceptor [IAcceptor 接口]
-func (this *MulAcceptor) Stop() {
+func (this *MulAcceptor) Stop() bool {
 	// 停止 tcp
 	this.tcpAcceptor.Stop()
 
 	// 停止 websocket
 	this.wsAcceptor.Stop()
+
+	return true
 }
