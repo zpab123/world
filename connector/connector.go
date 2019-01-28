@@ -18,11 +18,6 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // 包初始化
 
-// 常量
-const (
-	_maxConnNum uint32 = 100000 // 默认最大连接数
-)
-
 // /////////////////////////////////////////////////////////////////////////////
 // public api
 
@@ -41,7 +36,7 @@ type Connector struct {
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IConnector {
+func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IComponent {
 	// 地址检查？
 
 	// 参数效验
@@ -72,7 +67,7 @@ func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IConnector
 	cntor.acceptor = aptor
 
 	// 设置为初始状态
-	cntor.state.Store(model.C_STATE_INIT)
+	cntor.SetState(model.C_STATE_INIT)
 
 	return cntor
 }
@@ -87,6 +82,13 @@ func (this *Connector) Run() bool {
 	// 改变状态： 启动中
 	if !this.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
 		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.GetState())
+
+		return false
+	}
+
+	// acceptor 检查
+	if nil == this.acceptor {
+		zplog.Error("Connector 组件启动失败。acceptor=nil")
 
 		return false
 	}
