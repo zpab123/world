@@ -9,7 +9,6 @@ package msg
 // 消息 id
 const (
 	PKT_ID_SHAKE uint16 = iota + 1 // 握手消息 ID
-	CODE_SUCCESS                   // 成功类消息 1
 )
 
 // 通用消息码(1-1000)

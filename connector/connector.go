@@ -8,7 +8,6 @@ import (
 
 	"github.com/zpab123/syncutil"      // 原子操作工具
 	"github.com/zpab123/world/model"   // 全局模型
-	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/world/state"   // 状态管理
 	"github.com/zpab123/zplog"         // 日志库
@@ -41,7 +40,7 @@ func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IComponent
 
 	// 参数效验
 	if nil == opt {
-		opt := model.NewTConnectorOpt()
+		opt = model.NewTConnectorOpt()
 	}
 
 	if nil != opt.Check() {
@@ -50,9 +49,6 @@ func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IComponent
 
 	// 创建 SessionManager
 	sesMgr := session.NewSessionManager()
-
-	// 创建 Acceptor
-	aptor, _ := newAcceptor(opt.AcceptorName, addr, cntor)
 
 	// 创建组件
 	cntor := &Connector{
@@ -144,7 +140,7 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	// 超过最大连接数
 	if this.connNum.Load() >= this.opts.MaxConn {
 		conn.Close()
-		zplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
+		//zplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
 		zplog.Debugf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
 	}
 
@@ -182,9 +178,9 @@ func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 // 创建 session 对象
 func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
 	// 创建 socket
-	socket := &network.Socket{
-		conn: netconn,
-	}
+	//socket := &network.Socket{
+	//Conn: netconn,
+	//}
 
 	// 创建 session
 }

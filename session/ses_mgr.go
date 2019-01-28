@@ -5,11 +5,9 @@ package session
 
 import (
 	"sync"
-	"sync/atomic"
 
-	"github.com/zpab123/syncutil"      // 同步变量
-	"github.com/zpab123/world/model"   // 全局模型
-	"github.com/zpab123/world/network" // 网路库
+	"github.com/zpab123/syncutil"    // 同步变量
+	"github.com/zpab123/world/model" // 全局模型
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -36,7 +34,7 @@ func (this *SessionManager) OnNewSession(ses model.ISession) {
 
 // 某个 session 关闭 [ISessionManager 接口]
 func (this *SessionManager) OnSessionClose(ses model.ISession) {
-	this.Remove(this)
+	this.Remove(ses)
 }
 
 // 添加1个符合 ISession 接口的对象

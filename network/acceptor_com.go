@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/zpab123/syncutil"    // 原子变量
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
@@ -50,7 +49,7 @@ func NewComAcceptor(addr *model.TLaddr, mgr model.IComAcceptorManager) model.IAc
 	}
 
 	// 设置为初始化状态
-	mulaptor.SetState(model.C_STATE_INIT)
+	comaptor.SetState(model.C_STATE_INIT)
 
 	return comaptor
 }

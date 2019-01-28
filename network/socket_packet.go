@@ -139,7 +139,7 @@ func (this *PacketSocket) SetRecvDeadline(deadline time.Time) error {
 }
 
 // 将消息队列中的数据写入 writebuff
-func (this *PacketSocket) Flush(reason *string) (err error) {
+func (this *PacketSocket) Flush() (err error) {
 	// 复制数据
 	this.goMutex.Lock()
 	if len(this.sendQueue) == 0 {

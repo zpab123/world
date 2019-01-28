@@ -18,24 +18,23 @@ import (
 
 // websocket 接收器
 type WsAcceptor struct {
-	state                                // 对象继承：运行状态操作
-	name         string                  // 连接器名字
-	laddr        *model.TLaddr           // 地址集合
-	websocketMgr model.IWebsocketManager // websocket 连接管理
-	listener     net.Listener            // 侦听器： 用于http服务器
-	httpServer   *http.Server            // http 服务器
-	wsListenAddr string                  // 侦听成功的 websocket 地址
-	certFile     string                  // TLS加密文件
-	keyFile      string                  // TLS解密key
+	name         string                   // 连接器名字
+	laddr        *model.TLaddr            // 地址集合
+	acceptorMgr  model.IWsAcceptorManager // websocket 连接管理
+	listener     net.Listener             // 侦听器： 用于http服务器
+	httpServer   *http.Server             // http 服务器
+	wsListenAddr string                   // 侦听成功的 websocket 地址
+	certFile     string                   // TLS加密文件
+	keyFile      string                   // TLS解密key
 }
 
 // 创建1个新的 wsAcceptor 对象
-func NewWsAcceptor(addr *model.TLaddr, mgr model.IWebsocketManager) model.IAcceptor {
+func NewWsAcceptor(addr *model.TLaddr, mgr model.IWsAcceptorManager) model.IAcceptor {
 	// 创建接收器
 	aptor := &WsAcceptor{
-		name:         model.C_ACCEPTOR_NAME_WEBSOCKET,
-		laddr:        addr,
-		websocketMgr: mgr,
+		name:        model.C_ACCEPTOR_NAME_WEBSOCKET,
+		laddr:       addr,
+		acceptorMgr: mgr,
 	}
 
 	return aptor
@@ -85,8 +84,8 @@ func (this *WsAcceptor) liten() {
 	// 创建 http 服务器
 
 	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
-	if nil != this.websocketMgr {
-		http.Handle("/ws", websocket.Handler(this.websocketMgr.OnNewWsConn)) // 有新连接的时候，会调用 wsHandler 处理新连接
+	if nil != this.acceptorMgr {
+		http.Handle("/ws", websocket.Handler(this.acceptorMgr.OnNewWsConn)) // 有新连接的时候，会调用 wsHandler 处理新连接
 	}
 
 	var err error // 错误信息
@@ -111,7 +110,7 @@ func (this *WsAcceptor) accept() {
 	// 创建 mux
 	mux := http.NewServeMux()
 	// 路由函数
-	handler := websocket.Handler(this.websocketMgr.OnNewWsConn)
+	handler := websocket.Handler(this.acceptorMgr.OnNewWsConn)
 	//mux.HandleFunc("/ws", handler)
 	mux.Handle("/ws", handler)
 

@@ -11,7 +11,6 @@ import (
 	"github.com/zpab123/world/config" // 配置文件读取
 	"github.com/zpab123/world/model"  // 全局模型
 	"github.com/zpab123/world/msg"    // world 内部通信消息
-	"github.com/zpab123/world/utils"  // 工具库
 	"github.com/zpab123/zplog"        // 日志库
 )
 
@@ -24,15 +23,20 @@ type WorldConnection struct {
 	opts         *model.TWorldConnOpts // 配置参数
 	packetSocket *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
 	lastSendTime syncutil.AtomicInt64  // 上次给客户端发送消息的时间：单位秒
-	lastRecvTime time.Time             // 上次接收到客户端消息的时间
-	timeOut      time.Duration         // 心跳超时时间
+	lastRecvTime int64                 // 上次接收到客户端消息的时间
+	timeOut      int64                 // 心跳超时时间
 }
 
 // 新建1个 WorldConnection 对象
 func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldConnection {
+	// opt 效验
+	if nil == opt {
+		opt = model.NewTWorldConnOpts()
+	}
+
 	// 创建 packetSocket
-	bufSocket := network.NewBufferSocket(socket)
-	pktSocket := network.NewPacketSocket(bufSocket)
+	bufSocket := NewBufferSocket(socket, opt.BuffSocketOpts)
+	pktSocket := NewPacketSocket(bufSocket)
 
 	// 创建参数
 	if nil != opt {
@@ -60,8 +64,10 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 		return nil, err
 	}
 
+	// 记录时间
+	this.lastRecvTime = time.Now().Unix()
+
 	// 处理 packet
-	this.lastRecvTime = time.Now()
 	pkt = this.handlePacket(pkt)
 
 	return pkt, nil
@@ -95,8 +101,10 @@ func (this *WorldConnection) Close() {
 // 检查客户端心跳
 func (this *WorldConnection) CheckClientHeartbeat() {
 	if this.timeOut > 0 {
-		outTime := this.lastRecvTime.Add(this.timeOut)
-		if this.lastRecvTime.After(outTime) {
+		outTime := this.lastRecvTime + this.timeOut
+
+		// 发送心跳
+		if time.Now().Unix() >= outTime {
 			zplog.Warnf("客户端心跳超时，断开连接")
 			this.Close()
 		}
@@ -158,8 +166,12 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	// 版本验证
 	if shakeInfo.Key != config.GetWorldIni().Key {
 		res.Code = msg.SHAKE_KEY_ERROR
-		body := proto.Marshal(res)
-		this.handshakeResponse(false, body)
+		body, err := proto.Marshal(res)
+		if nil != err {
+			this.handshakeResponse(false, body)
+		} else {
+
+		}
 		this.Close()
 
 		return
@@ -168,15 +180,18 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	// 通信方式验证
 	if shakeInfo.Acceptor != config.GetWorldIni().Acceptor {
 		res.Code = msg.SHAKE_ACCEPTOR_ERROR
-		body := proto.Marshal(res)
-		this.handshakeResponse(false, body)
+		body, err := proto.Marshal(res)
+		if nil != err {
+			this.handshakeResponse(false, body)
+		} else {
+
+		}
 		this.Close()
 
 		return
 	}
 
 	// 回复处理结果
-
 }
 
 //  返回握手消息

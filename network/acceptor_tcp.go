@@ -20,20 +20,19 @@ import (
 
 // tcp 接收器
 type TcpAcceptor struct {
-	state                             // 对象继承：运行状态操作
-	name      string                  // 连接器名字
-	laddr     *model.TLaddr           // 地址集合
-	socketMgr model.ITcpSocketManager // 符合 tcpsocket 连接管理接口的对象
-	listener  net.Listener            // 侦听器
+	name        string                    // 连接器名字
+	laddr       *model.TLaddr             // 地址集合
+	acceptorMgr model.ITcpAcceptorManager // 符合 ITcpAcceptorManager 连接管理接口的对象
+	listener    net.Listener              // 侦听器
 }
 
 // 创建1个新的 TcpAcceptor 对象
-func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpSocketManager) model.IAcceptor {
+func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpAcceptorManager) model.IAcceptor {
 	// 创建对象
 	aptor := &TcpAcceptor{
-		name:      model.C_ACCEPTOR_NAME_TCP,
-		laddr:     addr,
-		socketMgr: mgr,
+		name:        model.C_ACCEPTOR_NAME_TCP,
+		laddr:       addr,
+		acceptorMgr: mgr,
 	}
 
 	return aptor
@@ -41,14 +40,6 @@ func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpSocketManager) model.IAcce
 
 // 异步侦听新连接 [IAcceptor 接口]
 func (this *TcpAcceptor) Run() bool {
-	// 阻塞，等到所有线程结束
-	this.WaitAllStop()
-
-	// 正在运行
-	if this.IsRuning() {
-		return false
-	}
-
 	// 创建侦听器
 	ln, err := utils.DetectPort(this.laddr.TcpAddr, func(a *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", a.HostPortString(port))
@@ -57,7 +48,6 @@ func (this *TcpAcceptor) Run() bool {
 	// 创建失败
 	if nil != err {
 		zplog.Fatalf("TcpAcceptor 启动失败。ip=%s，err=%v", this.laddr.TcpAddr, err.Error())
-		this.SetRunning(false)
 
 		return false
 	}
@@ -74,27 +64,10 @@ func (this *TcpAcceptor) Run() bool {
 
 // 停止侦听器 [IAcceptor 接口]
 func (this *TcpAcceptor) Stop() bool {
-	// 非运行状态
-	if !this.IsRuning() {
-		return false
-	}
-
-	// 正在停止
-	if this.IsStopping() {
-		return false
-	}
-
-	// 开始停止
-	this.StartStop()
-
 	// 关闭侦听器
 	this.listener.Close()
 
 	// 断开所有连接
-	this.socketMgr.CloseAllConn()
-
-	// 等待线程结束 - 阻塞
-	this.WaitAllStop()
 
 	return true
 }
@@ -125,18 +98,10 @@ func (this *TcpAcceptor) GetListenAddress() string {
 
 // 侦听连接
 func (this *TcpAcceptor) accept() {
-	// 设置为运行状态
-	this.SetRunning(true)
-
 	// 主循环
 	for {
 		// 接收新连接
 		conn, err := this.listener.Accept()
-
-		// 正在停止
-		if this.IsStopping() {
-			break
-		}
 
 		// 监听错误
 		if nil != err {
@@ -145,10 +110,6 @@ func (this *TcpAcceptor) accept() {
 		}
 
 		// 处理连接进入独立线程, 防止 accept 无法响应
-		go this.socketMgr.OnNewTcpConn(conn)
+		go this.acceptorMgr.OnNewTcpConn(conn)
 	}
-
-	// 侦听线程退出
-	this.SetRunning(false) // 设置为非运行状态
-	this.EndStop()         // 结束停止
 }

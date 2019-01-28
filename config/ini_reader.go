@@ -86,7 +86,7 @@ func readNetwork(sec *ini.Section, config *model.TWorldIni) {
 		name := strings.ToLower(key.Name()) //转化成小写
 		if "shake_key" == name {
 			config.Key = key.MustString(config.Key)
-		} else if "acceptor" {
+		} else if "acceptor" == name {
 			var aptor int = 0
 			aptor = key.MustInt(aptor)
 			config.Acceptor = uint32(aptor)

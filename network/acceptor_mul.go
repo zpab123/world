@@ -24,7 +24,7 @@ type MulAcceptor struct {
 }
 
 // 创建1个 mulAcceptor 对象
-func NewMulAcceptor(addr *model.TLaddr, mgr model.IMulConnManager) model.IAcceptor {
+func NewMulAcceptor(addr *model.TLaddr, mgr model.IMulAcceptorManager) model.IAcceptor {
 	// 创建 StateManager
 	sm := state.NewStateManager()
 

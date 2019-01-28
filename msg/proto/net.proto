@@ -3,18 +3,11 @@ package msg;
 
 // 客户端->服务器 握手消息
 message HandshakeReq{
-    string key = 20190233;   // 通信版本，大小不能超过 uin32
-    uint32 acceptor = 1;    // 1=tcp;2=websocket;3=;通信方式
+    string key = 20190233;   		// 通信版本，大小不能超过 uin32
+    uint32 acceptor = 1;    		// 1=tcp;2=websocket;3=;通信方式
 }
 
 // 服务器->客户端 握手结果
 message HandshakeRes{
-    string code = 20190233;   // 通信版本，大小不能超过 uin32
-    uint32 acceptor = 1;    // 1=tcp;2=websocket;3=;通信方式
-}
-
-// 客户端->服务器 握手ACK
-message HandshakeAck {
-    string key = 20190233;   // 通信版本，大小不能超过 uin32
-    uint32 acceptor = 1;    // 1=tcp;2=websocket;3=;通信方式
+    uint32 code = 1;   				// 通信版本，大小不能超过 uin32
 }
