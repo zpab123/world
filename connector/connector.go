@@ -8,6 +8,7 @@ import (
 
 	"github.com/zpab123/syncutil"      // 原子操作工具
 	"github.com/zpab123/world/model"   // 全局模型
+	"github.com/zpab123/world/network" // 网络模型
 	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/world/state"   // 状态管理
 	"github.com/zpab123/zplog"         // 日志库
@@ -25,13 +26,13 @@ import (
 
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
-	*state.StateManager                           // 对象继承： 状态管理
-	*session.SessionManager                       // 对象继承： session 管理对象
-	name                    string                // 组件名字
-	laddr                   *model.TLaddr         // 监听地址集合
-	opts                    *model.TConnectorOpt  // 配置参数
-	acceptor                model.IAcceptor       // 某种类型的 acceptor 连接器
-	connNum                 syncutil.AtomicUint32 // 当前连接数
+	name       string                  // 组件名字
+	laddr      *model.TLaddr           // 监听地址集合
+	opts       *model.TConnectorOpt    // 配置参数
+	acceptor   model.IAcceptor         // 某种类型的 acceptor 连接器
+	connNum    syncutil.AtomicUint32   // 当前连接数
+	stateMgr   *state.StateManager     // 状态管理
+	sessionMgr *session.SessionManager // session 管理对象
 }
 
 // 新建1个 Connector 对象
@@ -55,11 +56,11 @@ func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IComponent
 
 	// 创建组件
 	cntor := &Connector{
-		StateManager:   sm,
-		name:           model.C_CPT_NAME_CONNECTOR,
-		laddr:          addr,
-		opts:           opt,
-		SessionManager: sesMgr,
+		stateMgr:   sm,
+		name:       model.C_CPT_NAME_CONNECTOR,
+		laddr:      addr,
+		opts:       opt,
+		sessionMgr: sesMgr,
 	}
 
 	// 创建 Acceptor
@@ -67,7 +68,7 @@ func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IComponent
 	cntor.acceptor = aptor
 
 	// 设置为初始状态
-	cntor.SetState(model.C_STATE_INIT)
+	cntor.stateMgr.SetState(model.C_STATE_INIT)
 
 	return cntor
 }
@@ -80,8 +81,8 @@ func (this *Connector) Name() string {
 // 运行 Connector [IComponent 接口]
 func (this *Connector) Run() bool {
 	// 改变状态： 启动中
-	if !this.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.stateMgr.GetState())
 
 		return false
 	}
@@ -99,8 +100,8 @@ func (this *Connector) Run() bool {
 	}
 
 	// 改变状态： 工作中
-	if !this.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -113,8 +114,8 @@ func (this *Connector) Run() bool {
 // 停止 Connector [IComponent 接口]
 func (this *Connector) Stop() bool {
 	// 状态效验
-	if !this.SwapState(model.C_STATE_WORKING, model.C_STATE_STOPING) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_WORKING, model.C_STATE_STOPING) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -125,11 +126,11 @@ func (this *Connector) Stop() bool {
 	}
 
 	// 关闭所有 session
-	this.CloseAllSession()
+	this.sessionMgr.CloseAllSession()
 
 	// 改变状态：关闭完成
-	if !this.SwapState(model.C_STATE_STOPING, model.C_STATE_STOP) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_STOPING, model.C_STATE_STOP) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -144,13 +145,15 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	// 超过最大连接数
 	if this.connNum.Load() >= this.opts.MaxConn {
 		conn.Close()
-		//zplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
-		zplog.Debugf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
+
+		zplog.Warnf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
 	}
 
 	// 不符合 tcp 连接对象
 	tcpConn, ok := conn.(*net.TCPConn)
 	if !ok {
+		conn.Close()
+
 		return
 	}
 
@@ -182,9 +185,14 @@ func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 // 创建 session 对象
 func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
 	// 创建 socket
-	//socket := &network.Socket{
-	//Conn: netconn,
-	//}
+	socket := &network.Socket{
+		Conn: netconn,
+	}
 
 	// 创建 session
+	opt := model.NewTSessionOpts()
+	ses := session.NewClientSession(socket, this.sessionMgr, opt)
+
+	// 启动 session
+	ses.Run()
 }

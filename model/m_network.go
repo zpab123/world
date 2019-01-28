@@ -188,7 +188,7 @@ func NewTBufferSocketOpts() *TBufferSocketOpts {
 // WorldConnection 配置参数
 type TWorldConnOpts struct {
 	BuffSocketOpts *TBufferSocketOpts // BufferSocket 配置参数
-	Heartbeat      int64              // 心跳间隔，单位：秒
+	Heartbeat      int64              // 心跳间隔，单位：秒。0=不设置心跳
 }
 
 // 新建1个 WorldConnection 对象

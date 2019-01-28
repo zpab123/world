@@ -8,11 +8,10 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
-	"github.com/zpab123/syncutil"    // 同步工具
 	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/zplog"       // log 库
 )
 
@@ -24,12 +23,11 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	baseInfo         *model.TBaseInfo      // 服务器基础信息
-	serverInfo       *model.TServerInfo    // 服务器配置信息
-	state            syncutil.AtomicUint32 // app 当前状态
-	goGroup          sync.WaitGroup        // 线程同步组
-	componentManager                       // 对象继承： app 组件管理
-	appDelegate      model.IAppDelegate    // app 代理对象
+	state.StateManager                    // 对象继承： 状态管理
+	componentManager                      // 对象继承： app 组件管理
+	baseInfo           *model.TBaseInfo   // 服务器基础信息
+	serverInfo         *model.TServerInfo // 服务器配置信息
+	appDelegate        model.IAppDelegate // app 代理对象
 }
 
 // 创建1个新的 Application 对象
@@ -47,20 +45,17 @@ func NewApplication(appType string, appDelegate model.IAppDelegate) *Application
 	app.baseInfo.AppType = appType
 
 	// 设置为无效状态
-	app.state.Store(model.C_APP_STATE_INVALID)
+	app.SetState(model.C_STATE_INVALID)
 
 	return app
 }
 
 // 初始化 Application
 func (this *Application) Init() bool {
-	// 错误变量
-	//var initErr error = nil
-
 	// 路径信息
 	dir, err := getMainPath()
 	if err != nil {
-		zplog.Error("app 初始化失败：读取根目录失败")
+		zplog.Error("app Init 失败。读取根目录失败")
 
 		return false
 	}
@@ -69,12 +64,17 @@ func (this *Application) Init() bool {
 	// 组件管理初始化
 	this.componentMgrInit()
 
-	// 设置基础配置
+	// 默认设置
 	defaultConfiguration(this)
 
-	// 设置为初始化状态
-	this.state.Store(model.C_APP_STATE_INIT)
-	zplog.Infof("app 状态：初始化完成")
+	// 改变为初始化状态
+	if !this.SwapState(model.C_STATE_INVALID, model.C_STATE_INIT) {
+		zplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INVALID, this.GetState())
+
+		return false
+	}
+
+	zplog.Infof("app 状态：init完成 ...")
 
 	return true
 }
@@ -87,33 +87,31 @@ func (this *Application) Run() {
 	// 记录启动时间
 	this.baseInfo.RunTime = time.Now()
 
-	// 状态效验
-	if this.state.Load() != model.C_APP_STATE_INIT {
-		//err := new error
-		zplog.Error("app 非 init 状态，启动失败")
+	// 改变为启动中
+	if !this.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
+		zplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.GetState())
 
 		return
+	} else {
+		zplog.Infof("app 状态：正在启动中 ...")
 	}
 
 	// 设置默认组件
 	setDefaultComponent(this)
 
-	// 设置为启动中
-	this.state.Store(model.C_APP_STATE_RUNING)
-	zplog.Infof("app 状态：正在启动 ...")
-
 	// 启动所有组件
 	for _, cpt := range this.componentMap {
-		this.goGroup.Add(1)
 		go cpt.Run()
 	}
 
-	// 阻塞 - 等待启动完成
-	this.goGroup.Wait()
+	// 改变为工作中
+	if !this.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
+		zplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.GetState())
 
-	// 启动完毕 - 设置为工作中
-	this.state.Store(model.C_APP_STATE_WORKING)
-	zplog.Infof("app 状态：启动成功，工作中 ...")
+		return
+	} else {
+		zplog.Infof("app 状态：启动成功，工作中 ...")
+	}
 
 	// 主循环
 	for {

@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/zpab123/world/model" // 全局[常量-数据类型-接口]汇总
+	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/zplog"       // log 库
 )
 

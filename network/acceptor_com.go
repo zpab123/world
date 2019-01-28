@@ -23,16 +23,16 @@ import (
 
 // 支持 tcp websocket 连接
 type ComAcceptor struct {
-	*state.StateManager                           // 对象继承： 状态管理
-	name                string                    // 侦听器名字
-	tcpListener         net.Listener              // tcp 侦听器
-	wsListenAddr        string                    // 监听成功的 websocket
-	certFile            string                    // TLS加密文件
-	keyFile             string                    // TLS解密key
-	laddr               *model.TLaddr             // 监听地址集合
-	acceptorMgr         model.IComAcceptorManager // 接收器管理对象
-	httpServer          *http.Server              // http 服务器
-	wsListener          net.Listener              // websocket 侦听器
+	stateMgr     *state.StateManager       // 状态管理
+	name         string                    // 侦听器名字
+	tcpListener  net.Listener              // tcp 侦听器
+	wsListenAddr string                    // 监听成功的 websocket
+	certFile     string                    // TLS加密文件
+	keyFile      string                    // TLS解密key
+	laddr        *model.TLaddr             // 监听地址集合
+	acceptorMgr  model.IComAcceptorManager // 接收器管理对象
+	httpServer   *http.Server              // http 服务器
+	wsListener   net.Listener              // websocket 侦听器
 }
 
 // 创建1个 ComAcceptor 对象
@@ -42,14 +42,14 @@ func NewComAcceptor(addr *model.TLaddr, mgr model.IComAcceptorManager) model.IAc
 
 	// 创建 ComAcceptor
 	comaptor := &ComAcceptor{
-		StateManager: sm,
-		name:         model.C_ACCEPTOR_NAME_COM,
-		laddr:        addr,
-		acceptorMgr:  mgr,
+		stateMgr:    sm,
+		name:        model.C_ACCEPTOR_NAME_COM,
+		laddr:       addr,
+		acceptorMgr: mgr,
 	}
 
 	// 设置为初始化状态
-	comaptor.SetState(model.C_STATE_INIT)
+	comaptor.stateMgr.SetState(model.C_STATE_INIT)
 
 	return comaptor
 }
@@ -57,8 +57,8 @@ func NewComAcceptor(addr *model.TLaddr, mgr model.IComAcceptorManager) model.IAc
 // 启动 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Run() bool {
 	// 改变状态: 正在启动中
-	if !this.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
-		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
+		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.stateMgr.GetState())
 
 		return false
 	}
@@ -74,8 +74,8 @@ func (this *ComAcceptor) Run() bool {
 	}
 
 	// 改变状态: 工作中
-	if !this.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
-		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
+		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -86,8 +86,8 @@ func (this *ComAcceptor) Run() bool {
 // 停止 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Stop() bool {
 	// 改变状态: 关闭中
-	if !this.SwapState(model.C_STATE_WORKING, model.C_STATE_STOPING) {
-		zplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_WORKING, model.C_STATE_STOPING) {
+		zplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -99,8 +99,8 @@ func (this *ComAcceptor) Stop() bool {
 	this.httpServer.Close()
 
 	// 改变状态: 关闭完成
-	if !this.SwapState(model.C_STATE_STOPING, model.C_APP_STATE_STOP) {
-		zplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.GetState())
+	if !this.stateMgr.SwapState(model.C_STATE_STOPING, model.C_STATE_STOP) {
+		zplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -271,5 +271,5 @@ func (this *ComAcceptor) acceptWebsocket() {
 
 // 是否需要停止
 func (this *ComAcceptor) needStop() bool {
-	return this.GetState() == model.C_STATE_STOPING
+	return this.stateMgr.GetState() == model.C_STATE_STOPING
 }

@@ -19,12 +19,11 @@ import (
 
 // 面向客户端的 session 对象
 type ClientSession struct {
-	*state.StateManager                          // 对象继承： 状态管理
-	opts                *model.TSessionOpts      // session 配置参数
-	worldConn           *network.WorldConnection // world 引擎连接对象
-	sesssionMgr         model.ISessionManage     // sessiong 管理对象
-	sessionId           syncutil.AtomicInt64     // session ID
-	// 用户id
+	stateMgr    *state.StateManager      // 对象继承： 状态管理
+	opts        *model.TSessionOpts      // session 配置参数
+	worldConn   *network.WorldConnection // world 引擎连接对象
+	sesssionMgr model.ISessionManage     // sessiong 管理对象
+	sessionId   syncutil.AtomicInt64     // session ID
 }
 
 // 创建1个新的 ClientSession 对象
@@ -40,23 +39,24 @@ func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model
 
 	// 创建对象
 	cs := &ClientSession{
-		StateManager: st,
-		opts:         opt,
-		worldConn:    wc,
-		sesssionMgr:  mgr,
+		stateMgr:    st,
+		opts:        opt,
+		worldConn:   wc,
+		sesssionMgr: mgr,
 	}
 
 	// 修改为初始化状态
-	cs.SetState(model.C_STATE_INIT)
+	cs.stateMgr.SetState(model.C_STATE_INIT)
 
 	return cs
 }
 
 // 启动 session
 func (this *ClientSession) Run() {
-	// 非 INIT 状态
-	if this.GetState() != model.C_STATE_INIT {
-		zplog.Errorf("ClientSession 启动失败。状态不在初始化状态")
+	// 改变状态： 启动中
+	if !this.stateMgr.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
+		zplog.Errorf("ClientSession 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.stateMgr.GetState())
+
 		return
 	}
 
@@ -71,28 +71,28 @@ func (this *ClientSession) Run() {
 	// 开启发送线程
 	go this.sendLoop()
 
-	// 阻塞
-	this.RunWait()
-
-	// 启动完成
-	this.SetState(model.C_STATE_WORKING)
+	// 改变状态： 工作中
+	if !this.stateMgr.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
+		zplog.Errorf("ClientSession 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.stateMgr.GetState())
+	}
 }
 
 // 关闭 session [ISession 接口]
 func (this *ClientSession) Close() {
-	// 非运行状态
-	if this.GetState() != model.C_STATE_WORKING {
+	// 状态改变为关闭中
+	if !this.stateMgr.SwapState(model.C_STATE_WORKING, model.C_STATE_CLOSEING) {
+		zplog.Errorf("ClientSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.stateMgr.GetState())
+
 		return
 	}
-
-	// 状态改变为关闭中
-	this.SetState(model.C_STATE_CLOSEING)
 
 	// 关闭连接
 	this.worldConn.Close()
 
-	// 关闭完成
-	this.SetState(model.C_STATE_CLOSED)
+	// 状态改变为关闭完成
+	if !this.stateMgr.SwapState(model.C_STATE_CLOSEING, model.C_STATE_CLOSED) {
+		zplog.Errorf("ClientSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_CLOSEING, this.stateMgr.GetState())
+	}
 
 	// 通知 session 管理
 	this.sesssionMgr.OnSessionClose(this)
@@ -111,11 +111,6 @@ func (this *ClientSession) SetId(v int64) {
 // 接收线程
 func (this *ClientSession) recvLoop() {
 	for {
-		// 退出检查
-		if exit := this.isCloseIng(); exit {
-			break
-		}
-
 		// 心跳检查
 		this.worldConn.CheckClientHeartbeat()
 
@@ -133,22 +128,11 @@ func (this *ClientSession) recvLoop() {
 
 // 发送线程
 func (this *ClientSession) sendLoop() {
-
 	for {
-		// 退出检查
-		if exit := this.isCloseIng(); exit {
-			break
-		}
-
 		// 心跳检查
 		this.worldConn.CheckServerHeartbeat()
 
 		// 刷新缓冲区
 		this.worldConn.Flush()
 	}
-}
-
-// 是否正在结束
-func (this *ClientSession) isCloseIng() bool {
-	return this.GetState() == model.C_STATE_CLOSEING
 }
