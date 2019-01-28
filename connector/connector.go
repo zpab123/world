@@ -165,6 +165,7 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	tcpConn.SetNoDelay(this.opts.TcpConnOpts.NoDelay)
 
 	// 创建 session 对象
+	this.createSession(conn, false)
 }
 
 // 收到1个新的 websocket 连接对象

@@ -19,12 +19,12 @@ import (
 
 // world 框架内部需要用到的一些常用网络消息
 type WorldConnection struct {
-	state        syncutil.AtomicUint32 // conn 状态
-	opts         *model.TWorldConnOpts // 配置参数
-	packetSocket *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
-	lastSendTime syncutil.AtomicInt64  // 上次给客户端发送消息的时间：单位秒
-	lastRecvTime int64                 // 上次接收到客户端消息的时间
-	timeOut      int64                 // 心跳超时时间
+	state         syncutil.AtomicUint32 // conn 状态
+	opts          *model.TWorldConnOpts // 配置参数
+	packetSocket  *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
+	timeOut       int64                 // 心跳超时时间，单位：秒
+	clientTimeOut int64                 // 客户端心跳超时时间点，精确到秒
+	serverTimeOut int64                 // 服务器心跳超时时间点，精确到秒
 }
 
 // 新建1个 WorldConnection 对象
@@ -65,7 +65,9 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	}
 
 	// 记录时间
-	this.lastRecvTime = time.Now().Unix()
+	if this.timeOut > 0 {
+		this.clientTimeOut = time.Now().Unix() + this.timeOut
+	}
 
 	// 处理 packet
 	pkt = this.handlePacket(pkt)
@@ -75,7 +77,8 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 
 // 发送1个 packet 消息
 func (this *WorldConnection) SendPacket(pkt *Packet) error {
-	this.lastSendTime.Store(time.Now().Unix())
+	// 记录超时
+	this.serverTimeOut = time.Now().Unix() + this.timeOut
 
 	return this.packetSocket.SendPacket(pkt)
 }
@@ -101,10 +104,7 @@ func (this *WorldConnection) Close() {
 // 检查客户端心跳
 func (this *WorldConnection) CheckClientHeartbeat() {
 	if this.timeOut > 0 {
-		outTime := this.lastRecvTime + this.timeOut
-
-		// 发送心跳
-		if time.Now().Unix() >= outTime {
+		if time.Now().Unix() >= this.clientTimeOut {
 			zplog.Warnf("客户端心跳超时，断开连接")
 			this.Close()
 		}
@@ -114,8 +114,7 @@ func (this *WorldConnection) CheckClientHeartbeat() {
 // 检查服务器心跳
 func (this *WorldConnection) CheckServerHeartbeat() {
 	if this.timeOut > 0 {
-		passTime := time.Now().Unix() - this.lastSendTime.Load()
-		if passTime >= this.timeOut {
+		if time.Now().Unix() >= this.serverTimeOut {
 			this.sendHeartbeat()
 		}
 	}

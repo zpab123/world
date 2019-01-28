@@ -91,10 +91,8 @@ func (this *SessionManager) VisitSession(callback func(model.ISession) bool) {
 }
 
 // 活跃的会话数量
-func (this *SessionManager) SessionCount() int {
-	v := this.count.Load()
-
-	return int(v)
+func (this *SessionManager) SessionCount() int64 {
+	return this.count.Load()
 }
 
 // 关闭所有连接
