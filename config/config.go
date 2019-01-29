@@ -8,8 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/zpab123/world/model" // 全局 struct
-	"github.com/zpab123/zplog"       // 日志库
+	"github.com/zpab123/zplog" // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -17,13 +16,13 @@ import (
 
 // 变量
 var (
-	configMutex      sync.Mutex               // 进程互斥锁
-	mainPath         string                   // 程序启动目录
-	iniConfig        *model.TWorldIni         // world.ini 配置信息
-	iniFilePath      = model.C_PATH_WORLD_INI // world.ini 默认路径
-	serverConfig     *model.TServerConfig     // server.json 配置表
-	serverConfigPath = model.C_PATH_SERVER    // servers.json 配置文件路径
-	serverMap        model.TServerMap         // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
+	configMutex      sync.Mutex         // 进程互斥锁
+	mainPath         string             // 程序启动目录
+	iniConfig        *TWorldIni         // world.ini 配置信息
+	iniFilePath      = C_PATH_WORLD_INI // world.ini 默认路径
+	serverConfig     *TServerConfig     // server.json 配置表
+	serverConfigPath = C_PATH_SERVER    // servers.json 配置文件路径
+	serverMap        TServerMap         // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
 )
 
 // 初始化
@@ -42,19 +41,19 @@ func init() {
 // 对外 api
 
 // 获取 world.ini 配置对象
-func GetWorldIni() *model.TWorldIni {
+func GetWorldIni() *TWorldIni {
 	return iniConfig
 }
 
 // 获取 servers.json 配置信息
 //
 // 返回： map[string][]ServerInfo 数据集合
-func GetServerConfig() *model.TServerConfig {
+func GetServerConfig() *TServerConfig {
 	return serverConfig
 }
 
 // 获取 当前环境的 服务器信息集合
-func GetServerMap() model.TServerMap {
+func GetServerMap() TServerMap {
 	return serverMap
 }
 
@@ -110,9 +109,9 @@ func getServerConfig() {
 		}
 
 		// 创建对象
-		serverConfig = &model.TServerConfig{
-			Development: model.TServerMap{},
-			Production:  model.TServerMap{},
+		serverConfig = &TServerConfig{
+			Development: TServerMap{},
+			Production:  TServerMap{},
 		}
 
 		// 加载文件
@@ -120,7 +119,7 @@ func getServerConfig() {
 		LoadJsonToMap(fPath, serverConfig)
 
 		// 根据运行环境赋值
-		if model.C_ENV_DEV == iniConfig.Env {
+		if C_ENV_DEV == iniConfig.Env {
 			serverMap = serverConfig.Development
 		} else {
 			serverMap = serverConfig.Production
