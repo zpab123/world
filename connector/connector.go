@@ -57,7 +57,7 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	// 创建组件
 	cntor := &Connector{
 		stateMgr:   sm,
-		name:       model.C_CPT_NAME_CONNECTOR,
+		name:       COMPONENT_NAME,
 		laddr:      addr,
 		opts:       opt,
 		sessionMgr: sesMgr,
@@ -68,7 +68,7 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	cntor.acceptor = aptor
 
 	// 设置为初始状态
-	cntor.stateMgr.SetState(model.C_STATE_INIT)
+	cntor.stateMgr.SetState(state.C_STATE_INIT)
 
 	return cntor
 }
@@ -81,8 +81,8 @@ func (this *Connector) Name() string {
 // 运行 Connector [IComponent 接口]
 func (this *Connector) Run() bool {
 	// 改变状态： 启动中
-	if !this.stateMgr.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
 		return false
 	}
@@ -100,8 +100,8 @@ func (this *Connector) Run() bool {
 	}
 
 	// 改变状态： 工作中
-	if !this.stateMgr.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
+		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -114,8 +114,8 @@ func (this *Connector) Run() bool {
 // 停止 Connector [IComponent 接口]
 func (this *Connector) Stop() bool {
 	// 状态效验
-	if !this.stateMgr.SwapState(model.C_STATE_WORKING, model.C_STATE_STOPING) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_STOPING) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -129,8 +129,8 @@ func (this *Connector) Stop() bool {
 	this.sessionMgr.CloseAllSession()
 
 	// 改变状态：关闭完成
-	if !this.stateMgr.SwapState(model.C_STATE_STOPING, model.C_STATE_STOP) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_STOPING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_STOPING, state.C_STATE_STOP) {
+		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_STOPING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -191,7 +191,7 @@ func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
 	}
 
 	// 创建 session
-	opt := model.NewTSessionOpts()
+	opt := session.NewTSessionOpts()
 	ses := session.NewClientSession(socket, this.sessionMgr, opt)
 
 	// 启动 session
