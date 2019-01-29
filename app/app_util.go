@@ -8,7 +8,6 @@ import (
 
 	"github.com/zpab123/world/config"    // 配置读取工具
 	"github.com/zpab123/world/connector" // connector 组件
-	"github.com/zpab123/world/model"     // 全局 [常量-基础数据类型-接口] 集合
 	"github.com/zpab123/world/network"   // 网络库
 )
 
@@ -120,9 +119,9 @@ func setConnector(app *Application) {
 }
 
 // 获取默认 ConnectorOpt
-func getDefaultConnectorOpt() *model.TConnectorOpt {
+func getDefaultConnectorOpt() *connector.TConnectorOpt {
 	// 创建默认
-	opts := model.NewTConnectorOpt()
+	opts := connector.NewTConnectorOpt()
 
 	return opts
 }

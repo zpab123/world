@@ -4,8 +4,9 @@
 package app
 
 import (
-	"github.com/zpab123/world/model" // 全局模型
-	"github.com/zpab123/zplog"       // log 库
+	"github.com/zpab123/world/connector" // connector 组件
+	"github.com/zpab123/world/model"     // 全局模型
+	"github.com/zpab123/zplog"           // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -16,17 +17,17 @@ import (
 
 // app 组件管理
 type componentManager struct {
-	connectorOpt *model.TConnectorOpt        // connector 组件配置参数
+	connectorOpt *connector.TConnectorOpt    // connector 组件配置参数
 	componentMap map[string]model.IComponent // 名字-> 组件 集合
 }
 
 // 获取 connector 组件参数 [IComponentManager] 接口
-func (this *componentManager) GetConnectorOpt() *model.TConnectorOpt {
+func (this *componentManager) GetConnectorOpt() *connector.TConnectorOpt {
 	return this.connectorOpt
 }
 
 // 设置 connector 组件参数 [IComponentManager] 接口
-func (this *componentManager) SetConnectorOpt(opts *model.TConnectorOpt) {
+func (this *componentManager) SetConnectorOpt(opts *connector.TConnectorOpt) {
 	this.connectorOpt = opts
 }
 
