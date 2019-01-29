@@ -27,21 +27,21 @@ import (
 // 网络连接对象，支持 websocket tcp
 type Connector struct {
 	name       string                  // 组件名字
-	laddr      *model.TLaddr           // 监听地址集合
-	opts       *model.TConnectorOpt    // 配置参数
-	acceptor   model.IAcceptor         // 某种类型的 acceptor 连接器
+	laddr      *network.TLaddr         // 监听地址集合
+	opts       *TConnectorOpt          // 配置参数
+	acceptor   network.IAcceptor       // 某种类型的 acceptor 连接器
 	connNum    syncutil.AtomicUint32   // 当前连接数
 	stateMgr   *state.StateManager     // 状态管理
 	sessionMgr *session.SessionManager // session 管理对象
 }
 
 // 新建1个 Connector 对象
-func NewConnector(addr *model.TLaddr, opt *model.TConnectorOpt) model.IComponent {
+func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	// 地址检查？
 
 	// 参数效验
 	if nil == opt {
-		opt = model.NewTConnectorOpt()
+		opt = NewTConnectorOpt()
 	}
 
 	if nil != opt.Check() {

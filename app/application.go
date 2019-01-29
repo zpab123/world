@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/zpab123/world/model" // 全局模型
-	"github.com/zpab123/world/state" // 状态管理
-	"github.com/zpab123/zplog"       // log 库
+	"github.com/zpab123/world/config" // 配置文件库
+	"github.com/zpab123/world/model"  // 全局模型
+	"github.com/zpab123/world/state"  // 状态管理
+	"github.com/zpab123/zplog"        // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -23,22 +24,22 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	state.StateManager                    // 对象继承： 状态管理
-	componentManager                      // 对象继承： app 组件管理
-	baseInfo           *model.TBaseInfo   // 服务器基础信息
-	serverInfo         *model.TServerInfo // 服务器配置信息
-	appDelegate        model.IAppDelegate // app 代理对象
+	state.StateManager                     // 对象继承： 状态管理
+	componentManager                       // 对象继承： app 组件管理
+	baseInfo           *TBaseInfo          // 服务器基础信息
+	serverInfo         *config.TServerInfo // 服务器配置信息
+	appDelegate        IAppDelegate        // app 代理对象
 }
 
 // 创建1个新的 Application 对象
 //
 // appType=server.json 中配置的类型
-func NewApplication(appType string, appDelegate model.IAppDelegate) *Application {
+func NewApplication(appType string, delegate IAppDelegate) *Application {
 	// 创建对象
 	app := &Application{
-		baseInfo:    &model.TBaseInfo{},
-		serverInfo:  &model.TServerInfo{},
-		appDelegate: appDelegate,
+		baseInfo:    &TBaseInfo{},
+		serverInfo:  &config.TServerInfo{},
+		appDelegate: delegate,
 	}
 
 	// 设置类型

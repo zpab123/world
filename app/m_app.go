@@ -1,7 +1,11 @@
 // /////////////////////////////////////////////////////////////////////////////
-// 模型
+// 常量-接口-types
 
 package app
+
+import (
+	"github.com/zpab123/world/session" // session 库
+)
 
 // /////////////////////////////////////////////////////////////////////////////
 // 常量
@@ -10,3 +14,23 @@ package app
 const (
 	CLIENT_PKT_QUEUE_SIZE = 10000 // 客户端消息队列默认长度
 )
+
+// /////////////////////////////////////////////////////////////////////////////
+// 接口
+
+// App 代理
+type IAppDelegate interface {
+	session.IMsgHandler // 接口继承： 客户端 packet 消息处理
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// TBaseInfo 对象
+
+// app 启动信息
+type TBaseInfo struct {
+	AppType  string    // 服务器类型
+	MainPath string    // main 程序所在路径
+	Env      string    // 运行环境 production= 开发环境 development = 运营环境
+	Name     string    // 服务器名字
+	RunTime  time.Time // 启动时间
+}

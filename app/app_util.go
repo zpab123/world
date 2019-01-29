@@ -7,8 +7,9 @@ import (
 	"flag"
 
 	"github.com/zpab123/world/config"    // 配置读取工具
-	"github.com/zpab123/world/connector" // 网络连接库
+	"github.com/zpab123/world/connector" // connector 组件
 	"github.com/zpab123/world/model"     // 全局 [常量-基础数据类型-接口] 集合
+	"github.com/zpab123/world/network"   // 网络库
 )
 
 // 完成 app 的默认设置
@@ -100,7 +101,7 @@ func setDefaultComponent(app *Application) {
 // 设置 Connector 组件
 func setConnector(app *Application) {
 	// 地址参数
-	laddr := &model.TLaddr{
+	laddr := &network.TLaddr{
 		TcpAddr: app.GetCTcpAddr(),
 		WsAddr:  app.GetCWsAddr(),
 	}
