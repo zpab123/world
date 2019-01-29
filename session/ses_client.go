@@ -121,8 +121,11 @@ func (this *ClientSession) recvLoop() {
 			continue
 		}
 
-		// 处理消息
+		// 转发类消息
 		//handlePacket(pkt)
+
+		// 非转发类消息
+
 	}
 }
 
