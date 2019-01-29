@@ -54,6 +54,12 @@ const (
 // /////////////////////////////////////////////////////////////////////////////
 // 接口
 
+// acceptor 接口
+type IAcceptor interface {
+	Run() bool  // 组件开始运行
+	Stop() bool // 组件停止运行
+}
+
 // tcpSocket 管理
 type ITcpAcceptorManager interface {
 	OnNewTcpConn(conn net.Conn) // 收到1个新的 Tcp 连接对象
@@ -74,12 +80,6 @@ type IMulAcceptorManager interface {
 type IComAcceptorManager interface {
 	OnNewTcpConn(conn net.Conn)         // 收到1个新的 Tcp 连接对象
 	OnNewWsConn(wsconn *websocket.Conn) // 收到1个新的 websocket 连接对象
-}
-
-// acceptor 接口
-type IAcceptor interface {
-	Run() bool  // 组件开始运行
-	Stop() bool // 组件停止运行
 }
 
 // socket 组件

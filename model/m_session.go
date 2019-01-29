@@ -27,6 +27,16 @@ type ISessionManage interface {
 	OnSessionClose(ses ISession) // 某个 session 关闭
 }
 
+//
+type ISessionMessage interface {
+	GetSession() ISession // 获取 session
+}
+
+// session 消息管理
+type ISessionMsgHandler interface {
+	OnNewMessage() // 收到1个新的 message 消息
+}
+
 // /////////////////////////////////////////////////////////////////////////////
 // TSessionOpts 对象
 
