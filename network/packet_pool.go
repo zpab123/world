@@ -5,16 +5,14 @@ package network
 
 import (
 	"sync"
-
-	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
 )
 
 // /////////////////////////////////////////////////////////////////////////////
 // 包初始化 -- 创建 buffer 对象池 和 packet 对象池
 
 const (
-	_CAP_GROW_SHIFT = uint(2)                                          // 二进制数据 位计算变量
-	_MAX_BODY_LEN   = model.C_PACKET_MAX_LEN - model.C_PACKET_HEAD_LEN // body 最大长度
+	_CAP_GROW_SHIFT = uint(2)                              // 二进制数据 位计算变量
+	_MAX_BODY_LEN   = C_PACKET_MAX_LEN - C_PACKET_HEAD_LEN // body 最大长度
 )
 
 var (

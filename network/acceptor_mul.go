@@ -4,7 +4,6 @@
 package network
 
 import (
-	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
 )
 
@@ -16,15 +15,15 @@ import (
 
 // 同时支持 tcp websocket 的对象
 type MulAcceptor struct {
-	*state.StateManager                 // 对象继承： 状态管理
-	name                string          // 连接器名字
-	laddr               *model.TLaddr   // 地址集合
-	tcpAcceptor         model.IAcceptor // tcpAcceptor 对象
-	wsAcceptor          model.IAcceptor // wsAcceptor 对象
+	*state.StateManager              // 对象继承： 状态管理
+	name                string       // 连接器名字
+	laddr               *TLaddr      // 地址集合
+	tcpAcceptor         *TcpAcceptor // tcpAcceptor 对象
+	wsAcceptor          *WsAcceptor  // wsAcceptor 对象
 }
 
 // 创建1个 mulAcceptor 对象
-func NewMulAcceptor(addr *model.TLaddr, mgr model.IMulAcceptorManager) model.IAcceptor {
+func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) IAcceptor {
 	// 创建 StateManager
 	sm := state.NewStateManager()
 
@@ -37,14 +36,14 @@ func NewMulAcceptor(addr *model.TLaddr, mgr model.IMulAcceptorManager) model.IAc
 	// 创建对象
 	mulaptor := &MulAcceptor{
 		StateManager: sm,
-		name:         model.C_ACCEPTOR_NAME_MUL,
+		name:         C_ACCEPTOR_NAME_MUL,
 		laddr:        addr,
 		tcpAcceptor:  tcpaptor,
 		wsAcceptor:   wsaptor,
 	}
 
 	// 设置为初始化状态
-	mulaptor.SetState(model.C_STATE_INIT)
+	mulaptor.SetState(C_STATE_INIT)
 
 	return mulaptor
 }
@@ -52,12 +51,12 @@ func NewMulAcceptor(addr *model.TLaddr, mgr model.IMulAcceptorManager) model.IAc
 // 启动 mulAcceptor [IAcceptor 接口]
 func (this *MulAcceptor) Run() bool {
 	// 状态效验
-	if this.GetState() != model.C_STATE_INIT {
+	if this.GetState() != C_STATE_INIT {
 		return false
 	}
 
 	// 改变状态: 正在启动中
-	this.SetState(model.C_STATE_RUNING)
+	this.SetState(C_STATE_RUNING)
 
 	// 添加启动线程数量
 	this.AddRunGo(2)

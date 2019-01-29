@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"          // 错误集合
-	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
 )
 
@@ -20,7 +19,7 @@ import (
 
 // 常量
 const (
-	_MAX_BODY_LENGTH = model.C_PACKET_MAX_LEN - model.C_PACKET_HEAD_LEN // body 数据最大长度 （ pcket总长度 - 消息头）
+	_MAX_BODY_LENGTH = C_PACKET_MAX_LEN - C_PACKET_HEAD_LEN // body 数据最大长度 （ pcket总长度 - 消息头）
 )
 
 // 变量
@@ -34,7 +33,7 @@ var (
 
 // PacketSocket
 type PacketSocket struct {
-	socket    model.ISocket   // 接口继承： 符合 ISocket 的对象
+	socket    ISocket         // 接口继承： 符合 ISocket 的对象
 	goMutex   sync.Mutex      // 线程互斥锁
 	sendQueue []*Packet       // 发送队列
 	recvedLen uint32          // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
@@ -45,7 +44,7 @@ type PacketSocket struct {
 }
 
 // 创建1个新的 PacketSocket 对象
-func NewPacketSocket(st model.ISocket) *PacketSocket {
+func NewPacketSocket(st ISocket) *PacketSocket {
 	// 创建对象
 	pktSocket := &PacketSocket{
 		socket: st,

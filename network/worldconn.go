@@ -9,7 +9,6 @@ import (
 	"github.com/gogo/protobuf/proto"  // protobuf 库
 	"github.com/zpab123/syncutil"     // 原子变量库
 	"github.com/zpab123/world/config" // 配置文件读取
-	"github.com/zpab123/world/model"  // 全局模型
 	"github.com/zpab123/world/msg"    // world 内部通信消息
 	"github.com/zpab123/zplog"        // 日志库
 )
@@ -20,7 +19,7 @@ import (
 // world 框架内部需要用到的一些常用网络消息
 type WorldConnection struct {
 	state         syncutil.AtomicUint32 // conn 状态
-	opts          *model.TWorldConnOpts // 配置参数
+	opts          *TWorldConnOpts       // 配置参数
 	packetSocket  *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
 	timeOut       int64                 // 心跳超时时间，单位：秒
 	clientTimeOut int64                 // 客户端心跳超时时间点，精确到秒
@@ -28,10 +27,10 @@ type WorldConnection struct {
 }
 
 // 新建1个 WorldConnection 对象
-func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldConnection {
+func NewWorldConnection(socket ISocket, opt *TWorldConnOpts) *WorldConnection {
 	// opt 效验
 	if nil == opt {
-		opt = model.NewTWorldConnOpts()
+		opt = NewTWorldConnOpts()
 	}
 
 	// 创建 packetSocket
@@ -40,7 +39,7 @@ func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldC
 
 	// 创建参数
 	if nil != opt {
-		opt = model.NewTWorldConnOpts()
+		opt = NewTWorldConnOpts()
 	}
 
 	// 创建对象
@@ -51,7 +50,7 @@ func NewWorldConnection(socket model.ISocket, opt *model.TWorldConnOpts) *WorldC
 	}
 
 	// 设置为初始化状态
-	wc.state.Store(model.C_WCONN_STATE_INIT)
+	wc.state.Store(C_WCONN_STATE_INIT)
 
 	return wc
 }
@@ -124,20 +123,20 @@ func (this *WorldConnection) CheckServerHeartbeat() {
 func (this *WorldConnection) handlePacket(pkt *Packet) *Packet {
 	// 根据类型处理数据
 	switch pkt.GetId() {
-	case model.C_PACKET_ID_INVALID: // 无效类型
+	case C_PACKET_ID_INVALID: // 无效类型
 		zplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection ")
 		this.Close()
 
 		return nil
-	case model.C_PACKET_ID_HANDSHAKE: // 客户端握手请求
+	case C_PACKET_ID_HANDSHAKE: // 客户端握手请求
 		this.handleHandshake(pkt.GetBody())
 
 		return nil
-	case model.C_PACKET_ID_HANDSHAKE_ACK: // 客户端握手 ACK
+	case C_PACKET_ID_HANDSHAKE_ACK: // 客户端握手 ACK
 		this.handleHandshakeAck()
 
 		return nil
-	case model.C_PACKET_ID_HEARTBEAT: // 心跳数据
+	case C_PACKET_ID_HEARTBEAT: // 心跳数据
 
 		return nil
 	default:
@@ -148,7 +147,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) *Packet {
 //  处理握手消息
 func (this *WorldConnection) handleHandshake(body []byte) {
 	// 状态效验
-	if this.state.Load() != model.C_WCONN_STATE_INIT {
+	if this.state.Load() != C_WCONN_STATE_INIT {
 		return
 	}
 
@@ -196,30 +195,30 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 //  返回握手消息
 func (this *WorldConnection) handshakeResponse(sucess bool, body []byte) {
 	// 状态效验
-	if this.state.Load() != model.C_WCONN_STATE_INIT {
+	if this.state.Load() != C_WCONN_STATE_INIT {
 		return
 	}
 
 	// 返回数据
-	pkt := NewPacket(model.C_PACKET_ID_HANDSHAKE)
+	pkt := NewPacket(C_PACKET_ID_HANDSHAKE)
 	pkt.AppendBytes(body)
 	this.SendPacketRelease(pkt)
 
 	// 改变状态
 	if sucess {
-		this.state.Store(model.C_WCONN_STATE_WAIT_ACK)
+		this.state.Store(C_WCONN_STATE_WAIT_ACK)
 	}
 }
 
 //  处理握手ACK
 func (this *WorldConnection) handleHandshakeAck() {
 	// 状态效验
-	if this.state.Load() != model.C_WCONN_STATE_WAIT_ACK {
+	if this.state.Load() != C_WCONN_STATE_WAIT_ACK {
 		return
 	}
 
 	// 改变为工作状态
-	this.state.Store(model.C_WCONN_STATE_WORKING)
+	this.state.Store(C_WCONN_STATE_WORKING)
 
 	// 发送心跳数据
 	this.sendHeartbeat()
@@ -228,11 +227,11 @@ func (this *WorldConnection) handleHandshakeAck() {
 //  发送心跳数据
 func (this *WorldConnection) sendHeartbeat() {
 	// 状态效验
-	if this.state.Load() != model.C_WCONN_STATE_WORKING {
+	if this.state.Load() != C_WCONN_STATE_WORKING {
 		return
 	}
 
 	// 发送心跳数据
-	pkt := NewPacket(model.C_PACKET_ID_HEARTBEAT)
+	pkt := NewPacket(C_PACKET_ID_HEARTBEAT)
 	this.SendPacketRelease(pkt)
 }

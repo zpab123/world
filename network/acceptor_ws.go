@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zplog"       // log 日志库
 	"golang.org/x/net/websocket"     // websocket 库
@@ -18,23 +17,23 @@ import (
 
 // websocket 接收器
 type WsAcceptor struct {
-	name         string                   // 连接器名字
-	laddr        *model.TLaddr            // 地址集合
-	acceptorMgr  model.IWsAcceptorManager // websocket 连接管理
-	listener     net.Listener             // 侦听器： 用于http服务器
-	httpServer   *http.Server             // http 服务器
-	wsListenAddr string                   // 侦听成功的 websocket 地址
-	certFile     string                   // TLS加密文件
-	keyFile      string                   // TLS解密key
+	name         string         // 连接器名字
+	laddr        *TLaddr        // 地址集合
+	connMgr      IWsConnManager // websocket 连接管理
+	listener     net.Listener   // 侦听器： 用于http服务器
+	httpServer   *http.Server   // http 服务器
+	wsListenAddr string         // 侦听成功的 websocket 地址
+	certFile     string         // TLS加密文件
+	keyFile      string         // TLS解密key
 }
 
 // 创建1个新的 wsAcceptor 对象
-func NewWsAcceptor(addr *model.TLaddr, mgr model.IWsAcceptorManager) model.IAcceptor {
+func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) IAcceptor {
 	// 创建接收器
 	aptor := &WsAcceptor{
-		name:        model.C_ACCEPTOR_NAME_WEBSOCKET,
-		laddr:       addr,
-		acceptorMgr: mgr,
+		name:    C_ACCEPTOR_NAME_WEBSOCKET,
+		laddr:   addr,
+		connMgr: mgr,
 	}
 
 	return aptor
@@ -44,12 +43,12 @@ func NewWsAcceptor(addr *model.TLaddr, mgr model.IWsAcceptorManager) model.IAcce
 func (this *WsAcceptor) Run() bool {
 	// 变量定义
 	var (
-		addrObj *model.TAddress // 地址变量
-		wsPort  int             // 监听成功的 websocket 端口
+		addrObj *TAddress // 地址变量
+		wsPort  int       // 监听成功的 websocket 端口
 	)
 
 	// 查找1个 可用端口
-	f := func(addr *model.TAddress, port int) (interface{}, error) {
+	f := func(addr *TAddress, port int) (interface{}, error) {
 		addrObj = addr
 		wsPort = port
 		return net.Listen("tcp", addr.HostPortString(port))
@@ -84,8 +83,8 @@ func (this *WsAcceptor) liten() {
 	// 创建 http 服务器
 
 	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
-	if nil != this.acceptorMgr {
-		http.Handle("/ws", websocket.Handler(this.acceptorMgr.OnNewWsConn)) // 有新连接的时候，会调用 wsHandler 处理新连接
+	if nil != this.connMgr {
+		http.Handle("/ws", websocket.Handler(this.connMgr.OnNewWsConn)) // 有新连接的时候，会调用 wsHandler 处理新连接
 	}
 
 	var err error // 错误信息
@@ -110,7 +109,7 @@ func (this *WsAcceptor) accept() {
 	// 创建 mux
 	mux := http.NewServeMux()
 	// 路由函数
-	handler := websocket.Handler(this.acceptorMgr.OnNewWsConn)
+	handler := websocket.Handler(this.connMgr.OnNewWsConn)
 	//mux.HandleFunc("/ws", handler)
 	mux.Handle("/ws", handler)
 

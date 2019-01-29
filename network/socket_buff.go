@@ -5,8 +5,6 @@ package network
 
 import (
 	"bufio"
-
-	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -14,16 +12,16 @@ import (
 
 // BufferSocket
 type BufferSocket struct {
-	model.ISocket               // 接口继承： 符合 ISocket 的对象
-	bufReader     *bufio.Reader // 读取类 buffer
-	bufWriter     *bufio.Writer // 写入类 buffer
+	ISocket                 // 接口继承： 符合 ISocket 的对象
+	bufReader *bufio.Reader // 读取类 buffer
+	bufWriter *bufio.Writer // 写入类 buffer
 }
 
 // 创建1个新的 BufferSocket 对象
-func NewBufferSocket(socket model.ISocket, opts *model.TBufferSocketOpts) *BufferSocket {
+func NewBufferSocket(socket ISocket, opts *TBufferSocketOpts) *BufferSocket {
 	// 参数效验
 	if nil == opts {
-		opts = model.NewTBufferSocketOpts()
+		opts = NewTBufferSocketOpts()
 	}
 
 	// 创建对象

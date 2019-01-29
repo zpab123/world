@@ -7,8 +7,7 @@ import (
 	"encoding/binary"
 	"unsafe"
 
-	"github.com/zpab123/world/model" // 全局 [常量-基础数据类型-接口] 集合
-	"github.com/zpab123/zplog"       // log 工具
+	"github.com/zpab123/zplog" // log 工具
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -16,10 +15,10 @@ import (
 
 // 常量 -- packet 数据大小定义
 const (
-	_HEAD_LEN        = model.C_PACKET_HEAD_LEN // 消息头长度
-	_LEN_POS         = 2                       // Packet 的 buffer 中，记录长度信息开始的位置： 用于 body 长度计算
-	_MIN_PAYLOAD_LEN = 128                     // 有效载荷的最小长度（对象池使用）
-	_BODY_LEN_MASK   = 0x7FFFFFFF              // 等于 1111111111111111111111111111111 (32个1)
+	_HEAD_LEN        = C_PACKET_HEAD_LEN // 消息头长度
+	_LEN_POS         = 2                 // Packet 的 buffer 中，记录长度信息开始的位置： 用于 body 长度计算
+	_MIN_PAYLOAD_LEN = 128               // 有效载荷的最小长度（对象池使用）
+	_BODY_LEN_MASK   = 0x7FFFFFFF        // 等于 1111111111111111111111111111111 (32个1)
 )
 
 var (

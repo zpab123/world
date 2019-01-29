@@ -7,7 +7,6 @@ import (
 	"net"
 	"strings"
 
-	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zplog"       //日志库
 )
@@ -20,19 +19,19 @@ import (
 
 // tcp 接收器
 type TcpAcceptor struct {
-	name        string                    // 连接器名字
-	laddr       *model.TLaddr             // 地址集合
-	acceptorMgr model.ITcpAcceptorManager // 符合 ITcpAcceptorManager 连接管理接口的对象
-	listener    net.Listener              // 侦听器
+	name     string          // 连接器名字
+	laddr    *TLaddr         // 地址集合
+	connMgr  ITcpConnManager // 符合 ITcpAcceptorManager 连接管理接口的对象
+	listener net.Listener    // 侦听器
 }
 
 // 创建1个新的 TcpAcceptor 对象
-func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpAcceptorManager) model.IAcceptor {
+func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) IAcceptor {
 	// 创建对象
 	aptor := &TcpAcceptor{
-		name:        model.C_ACCEPTOR_NAME_TCP,
-		laddr:       addr,
-		acceptorMgr: mgr,
+		name:    C_ACCEPTOR_NAME_TCP,
+		laddr:   addr,
+		connMgr: mgr,
 	}
 
 	return aptor
@@ -41,7 +40,7 @@ func NewTcpAcceptor(addr *model.TLaddr, mgr model.ITcpAcceptorManager) model.IAc
 // 异步侦听新连接 [IAcceptor 接口]
 func (this *TcpAcceptor) Run() bool {
 	// 创建侦听器
-	ln, err := utils.DetectPort(this.laddr.TcpAddr, func(a *model.TAddress, port int) (interface{}, error) {
+	ln, err := utils.DetectPort(this.laddr.TcpAddr, func(a *TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", a.HostPortString(port))
 	})
 
@@ -110,6 +109,6 @@ func (this *TcpAcceptor) accept() {
 		}
 
 		// 处理连接进入独立线程, 防止 accept 无法响应
-		go this.acceptorMgr.OnNewTcpConn(conn)
+		go this.connMgr.OnNewTcpConn(conn)
 	}
 }
