@@ -20,14 +20,14 @@ import (
 // 面向客户端的 session 对象
 type ClientSession struct {
 	stateMgr    *state.StateManager      // 对象继承： 状态管理
-	opts        *model.TSessionOpts      // session 配置参数
 	worldConn   *network.WorldConnection // world 引擎连接对象
 	sesssionMgr model.ISessionManage     // sessiong 管理对象
 	sessionId   syncutil.AtomicInt64     // session ID
+	msgHandler  IMsgHandler              // 消息处理器
 }
 
 // 创建1个新的 ClientSession 对象
-func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model.TSessionOpts) *ClientSession {
+func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *TSessionOpts) *ClientSession {
 	// 创建 StateManager
 	st := state.NewStateManager()
 
@@ -40,9 +40,9 @@ func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *model
 	// 创建对象
 	cs := &ClientSession{
 		stateMgr:    st,
-		opts:        opt,
 		worldConn:   wc,
 		sesssionMgr: mgr,
+		msgHandler:  opt.MsgHandler,
 	}
 
 	// 修改为初始化状态
@@ -121,11 +121,16 @@ func (this *ClientSession) recvLoop() {
 			continue
 		}
 
-		// 转发类消息
-		//handlePacket(pkt)
+		// 创建消息：后续使用对象池？
+		msg := &Message{
+			session: this,
+			packet:  pkt,
+		}
 
-		// 非转发类消息
-
+		// 消息处理
+		if this.msgHandler != nil {
+			this.msgHandler.OnNewMessage(msg)
+		}
 	}
 }
 
