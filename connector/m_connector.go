@@ -6,6 +6,7 @@ package connector
 import (
 	"time"
 
+	"github.com/zpab123/world/network" // 网络模型
 	"github.com/zpab123/world/session" // session 库
 )
 
@@ -78,9 +79,10 @@ func NewTConnectorOpt(handler session.IMsgHandler) *TConnectorOpt {
 
 	// 创建对象
 	opts := &TConnectorOpt{
-		AcceptorName: C_ACCEPTOR_NAME_COM,
+		AcceptorName: network.C_ACCEPTOR_NAME_COM,
 		MaxConn:      C_CNTOR_MAX_CONN,
 		TcpConnOpts:  tcpOpts,
+		SessiobOpts:  sesOpts,
 	}
 
 	return opts

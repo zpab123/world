@@ -4,7 +4,6 @@
 package app
 
 import (
-	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/session" // session库
 )
 

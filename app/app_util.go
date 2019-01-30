@@ -9,7 +9,6 @@ import (
 	"github.com/zpab123/world/config"    // 配置读取工具
 	"github.com/zpab123/world/connector" // connector 组件
 	"github.com/zpab123/world/network"   // 网络库
-	"github.com/zpab123/world/session"   // session 组件
 )
 
 // 完成 app 的默认设置
@@ -117,7 +116,7 @@ func setConnector(app *Application) {
 	contor := connector.NewConnector(laddr, opts)
 
 	// 注册组件
-	app.RegisterComponent(contor)
+	app.componentMgr.RegisterComponent(contor)
 }
 
 // 获取默认 ConnectorOpt

@@ -41,7 +41,7 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 
 	// 参数效验
 	if nil == opt {
-		opt = NewTConnectorOpt()
+		opt = NewTConnectorOpt(nil)
 	}
 
 	if nil != opt.Check() {

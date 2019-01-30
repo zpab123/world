@@ -17,8 +17,8 @@ import (
 type ISession interface {
 	Run()
 	Close()
-	GetId()
-	SetId()
+	GetId() int64
+	SetId(v int64)
 }
 
 // session 管理
@@ -44,7 +44,7 @@ type TSessionOpts struct {
 // 创建1个新的 TSessionOpts
 func NewTSessionOpts(handler IMsgHandler) *TSessionOpts {
 	// 创建 WorldConnection
-	wc := NewTWorldConnOpts()
+	wc := network.NewTWorldConnOpts()
 
 	// 创建 TSessionOpts
 	opts := &TSessionOpts{
