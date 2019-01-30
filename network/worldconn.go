@@ -119,12 +119,12 @@ func (this *WorldConnection) CheckServerHeartbeat() {
 	}
 }
 
-// 回应握手消息
+// 处理 Packet 消息
 func (this *WorldConnection) handlePacket(pkt *Packet) *Packet {
 	// 根据类型处理数据
 	switch pkt.GetId() {
 	case C_PACKET_ID_INVALID: // 无效类型
-		zplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection ")
+		zplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection。")
 		this.Close()
 
 		return nil

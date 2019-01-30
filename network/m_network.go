@@ -53,6 +53,12 @@ const (
 // /////////////////////////////////////////////////////////////////////////////
 // 接口
 
+// socket 组件
+type ISocket interface {
+	net.Conn // 接口继承： 符合 Conn 的对象
+	Flush() error
+}
+
 // acceptor 接口
 type IAcceptor interface {
 	Run() bool  // 组件开始运行
@@ -79,12 +85,6 @@ type IMulConnManager interface {
 type IComConnManager interface {
 	OnNewTcpConn(conn net.Conn)         // 收到1个新的 Tcp 连接对象
 	OnNewWsConn(wsconn *websocket.Conn) // 收到1个新的 websocket 连接对象
-}
-
-// socket 组件
-type ISocket interface {
-	net.Conn // 接口继承： 符合 Conn 的对象
-	Flush() error
 }
 
 // /////////////////////////////////////////////////////////////////////////////
