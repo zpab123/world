@@ -16,25 +16,36 @@ import (
 // ComponentManager 对象
 
 // app 组件管理
-type componentManager struct {
+type ComponentManager struct {
 	connectorOpt *connector.TConnectorOpt    // connector 组件配置参数
 	componentMap map[string]model.IComponent // 名字-> 组件 集合
 }
 
+// 新建1个 ComponentManager
+func NewComponentManager() *ComponentManager {
+	// 组件
+	cptMgr := &ComponentManager{
+		componentMap: map[string]model.IComponent{},
+	}
+
+	// 返回
+	return cptMgr
+}
+
 // 获取 connector 组件参数 [IComponentManager] 接口
-func (this *componentManager) GetConnectorOpt() *connector.TConnectorOpt {
+func (this *ComponentManager) GetConnectorOpt() *connector.TConnectorOpt {
 	return this.connectorOpt
 }
 
 // 设置 connector 组件参数 [IComponentManager] 接口
-func (this *componentManager) SetConnectorOpt(opts *connector.TConnectorOpt) {
+func (this *ComponentManager) SetConnectorOpt(opts *connector.TConnectorOpt) {
 	this.connectorOpt = opts
 }
 
 // 注册1个 Component 组件
 //
 // com=符合 IComponent 接口的对象
-func (this *componentManager) RegisterComponent(com model.IComponent) {
+func (this *ComponentManager) RegisterComponent(com model.IComponent) {
 	// 获取名字
 	name := com.Name()
 
@@ -45,10 +56,4 @@ func (this *componentManager) RegisterComponent(com model.IComponent) {
 
 	// 保存组件
 	this.componentMap[name] = com
-}
-
-// 初始化 componentManager
-func (this *componentManager) componentMgrInit() {
-	// 创建 map
-	this.componentMap = map[string]model.IComponent{}
 }

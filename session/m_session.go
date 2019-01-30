@@ -42,12 +42,13 @@ type TSessionOpts struct {
 }
 
 // 创建1个新的 TSessionOpts
-func NewTSessionOpts() *TSessionOpts {
+func NewTSessionOpts(handler IMsgHandler) *TSessionOpts {
 	// 创建 WorldConnection
 	wc := NewTWorldConnOpts()
 
 	// 创建 TSessionOpts
 	opts := &TSessionOpts{
+		MsgHandler:    handler,
 		WorldConnOpts: wc,
 	}
 

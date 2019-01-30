@@ -23,36 +23,44 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
-	state.StateManager                     // 对象继承： 状态管理
-	componentManager                       // 对象继承： app 组件管理
-	baseInfo           *TBaseInfo          // 服务器基础信息
-	serverInfo         *config.TServerInfo // 服务器配置信息
-	appDelegate        IAppDelegate        // app 代理对象
+	stateMgr     *state.StateManager // 状态管理
+	componentMgr *ComponentManager   // app 组件管理
+	baseInfo     *TBaseInfo          // 服务器基础信息
+	serverInfo   *config.TServerInfo // 服务器配置信息
+	appDelegate  IAppDelegate        // app 代理对象
 }
 
 // 创建1个新的 Application 对象
 //
 // appType=server.json 中配置的类型
 func NewApplication(appType string, delegate IAppDelegate) *Application {
+	// 创建状态管理
+	st := state.NewStateManager()
+
+	// 创建组件管理
+	cptMgr := NewComponentManager()
+
 	// 创建对象
 	app := &Application{
-		baseInfo:    &TBaseInfo{},
-		serverInfo:  &config.TServerInfo{},
-		appDelegate: delegate,
+		stateMgr:     st,
+		componentMgr: cptMgr,
+		baseInfo:     &TBaseInfo{},
+		serverInfo:   &config.TServerInfo{},
+		appDelegate:  delegate,
 	}
 
 	// 设置类型
 	app.baseInfo.AppType = appType
 
 	// 设置为无效状态
-	app.SetState(state.C_STATE_INVALID)
+	app.stateMgr.SetState(state.C_STATE_INVALID)
 
 	return app
 }
 
 // 初始化 Application
 func (this *Application) Init() bool {
-	// 路径信息
+	// 获取主程序路径
 	dir, err := getMainPath()
 	if err != nil {
 		zplog.Error("app Init 失败。读取根目录失败")
@@ -61,14 +69,11 @@ func (this *Application) Init() bool {
 	}
 	this.baseInfo.MainPath = dir
 
-	// 组件管理初始化
-	this.componentMgrInit()
-
 	// 默认设置
 	defaultConfiguration(this)
 
 	// 改变为初始化状态
-	if !this.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
+	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
 		zplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.GetState())
 
 		return false
@@ -88,7 +93,7 @@ func (this *Application) Run() {
 	this.baseInfo.RunTime = time.Now()
 
 	// 改变为启动中
-	if !this.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
+	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
 		zplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.GetState())
 
 		return
@@ -100,12 +105,12 @@ func (this *Application) Run() {
 	setDefaultComponent(this)
 
 	// 启动所有组件
-	for _, cpt := range this.componentMap {
+	for _, cpt := range this.componentMgr.componentMap {
 		go cpt.Run()
 	}
 
 	// 改变为工作中
-	if !this.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
+	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
 		zplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.GetState())
 
 		return
@@ -119,10 +124,10 @@ func (this *Application) Run() {
 	}
 }
 
-// 停止 this
+// 停止 app
 func (this *Application) Stop() error {
 	// 停止所有组件
-	for _, cpt := range this.componentMap {
+	for _, cpt := range this.componentMgr.componentMap {
 		cpt.Stop()
 	}
 

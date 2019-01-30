@@ -9,6 +9,7 @@ import (
 	"github.com/zpab123/world/config"    // 配置读取工具
 	"github.com/zpab123/world/connector" // connector 组件
 	"github.com/zpab123/world/network"   // 网络库
+	"github.com/zpab123/world/session"   // session 组件
 )
 
 // 完成 app 的默认设置
@@ -71,6 +72,7 @@ func getServerInfo(app *Application) {
 	for _, info := range list {
 		if info.Name == name {
 			app.serverInfo = info
+			break
 		}
 	}
 }
@@ -106,9 +108,9 @@ func setConnector(app *Application) {
 	}
 
 	// connector 参数
-	opts := app.GetConnectorOpt()
+	opts := app.componentMgr.GetConnectorOpt()
 	if nil == opts {
-		opts = getDefaultConnectorOpt()
+		opts = getDefaultConnectorOpt(app)
 	}
 
 	// 创建 Connector
@@ -119,9 +121,9 @@ func setConnector(app *Application) {
 }
 
 // 获取默认 ConnectorOpt
-func getDefaultConnectorOpt() *connector.TConnectorOpt {
+func getDefaultConnectorOpt(app *Application) *connector.TConnectorOpt {
 	// 创建默认
-	opts := connector.NewTConnectorOpt()
+	opts := connector.NewTConnectorOpt(app.appDelegate)
 
 	return opts
 }
