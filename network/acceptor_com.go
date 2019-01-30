@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zplog"       // 日志库
@@ -48,7 +49,7 @@ func NewComAcceptor(addr *TLaddr, mgr IComConnManager) IAcceptor {
 	}
 
 	// 设置为初始化状态
-	comaptor.stateMgr.SetState(C_STATE_INIT)
+	comaptor.stateMgr.SetState(state.C_STATE_INIT)
 
 	return comaptor
 }
@@ -56,8 +57,8 @@ func NewComAcceptor(addr *TLaddr, mgr IComConnManager) IAcceptor {
 // 启动 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Run() bool {
 	// 改变状态: 正在启动中
-	if !this.stateMgr.SwapState(C_STATE_INIT, C_STATE_RUNING) {
-		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", C_STATE_INIT, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
+		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
 		return false
 	}
@@ -73,8 +74,8 @@ func (this *ComAcceptor) Run() bool {
 	}
 
 	// 改变状态: 工作中
-	if !this.stateMgr.SwapState(C_STATE_RUNING, C_STATE_WORKING) {
-		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", C_STATE_RUNING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
+		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -85,8 +86,8 @@ func (this *ComAcceptor) Run() bool {
 // 停止 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Stop() bool {
 	// 改变状态: 关闭中
-	if !this.stateMgr.SwapState(C_STATE_WORKING, C_STATE_STOPING) {
-		zplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", C_STATE_WORKING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_STOPING) {
+		zplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -98,8 +99,8 @@ func (this *ComAcceptor) Stop() bool {
 	this.httpServer.Close()
 
 	// 改变状态: 关闭完成
-	if !this.stateMgr.SwapState(C_STATE_STOPING, C_STATE_STOP) {
-		zplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", C_STATE_STOPING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STATE_STOPING, state.C_STATE_STOP) {
+		zplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", state.C_STATE_STOPING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -136,7 +137,7 @@ func (this *ComAcceptor) GetTcpAddr() string {
 // 启动 tcp 侦听
 func (this *ComAcceptor) runTcpListener() bool {
 	// 创建侦听器
-	f := func(addr *TAddress, port int) (interface{}, error) {
+	f := func(addr *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
 	ln, err := utils.DetectPort(this.laddr.TcpAddr, f)
@@ -187,12 +188,12 @@ func (this *ComAcceptor) acceptTcpConn() {
 func (this *ComAcceptor) runWsListener() bool {
 	// 变量定义
 	var (
-		addrObj *TAddress // 地址变量
-		wsPort  int       // 监听成功的 websocket 端口
+		addrObj *model.TAddress // 地址变量
+		wsPort  int             // 监听成功的 websocket 端口
 	)
 
 	// 查找1个 可用端口
-	f := func(addr *TAddress, port int) (interface{}, error) {
+	f := func(addr *model.TAddress, port int) (interface{}, error) {
 		addrObj = addr
 		wsPort = port
 
@@ -270,5 +271,5 @@ func (this *ComAcceptor) acceptWebsocket() {
 
 // 是否需要停止
 func (this *ComAcceptor) needStop() bool {
-	return this.stateMgr.GetState() == C_STATE_STOPING
+	return this.stateMgr.GetState() == state.C_STATE_STOPING
 }

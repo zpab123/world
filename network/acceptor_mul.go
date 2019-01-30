@@ -43,7 +43,7 @@ func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) IAcceptor {
 	}
 
 	// 设置为初始化状态
-	mulaptor.SetState(C_STATE_INIT)
+	mulaptor.SetState(state.C_STATE_INIT)
 
 	return mulaptor
 }
@@ -51,12 +51,12 @@ func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) IAcceptor {
 // 启动 mulAcceptor [IAcceptor 接口]
 func (this *MulAcceptor) Run() bool {
 	// 状态效验
-	if this.GetState() != C_STATE_INIT {
+	if this.GetState() != state.C_STATE_INIT {
 		return false
 	}
 
 	// 改变状态: 正在启动中
-	this.SetState(C_STATE_RUNING)
+	this.SetState(state.C_STATE_RUNING)
 
 	// 添加启动线程数量
 	this.AddRunGo(2)

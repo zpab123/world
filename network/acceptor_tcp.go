@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zplog"       //日志库
 )
@@ -40,7 +41,7 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) IAcceptor {
 // 异步侦听新连接 [IAcceptor 接口]
 func (this *TcpAcceptor) Run() bool {
 	// 创建侦听器
-	ln, err := utils.DetectPort(this.laddr.TcpAddr, func(a *TAddress, port int) (interface{}, error) {
+	ln, err := utils.DetectPort(this.laddr.TcpAddr, func(a *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", a.HostPortString(port))
 	})
 

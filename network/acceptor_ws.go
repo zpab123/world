@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zplog"       // log 日志库
 	"golang.org/x/net/websocket"     // websocket 库
@@ -43,12 +44,12 @@ func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) IAcceptor {
 func (this *WsAcceptor) Run() bool {
 	// 变量定义
 	var (
-		addrObj *TAddress // 地址变量
-		wsPort  int       // 监听成功的 websocket 端口
+		addrObj *model.TAddress // 地址变量
+		wsPort  int             // 监听成功的 websocket 端口
 	)
 
 	// 查找1个 可用端口
-	f := func(addr *TAddress, port int) (interface{}, error) {
+	f := func(addr *model.TAddress, port int) (interface{}, error) {
 		addrObj = addr
 		wsPort = port
 		return net.Listen("tcp", addr.HostPortString(port))
