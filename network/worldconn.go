@@ -10,6 +10,7 @@ import (
 	"github.com/zpab123/syncutil"     // 原子变量库
 	"github.com/zpab123/world/config" // 配置文件读取
 	"github.com/zpab123/world/msg"    // world 内部通信消息
+	"github.com/zpab123/world/state"  // 状态管理
 	"github.com/zpab123/zplog"        // 日志库
 )
 
@@ -18,44 +19,45 @@ import (
 
 // world 框架内部需要用到的一些常用网络消息
 type WorldConnection struct {
-	state         syncutil.AtomicUint32 // conn 状态
-	opts          *TWorldConnOpts       // 配置参数
-	packetSocket  *PacketSocket         // 接口继承： 符合 IPacketSocket 的对象
-	timeOut       int64                 // 心跳超时时间，单位：秒
-	clientTimeOut int64                 // 客户端心跳超时时间点，精确到秒
-	serverTimeOut int64                 // 服务器心跳超时时间点，精确到秒
+	stateMgr      *state.StateManager // 状态管理
+	heartbeat     int64               // 心跳间隔，单位：秒。0=不设置心跳
+	opts          *TWorldConnOpts     // 配置参数
+	packetSocket  *PacketSocket       // 接口继承： 符合 IPacketSocket 的对象
+	timeOut       int64               // 心跳超时时间，单位：秒
+	clientTimeOut int64               // 客户端心跳超时时间点，精确到秒
+	serverTimeOut int64               // 服务器心跳超时时间点，精确到秒
 }
 
 // 新建1个 WorldConnection 对象
 func NewWorldConnection(socket ISocket, opt *TWorldConnOpts) *WorldConnection {
-	// opt 效验
+	// 参数效验
 	if nil == opt {
 		opt = NewTWorldConnOpts()
 	}
+
+	// 创建状态管理
+	st := state.NewStateManager()
 
 	// 创建 packetSocket
 	bufSocket := NewBufferSocket(socket, opt.BuffSocketOpts)
 	pktSocket := NewPacketSocket(bufSocket)
 
-	// 创建参数
-	if nil != opt {
-		opt = NewTWorldConnOpts()
-	}
-
 	// 创建对象
 	wc := &WorldConnection{
+		stateMgr:     st,
 		packetSocket: pktSocket,
+		heartbeat:    opt.Heartbeat,
 		opts:         opt,
 		timeOut:      opt.Heartbeat * 2,
 	}
 
 	// 设置为初始化状态
-	wc.state.Store(C_WCONN_STATE_INIT)
+	wc.stateMgr.SetState(C_WCONN_STATE_INIT)
 
 	return wc
 }
 
-// 接收1个 msg 消息
+// 接收1个 Packet 消息
 func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	// 接收 packet
 	pkt, err := this.packetSocket.RecvPacket()
@@ -68,8 +70,12 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 		this.clientTimeOut = time.Now().Unix() + this.timeOut
 	}
 
-	// 处理 packet
-	pkt = this.handlePacket(pkt)
+	// 内部 packet
+	if pkt.pktId <= C_PACKET_ID_WORLD {
+		this.handlePacket(pkt)
+
+		return nil, nil
+	}
 
 	return pkt, nil
 }
@@ -120,27 +126,27 @@ func (this *WorldConnection) CheckServerHeartbeat() {
 }
 
 // 处理 Packet 消息
-func (this *WorldConnection) handlePacket(pkt *Packet) *Packet {
+func (this *WorldConnection) handlePacket(pkt *Packet) {
 	// 根据类型处理数据
 	switch pkt.GetId() {
 	case C_PACKET_ID_INVALID: // 无效类型
 		zplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection。")
 		this.Close()
 
-		return nil
+		break
 	case C_PACKET_ID_HANDSHAKE: // 客户端握手请求
 		this.handleHandshake(pkt.GetBody())
 
-		return nil
+		break
 	case C_PACKET_ID_HANDSHAKE_ACK: // 客户端握手 ACK
 		this.handleHandshakeAck()
 
-		return nil
+		break
 	case C_PACKET_ID_HEARTBEAT: // 心跳数据
 
-		return nil
+		break
 	default:
-		return nil
+		break
 	}
 }
 

@@ -147,9 +147,8 @@ func (this *PacketSocket) Flush() (err error) {
 		return
 	}
 
-	// 交换数据, 并把原来的数据置空
-	packets := make([]*Packet, 0, len(this.sendQueue))
-	packets, this.sendQueue = this.sendQueue, packets // 交换值
+	packets := make([]*Packet, 0, len(this.sendQueue)) // 复制准备
+	packets, this.sendQueue = this.sendQueue, packets  // 交换数据, 并把原来的数据置空
 	this.goMutex.Unlock()
 
 	// 刷新数据

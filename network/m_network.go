@@ -36,6 +36,7 @@ const (
 	C_PACKET_HEAD_LEN                = 6                // 消息头大小:字节 type(2字节) + length(4字节)
 	C_PACKET_MAX_LEN                 = 25 * 1024 * 1024 // 最大单个 packet 数据，= head + body = 25M
 	C_PACKET_DATA_TCP_TLV            = "tcp.tlv"        // type-length-value 形式的 packet 数据
+	C_PACKET_ID_WORLD         uint16 = 10               // socket 内部处理的消息范围 0-C_PACKET_ID_WORLD
 	C_PACKET_ID_INVALID       uint16 = iota             // 无效的消息类型
 	C_PACKET_ID_HANDSHAKE                               // 握手消息
 	C_PACKET_ID_HANDSHAKE_ACK                           // 握手 ACK
@@ -44,10 +45,10 @@ const (
 
 // WorldConnection 状态
 const (
-	C_WCONN_STATE_INIT     = iota // 初始化状态
-	C_WCONN_STATE_WAIT_ACK        // 等待客户端握手ACK
-	C_WCONN_STATE_WORKING         // 工作中
-	C_WCONN_STATE_CLOSED          // 关闭状态
+	C_WCONN_STATE_INIT     uint32 = iota // 初始化状态
+	C_WCONN_STATE_WAIT_ACK               // 等待客户端握手ACK
+	C_WCONN_STATE_WORKING                // 工作中
+	C_WCONN_STATE_CLOSED                 // 关闭状态
 )
 
 // /////////////////////////////////////////////////////////////////////////////
