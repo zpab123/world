@@ -1,5 +1,5 @@
 // /////////////////////////////////////////////////////////////////////////////
-// 面向客户端的 session 组件
+// 面向前端的 session 组件
 
 package session
 
@@ -15,10 +15,10 @@ import (
 // 包初始化
 
 // /////////////////////////////////////////////////////////////////////////////
-// ClientSession 对象
+// FrontendSession 对象
 
-// 面向客户端的 session 对象
-type ClientSession struct {
+// 面向前端的 session 对象
+type FrontendSession struct {
 	stateMgr    *state.StateManager      // 对象继承： 状态管理
 	worldConn   *network.WorldConnection // world 引擎连接对象
 	sesssionMgr model.ISessionManage     // sessiong 管理对象
@@ -26,8 +26,8 @@ type ClientSession struct {
 	msgHandler  IMsgHandler              // 消息处理器
 }
 
-// 创建1个新的 ClientSession 对象
-func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *TSessionOpts) *ClientSession {
+// 创建1个新的 FrontendSession 对象
+func NewFrontendSession(socket model.ISocket, mgr model.ISessionManage, opt *TSessionOpts) ISession {
 	// 创建 StateManager
 	st := state.NewStateManager()
 
@@ -38,7 +38,7 @@ func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *TSess
 	wc := network.NewWorldConnection(socket, opt.WorldConnOpts)
 
 	// 创建对象
-	cs := &ClientSession{
+	cs := &FrontendSession{
 		stateMgr:    st,
 		worldConn:   wc,
 		sesssionMgr: mgr,
@@ -52,10 +52,10 @@ func NewClientSession(socket model.ISocket, mgr model.ISessionManage, opt *TSess
 }
 
 // 启动 session [ISession 接口]
-func (this *ClientSession) Run() {
+func (this *FrontendSession) Run() {
 	// 改变状态： 启动中
 	if !this.stateMgr.SwapState(model.C_STATE_INIT, model.C_STATE_RUNING) {
-		zplog.Errorf("ClientSession 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.stateMgr.GetState())
+		zplog.Errorf("FrontendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_INIT, this.stateMgr.GetState())
 
 		return
 	}
@@ -73,15 +73,15 @@ func (this *ClientSession) Run() {
 
 	// 改变状态： 工作中
 	if !this.stateMgr.SwapState(model.C_STATE_RUNING, model.C_STATE_WORKING) {
-		zplog.Errorf("ClientSession 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.stateMgr.GetState())
+		zplog.Errorf("FrontendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_RUNING, this.stateMgr.GetState())
 	}
 }
 
 // 关闭 session [ISession 接口]
-func (this *ClientSession) Close() {
+func (this *FrontendSession) Close() {
 	// 状态改变为关闭中
 	if !this.stateMgr.SwapState(model.C_STATE_WORKING, model.C_STATE_CLOSEING) {
-		zplog.Errorf("ClientSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.stateMgr.GetState())
+		zplog.Errorf("FrontendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return
 	}
@@ -91,7 +91,7 @@ func (this *ClientSession) Close() {
 
 	// 状态改变为关闭完成
 	if !this.stateMgr.SwapState(model.C_STATE_CLOSEING, model.C_STATE_CLOSED) {
-		zplog.Errorf("ClientSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_CLOSEING, this.stateMgr.GetState())
+		zplog.Errorf("FrontendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", model.C_STATE_CLOSEING, this.stateMgr.GetState())
 	}
 
 	// 通知 session 管理
@@ -99,17 +99,17 @@ func (this *ClientSession) Close() {
 }
 
 // 获取 session ID [ISession 接口]
-func (this *ClientSession) GetId() int64 {
+func (this *FrontendSession) GetId() int64 {
 	return this.sessionId.Load()
 }
 
 // 设置 session ID [ISession 接口]
-func (this *ClientSession) SetId(v int64) {
+func (this *FrontendSession) SetId(v int64) {
 	this.sessionId.Store(v)
 }
 
 // 接收线程
-func (this *ClientSession) recvLoop() {
+func (this *FrontendSession) recvLoop() {
 	for {
 		// 心跳检查
 		this.worldConn.CheckClientHeartbeat()
@@ -135,7 +135,7 @@ func (this *ClientSession) recvLoop() {
 }
 
 // 发送线程
-func (this *ClientSession) sendLoop() {
+func (this *FrontendSession) sendLoop() {
 	for {
 		// 心跳检查
 		this.worldConn.CheckServerHeartbeat()

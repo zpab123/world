@@ -6,8 +6,7 @@ package session
 import (
 	"sync"
 
-	"github.com/zpab123/syncutil"    // 同步变量
-	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/syncutil" // 同步变量
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -28,17 +27,17 @@ func NewSessionManager() *SessionManager {
 }
 
 // 收到1个新的 session [ISessionManager 接口]
-func (this *SessionManager) OnNewSession(ses model.ISession) {
+func (this *SessionManager) OnNewSession(ses ISession) {
 	this.Add(ses)
 }
 
 // 某个 session 关闭 [ISessionManager 接口]
-func (this *SessionManager) OnSessionClose(ses model.ISession) {
+func (this *SessionManager) OnSessionClose(ses ISession) {
 	this.Remove(ses)
 }
 
 // 添加1个符合 ISession 接口的对象
-func (this *SessionManager) Add(ses model.ISession) {
+func (this *SessionManager) Add(ses ISession) {
 	// id +1
 	id := this.sesIDGen.Add(1)
 
@@ -53,7 +52,7 @@ func (this *SessionManager) Add(ses model.ISession) {
 }
 
 // 移除1个符合 ISession 接口的对象
-func (this *SessionManager) Remove(ses model.ISession) {
+func (this *SessionManager) Remove(ses ISession) {
 	// 移除
 	this.sesMap.Delete(ses.GetId())
 
@@ -74,19 +73,19 @@ func (this *SessionManager) SetIDStart(start int64) {
 // 从 session 存取器中获取一个连接
 //
 // 返回 nil=不存在
-func (this *SessionManager) GetSession(id int64) model.ISession {
+func (this *SessionManager) GetSession(id int64) ISession {
 	// 遍历查找
 	if ses, ok := this.sesMap.Load(id); ok {
-		return ses.(model.ISession)
+		return ses.(ISession)
 	}
 
 	return nil
 }
 
 // 遍历连接
-func (this *SessionManager) VisitSession(callback func(model.ISession) bool) {
+func (this *SessionManager) VisitSession(callback func(ISession) bool) {
 	this.sesMap.Range(func(key, value interface{}) bool {
-		return callback(value.(model.ISession))
+		return callback(value.(ISession))
 	})
 }
 
@@ -98,7 +97,7 @@ func (this *SessionManager) SessionCount() int64 {
 // 关闭所有连接
 func (this *SessionManager) CloseAllSession() {
 	// 处理函数
-	f := func(ses model.ISession) bool {
+	f := func(ses ISession) bool {
 		ses.Close()
 
 		return true

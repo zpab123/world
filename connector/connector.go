@@ -192,7 +192,7 @@ func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
 
 	// 创建 session
 	opt := session.NewTSessionOpts()
-	ses := session.NewClientSession(socket, this.sessionMgr, opt)
+	ses := session.NewFrontendSession(socket, this.sessionMgr, opt)
 
 	// 启动 session
 	ses.Run()

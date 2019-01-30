@@ -12,12 +12,12 @@ import (
 
 // session 消息对象
 type Message struct {
-	session *ClientSession  // session 对象
-	packet  *network.Packet // 数据包
+	session *FrontendSession // session 对象
+	packet  *network.Packet  // 数据包
 }
 
 // 获取 session
-func (this *Message) GetSession() *ClientSession {
+func (this *Message) GetSession() *FrontendSession {
 	return this.session
 }
 

@@ -13,6 +13,14 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // 接口
 
+// session 接口
+type ISession interface {
+	Run()
+	Close()
+	GetId()
+	SetId()
+}
+
 // session 管理
 type ISessionManage interface {
 	OnNewSession(ses ISession)   // 添加1个新的 session
