@@ -342,6 +342,11 @@ func (this *Packet) Release() {
 	}
 }
 
+// Packet.bytes 中的所有有效数据
+func (this *Packet) Data() []byte {
+	return this.bytes[0 : _HEAD_LEN+this.GetBodyLen()]
+}
+
 // 根据 need 数量， 为 packet 的 bytes 扩大内存，并完成旧数据复制
 func (this *Packet) AllocBuffer(need uint32) {
 	// 现有长度满足需求
@@ -378,11 +383,6 @@ func (this *Packet) getPayloadLen() uint32 {
 	payloadLen := uint32(byteLen) - _HEAD_LEN
 
 	return payloadLen
-}
-
-// Packet.bytes 中的所有有效数据
-func (this *Packet) Data() []byte {
-	return this.bytes[0 : _HEAD_LEN+this.GetBodyLen()]
 }
 
 // 增加 body 长度
