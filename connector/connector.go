@@ -106,7 +106,7 @@ func (this *Connector) Run() bool {
 		return false
 	}
 
-	zplog.Infof("Connector 组件启动成功")
+	// zplog.Infof("Connector 组件启动成功")
 
 	return true
 }
