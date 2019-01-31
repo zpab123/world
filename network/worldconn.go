@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"  // protobuf 库
-	"github.com/zpab123/syncutil"     // 原子变量库
 	"github.com/zpab123/world/config" // 配置文件读取
 	"github.com/zpab123/world/msg"    // world 内部通信消息
 	"github.com/zpab123/world/state"  // 状态管理
@@ -179,7 +178,8 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	res := &msg.HandshakeRes{}
 
 	// 版本验证
-	if shakeInfo.Key != config.GetWorldIni().Key {
+	key := config.GetWorldConfig().ShakeKey
+	if shakeInfo.Key != key {
 		res.Code = msg.SHAKE_KEY_ERROR
 		body, err := proto.Marshal(res)
 		if nil != err {
@@ -194,19 +194,6 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	}
 
 	// 通信方式验证
-	if shakeInfo.Acceptor != config.GetWorldIni().Acceptor {
-		res.Code = msg.SHAKE_ACCEPTOR_ERROR
-		body, err := proto.Marshal(res)
-		if nil != err {
-			this.handshakeResponse(false, body)
-		} else {
-
-		}
-
-		this.Close()
-
-		return
-	}
 
 	// 回复处理结果
 }
@@ -243,7 +230,7 @@ func (this *WorldConnection) handleHandshakeAck() {
 //  发送心跳数据
 func (this *WorldConnection) sendHeartbeat() {
 	// 状态效验
-	if this.state.Load() != C_WCONN_STATE_WORKING {
+	if this.stateMgr.GetState() != C_WCONN_STATE_WORKING {
 		return
 	}
 

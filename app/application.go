@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/zpab123/world/config" // 配置文件库
-	"github.com/zpab123/world/state"  // 状态管理
-	"github.com/zpab123/zaplog"       // log 库
+	"github.com/zpab123/world/config"    // 配置文件库
+	"github.com/zpab123/world/connector" // connector 组件
+	"github.com/zpab123/world/state"     // 状态管理
+	"github.com/zpab123/zaplog"          // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +46,6 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 		stateMgr:     st,
 		componentMgr: cptMgr,
 		baseInfo:     &TBaseInfo{},
-		serverInfo:   &config.TServerInfo{},
 		appDelegate:  delegate,
 	}
 
@@ -72,6 +72,9 @@ func (this *Application) Init() {
 	// 默认设置
 	defaultConfig(this)
 
+	// 创建组件
+	createComponent(this)
+
 	// 改变为初始化状态
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
 		zaplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
@@ -94,13 +97,10 @@ func (this *Application) Run() {
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
 		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
-		os.Exit(1) // 程序退出
+		os.Exit(1)
 	} else {
 		zaplog.Infof("app 状态：正在启动中 ...")
 	}
-
-	// 设置默认组件
-	setDefaultComponent(this)
 
 	// 启动所有组件
 	for _, cpt := range this.componentMgr.componentMap {
@@ -111,15 +111,13 @@ func (this *Application) Run() {
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
 		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
-		return
+		os.Exit(1)
 	} else {
 		zaplog.Infof("app 状态：启动成功，工作中 ...")
 	}
 
 	// 主循环
-	for {
-
-	}
+	select {}
 }
 
 // 停止 app
@@ -156,6 +154,16 @@ func (this *Application) GetCWsAddr() string {
 	}
 
 	return cWsAddr
+}
+
+// 设置 connector 组件参数
+func (this *Application) SetConnectorOpt(opts *connector.TConnectorOpt) {
+	this.componentMgr.SetConnectorOpt(opts)
+}
+
+// 获取 connector 组件参数
+func (this *Application) GetConnectorOpt() *connector.TConnectorOpt {
+	return this.componentMgr.GetConnectorOpt()
 }
 
 // /////////////////////////////////////////////////////////////////////////////

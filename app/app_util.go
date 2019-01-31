@@ -6,6 +6,7 @@ package app
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/zpab123/world/config"    // 配置读取工具
 	"github.com/zpab123/world/connector" // connector 组件
@@ -22,7 +23,7 @@ func defaultConfig(app *Application) {
 	getServerInfo(app)
 
 	// 设置 log 信息
-	configLogger()
+	configLogger(app)
 }
 
 // 解析 命令行参数
@@ -69,15 +70,24 @@ func getServerInfo(app *Application) {
 	// 获取类型列表
 	list := config.GetServerMap()[appType]
 	if nil == list || len(list) <= 0 {
-		return
+		zaplog.Error("Application 获取 appType 信息失败。 appType=%s", appType)
+
+		os.Exit(1)
 	}
 
 	// 获取服务器信息
 	for _, info := range list {
 		if info.Name == name {
 			app.serverInfo = info
+
 			break
 		}
+	}
+
+	if app.serverInfo == nil {
+		zaplog.Error("Application 获取 server.json 信息失败。 appName=%s", app.baseInfo.Name)
+
+		os.Exit(1)
 	}
 }
 
@@ -101,15 +111,15 @@ func configLogger(app *Application) {
 	zaplog.SetOutput(outputs)
 }
 
-// 设置默认组件
-func setDefaultComponent(app *Application) {
+// 创建默认组件
+func createComponent(app *Application) {
 	// master 服务器 - 注册 master 组件
 
 	// 前端服务器
 	if app.serverInfo.Frontend {
 
-		// 注册1个 Connector 组件
-		setConnector(app)
+		// 创建1个 Connector 组件
+		newConnector(app)
 
 		// 注册 session 组件
 	}
@@ -124,7 +134,7 @@ func setDefaultComponent(app *Application) {
 }
 
 // 设置 Connector 组件
-func setConnector(app *Application) {
+func newConnector(app *Application) {
 	// 地址参数
 	laddr := &network.TLaddr{
 		TcpAddr: app.GetCTcpAddr(),

@@ -23,7 +23,6 @@ var (
 	worldConfig      *TWorld        = &TWorld{}        // world 引擎配置信息
 	serverConfig     *TServerConfig                    // server.json 配置表
 	serverMap        TServerMap                        // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
-	worldConfig      *TWorld        = &TWorld{}        // world 引擎配置信息
 )
 
 // 初始化
