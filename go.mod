@@ -1,7 +1,7 @@
 module world
 
 require (
-	"github.com/zpab123/zplog"
+	"github.com/zpab123/zaplog"
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 	"github.com/gorilla/websocket"
