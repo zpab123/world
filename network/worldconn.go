@@ -11,7 +11,7 @@ import (
 	"github.com/zpab123/world/config" // 配置文件读取
 	"github.com/zpab123/world/msg"    // world 内部通信消息
 	"github.com/zpab123/world/state"  // 状态管理
-	"github.com/zpab123/zplog"        // 日志库
+	"github.com/zpab123/zaplog"       // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -71,8 +71,15 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	}
 
 	// 内部 packet
-	if pkt.pktId <= C_PACKET_ID_WORLD {
+	if pkt.pktId < C_PACKET_ID_WORLD {
 		this.handlePacket(pkt)
+
+		return nil, nil
+	}
+
+	// 状态效验
+	if this.stateMgr.GetState() != C_WCONN_STATE_WORKING {
+		this.Close()
 
 		return nil, nil
 	}
@@ -82,6 +89,8 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 
 // 发送1个 packet 消息
 func (this *WorldConnection) SendPacket(pkt *Packet) error {
+	// 状态效验
+
 	// 记录超时
 	this.serverTimeOut = time.Now().Unix() + this.timeOut
 
@@ -110,7 +119,7 @@ func (this *WorldConnection) Close() {
 func (this *WorldConnection) CheckClientHeartbeat() {
 	if this.timeOut > 0 {
 		if time.Now().Unix() >= this.clientTimeOut {
-			zplog.Warnf("客户端心跳超时，断开连接")
+			zaplog.Warnf("客户端心跳超时，断开连接")
 			this.Close()
 		}
 	}
@@ -130,7 +139,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 	// 根据类型处理数据
 	switch pkt.GetId() {
 	case C_PACKET_ID_INVALID: // 无效类型
-		zplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection。")
+		zaplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection。")
 		this.Close()
 
 		break
@@ -153,7 +162,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 //  处理握手消息
 func (this *WorldConnection) handleHandshake(body []byte) {
 	// 状态效验
-	if this.state.Load() != C_WCONN_STATE_INIT {
+	if this.stateMgr.GetState() != C_WCONN_STATE_INIT {
 		return
 	}
 
@@ -161,7 +170,9 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	shakeInfo := &msg.HandshakeReq{}
 	err := proto.Unmarshal(body, shakeInfo)
 	if nil != err {
-		zplog.Error("protobuf 解码握手消息出错")
+		zaplog.Error("protobuf 解码握手消息出错。关闭连接")
+
+		this.Close()
 	}
 
 	// 回复消息
@@ -176,6 +187,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 		} else {
 
 		}
+
 		this.Close()
 
 		return
@@ -190,6 +202,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 		} else {
 
 		}
+
 		this.Close()
 
 		return
@@ -201,7 +214,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 //  返回握手消息
 func (this *WorldConnection) handshakeResponse(sucess bool, body []byte) {
 	// 状态效验
-	if this.state.Load() != C_WCONN_STATE_INIT {
+	if this.stateMgr.GetState() != C_WCONN_STATE_INIT {
 		return
 	}
 
@@ -212,19 +225,16 @@ func (this *WorldConnection) handshakeResponse(sucess bool, body []byte) {
 
 	// 改变状态
 	if sucess {
-		this.state.Store(C_WCONN_STATE_WAIT_ACK)
+		this.stateMgr.SetState(C_WCONN_STATE_WAIT_ACK)
 	}
 }
 
 //  处理握手ACK
 func (this *WorldConnection) handleHandshakeAck() {
-	// 状态效验
-	if this.state.Load() != C_WCONN_STATE_WAIT_ACK {
+	// 改变为工作状态
+	if this.stateMgr.SwapState(C_WCONN_STATE_WAIT_ACK, C_WCONN_STATE_WORKING) {
 		return
 	}
-
-	// 改变为工作状态
-	this.state.Store(C_WCONN_STATE_WORKING)
 
 	// 发送心跳数据
 	this.sendHeartbeat()

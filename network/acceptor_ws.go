@@ -9,7 +9,7 @@ import (
 
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zplog"       // log 日志库
+	"github.com/zpab123/zaplog"       // log 日志库
 	"golang.org/x/net/websocket"     // websocket 库
 )
 
@@ -58,7 +58,7 @@ func (this *WsAcceptor) Run() bool {
 
 	// 查找失败
 	if nil != err {
-		zplog.Errorf("WsAcceptor 启动失败。err=%v", err.Error())
+		zaplog.Errorf("WsAcceptor 启动失败。err=%v", err.Error())
 		return false
 	}
 
@@ -89,11 +89,11 @@ func (this *WsAcceptor) liten() {
 	}
 
 	var err error // 错误信息
-	zplog.Infof("WsAcceptor 启动成功。ip=%s", this.wsListenAddr)
+	zaplog.Infof("WsAcceptor 启动成功。ip=%s", this.wsListenAddr)
 
 	// 开启服务器
 	if this.certFile != "" && this.keyFile != "" {
-		zplog.Debugf("WsAcceptor 使用 TLS。 cert=%s, key=%s", this.certFile, this.keyFile)
+		zaplog.Debugf("WsAcceptor 使用 TLS。 cert=%s, key=%s", this.certFile, this.keyFile)
 		err = http.ListenAndServeTLS(this.wsListenAddr, this.certFile, this.keyFile, nil)
 	} else {
 		err = http.ListenAndServe(this.wsListenAddr, nil)
@@ -101,7 +101,7 @@ func (this *WsAcceptor) liten() {
 
 	// 错误信息
 	if nil != err {
-		zplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
+		zaplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
 	}
 }
 
@@ -122,7 +122,7 @@ func (this *WsAcceptor) accept() {
 
 	// 开启服务器
 	var err error
-	zplog.Infof("WsAcceptor 启动成功。ip=%s", this.wsListenAddr)
+	zaplog.Infof("WsAcceptor 启动成功。ip=%s", this.wsListenAddr)
 	if this.certFile != "" && this.keyFile != "" {
 		err = this.httpServer.ServeTLS(this.listener, this.certFile, this.keyFile)
 	} else {
@@ -131,6 +131,6 @@ func (this *WsAcceptor) accept() {
 
 	// 错误信息
 	if nil != err {
-		zplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
+		zaplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-ini/ini"    // ini 库
-	"github.com/zpab123/zplog" // log 工具
+	"github.com/zpab123/zaplog" // log 工具
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ func readWorldIni() *TWorldIni {
 
 	// 读取配置文件
 	fPath := filepath.Join(mainPath, iniFilePath)
-	zplog.Infof("读取 world.ini 配置文件，路径=%s", fPath)
+	zaplog.Infof("读取 world.ini 配置文件，路径=%s", fPath)
 	iniFile, err := ini.Load(fPath)
 
 	// 错误检查
@@ -54,7 +54,7 @@ func checkConfigError(err error, msg string) {
 		if msg == "" {
 			msg = err.Error()
 		}
-		zplog.Fatalf("在读取 world.ini 中出现错误 error: %s", msg)
+		zaplog.Fatalf("在读取 world.ini 中出现错误 error: %s", msg)
 	}
 }
 
@@ -70,10 +70,10 @@ func readEnv(sec *ini.Section, config *TWorldIni) {
 			config.Env = key.MustString(config.Env)
 			if config.Env != C_ENV_DEV && config.Env != C_ENV_PRO {
 				config.Env = C_ENV_DEV
-				zplog.Fatal("world.ini 中 [env] 参数配置错误。设置成默认 development")
+				zaplog.Fatal("world.ini 中 [env] 参数配置错误。设置成默认 development")
 			}
 		} else {
-			zplog.Fatal("读取 world.ini [env] 失败")
+			zaplog.Fatal("读取 world.ini [env] 失败")
 		}
 	}
 }

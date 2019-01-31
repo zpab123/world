@@ -4,7 +4,7 @@
 package ids
 
 import (
-	"github.com/zpab123/zplog" // log 工具
+	"github.com/zpab123/zaplog" // log 工具
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ func (id EntityID) IsNil() bool {
 // 将1个 字符串id 转化为 EntityID
 func MustEntityID(id string) EntityID {
 	if len(id) != ENTITYID_LENGTH {
-		zplog.Panicf("%s 的长度=%d，是1个无效的实体长度(正确长度=%d)", id, len(id), ENTITYID_LENGTH)
+		zaplog.Panicf("%s 的长度=%d，是1个无效的实体长度(正确长度=%d)", id, len(id), ENTITYID_LENGTH)
 	}
 
 	return EntityID(id)

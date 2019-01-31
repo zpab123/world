@@ -11,7 +11,7 @@ import (
 	"github.com/zpab123/world/network" // 网络模型
 	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/world/state"   // 状态管理
-	"github.com/zpab123/zplog"         // 日志库
+	"github.com/zpab123/zaplog"         // 日志库
 	"golang.org/x/net/websocket"       // websocket 库
 )
 
@@ -82,14 +82,14 @@ func (this *Connector) Name() string {
 func (this *Connector) Run() bool {
 	// 改变状态： 启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+		zaplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
 		return false
 	}
 
 	// acceptor 检查
 	if nil == this.acceptor {
-		zplog.Error("Connector 组件启动失败。acceptor=nil")
+		zaplog.Error("Connector 组件启动失败。acceptor=nil")
 
 		return false
 	}
@@ -101,12 +101,12 @@ func (this *Connector) Run() bool {
 
 	// 改变状态： 工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+		zaplog.Errorf("Connector 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
 		return false
 	}
 
-	// zplog.Infof("Connector 组件启动成功")
+	// zaplog.Infof("Connector 组件启动成功")
 
 	return true
 }
@@ -115,7 +115,7 @@ func (this *Connector) Run() bool {
 func (this *Connector) Stop() bool {
 	// 状态效验
 	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_STOPING) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
+		zaplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -130,12 +130,12 @@ func (this *Connector) Stop() bool {
 
 	// 改变状态：关闭完成
 	if !this.stateMgr.SwapState(state.C_STATE_STOPING, state.C_STATE_STOP) {
-		zplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_STOPING, this.stateMgr.GetState())
+		zaplog.Errorf("Connector 组件停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_STOPING, this.stateMgr.GetState())
 
 		return false
 	}
 
-	zplog.Infof("Connector 组件停止成功")
+	zaplog.Infof("Connector 组件停止成功")
 
 	return true
 }
@@ -146,7 +146,7 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	if this.connNum.Load() >= this.opts.MaxConn {
 		conn.Close()
 
-		zplog.Warnf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
+		zaplog.Warnf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
 	}
 
 	// 不符合 tcp 连接对象
@@ -157,7 +157,7 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 		return
 	}
 
-	zplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
+	zaplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
 
 	// 配置 iO 参数
 	tcpConn.SetWriteBuffer(this.opts.TcpConnOpts.WriteBufferSize)
@@ -173,8 +173,8 @@ func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 	// 超过最大连接数
 	if this.connNum.Load() >= this.opts.MaxConn {
 		wsconn.Close()
-		zplog.Debugf("收到1个新的 websocket 连接。ip=%s", wsconn.RemoteAddr())
-		zplog.Debugf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
+		zaplog.Debugf("收到1个新的 websocket 连接。ip=%s", wsconn.RemoteAddr())
+		zaplog.Debugf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
 	}
 
 	// 参数设置

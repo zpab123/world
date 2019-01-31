@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/zpab123/zplog" // log库
+	"github.com/zpab123/zaplog" // log库
 )
 
 // ////////////////////////////////////////////////////////////////////////////////
@@ -20,14 +20,14 @@ func LoadJsonToSruct(filepath string, v interface{}) error {
 	// 读取文件
 	bytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		zplog.Fatalf("读取 Json 文件失败: %s", err.Error())
+		zaplog.Fatalf("读取 Json 文件失败: %s", err.Error())
 		return err
 	}
 
 	// 转化文件
 	jsonErr := json.Unmarshal(bytes, v)
 	if jsonErr != nil {
-		zplog.Fatalf("解析 Json 文件失败: %s", jsonErr.Error())
+		zaplog.Fatalf("解析 Json 文件失败: %s", jsonErr.Error())
 		return jsonErr
 	}
 
@@ -41,14 +41,14 @@ func LoadJsonToMap(filepath string, v interface{}) error {
 	// 读取文件
 	bytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		zplog.Fatalf("读取 Json 文件失败: %s", err.Error())
+		zaplog.Fatalf("读取 Json 文件失败: %s", err.Error())
 		return err
 	}
 
 	// 转化文件
 	jsonErr := json.Unmarshal(bytes, v)
 	if jsonErr != nil {
-		zplog.Fatalf("解析 Json 文件失败: %s", jsonErr.Error())
+		zaplog.Fatalf("解析 Json 文件失败: %s", jsonErr.Error())
 		return jsonErr
 	}
 

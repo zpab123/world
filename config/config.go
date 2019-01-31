@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/zpab123/zplog" // 日志库
+	"github.com/zpab123/zaplog" // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,7 @@ func GetServerMap() TServerMap {
 func getMainPath() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		zplog.Error("获取 main 程序 绝对路径失败")
+		zaplog.Error("获取 main 程序 绝对路径失败")
 		return ""
 	}
 	//strings.Replace(dir, "\\", "/", -1)
@@ -83,7 +83,7 @@ func getWorldIni() {
 	if nil == iniConfig {
 		// 获取 main 程序路径
 		if "" == mainPath {
-			zplog.Fatal("读取 main 程序路径失败")
+			zaplog.Fatal("读取 main 程序路径失败")
 			return
 		}
 
@@ -104,7 +104,7 @@ func getServerConfig() {
 	if nil == serverConfig {
 		// 获取 main 路径
 		if "" == mainPath {
-			zplog.Fatal("读取 main 路径失败")
+			zaplog.Fatal("读取 main 路径失败")
 			return
 		}
 

@@ -6,7 +6,7 @@ package app
 import (
 	"github.com/zpab123/world/connector" // connector 组件
 	"github.com/zpab123/world/model"     // 全局模型
-	"github.com/zpab123/zplog"           // log 库
+	"github.com/zpab123/zaplog"           // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ func (this *ComponentManager) RegisterComponent(com model.IComponent) {
 
 	// 组件已经存在
 	if this.componentMap[name] != nil {
-		zplog.Warnf("组件[*s]重复注册，新组件将覆盖旧组件", name)
+		zaplog.Warnf("组件[*s]重复注册，新组件将覆盖旧组件", name)
 	}
 
 	// 保存组件

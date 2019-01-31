@@ -11,7 +11,7 @@ import (
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zplog"       // 日志库
+	"github.com/zpab123/zaplog"       // 日志库
 	"golang.org/x/net/websocket"     // websocket 库
 )
 
@@ -58,7 +58,7 @@ func NewComAcceptor(addr *TLaddr, mgr IComConnManager) IAcceptor {
 func (this *ComAcceptor) Run() bool {
 	// 改变状态: 正在启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+		zaplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
 		return false
 	}
@@ -75,7 +75,7 @@ func (this *ComAcceptor) Run() bool {
 
 	// 改变状态: 工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+		zaplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -87,7 +87,7 @@ func (this *ComAcceptor) Run() bool {
 func (this *ComAcceptor) Stop() bool {
 	// 改变状态: 关闭中
 	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_STOPING) {
-		zplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
+		zaplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -100,7 +100,7 @@ func (this *ComAcceptor) Stop() bool {
 
 	// 改变状态: 关闭完成
 	if !this.stateMgr.SwapState(state.C_STATE_STOPING, state.C_STATE_STOP) {
-		zplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", state.C_STATE_STOPING, this.stateMgr.GetState())
+		zaplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", state.C_STATE_STOPING, this.stateMgr.GetState())
 
 		return false
 	}
@@ -144,14 +144,14 @@ func (this *ComAcceptor) runTcpListener() bool {
 
 	// 创建失败
 	if nil != err {
-		zplog.Errorf("ComAcceptor-tcp 启动失败。err=%v", err.Error())
+		zaplog.Errorf("ComAcceptor-tcp 启动失败。err=%v", err.Error())
 
 		return false
 	}
 
 	// 创建成功
 	this.tcpListener = ln.(net.Listener)
-	zplog.Infof("ComAcceptor-tcp 启动成功。ip=%s", this.GetTcpAddr())
+	zaplog.Infof("ComAcceptor-tcp 启动成功。ip=%s", this.GetTcpAddr())
 
 	// 侦听 tcp 连接
 	go this.acceptTcpConn()
@@ -163,7 +163,7 @@ func (this *ComAcceptor) runTcpListener() bool {
 func (this *ComAcceptor) acceptTcpConn() {
 	//  出现错误，关闭监听
 	closeF := func() {
-		zplog.Error("ComAcceptor 侦听 tcp 新连接出现错误。关闭 ComAcceptor-tcp")
+		zaplog.Error("ComAcceptor 侦听 tcp 新连接出现错误。关闭 ComAcceptor-tcp")
 		this.tcpListener.Close()
 	}
 	defer closeF()
@@ -204,7 +204,7 @@ func (this *ComAcceptor) runWsListener() bool {
 
 	// 查找失败
 	if nil != err {
-		zplog.Errorf("ComAcceptor-websocket 启动失败。err=%v", err.Error())
+		zaplog.Errorf("ComAcceptor-websocket 启动失败。err=%v", err.Error())
 		return false
 	}
 
@@ -235,7 +235,7 @@ func (this *ComAcceptor) acceptWsConn() {
 
 	// 开启服务器
 	var err error
-	zplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
+	zaplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
 	if this.certFile != "" && this.keyFile != "" {
 		err = this.httpServer.ServeTLS(this.wsListener, this.certFile, this.keyFile)
 	} else {
@@ -244,7 +244,7 @@ func (this *ComAcceptor) acceptWsConn() {
 
 	// 错误信息
 	if nil != err {
-		zplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
+		zaplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
 	}
 }
 
@@ -255,9 +255,9 @@ func (this *ComAcceptor) acceptWebsocket() {
 
 	// 侦听新连接
 	var err error
-	zplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
+	zaplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
 	if "" != this.keyFile && "" != this.certFile {
-		zplog.Debugf("ComAcceptor-websocket 使用 TLS。 key=%s, cert=%s", this.keyFile, this.certFile)
+		zaplog.Debugf("ComAcceptor-websocket 使用 TLS。 key=%s, cert=%s", this.keyFile, this.certFile)
 		err = http.ListenAndServeTLS(this.wsListenAddr, this.certFile, this.keyFile, nil)
 	} else {
 		err = http.ListenAndServe(this.wsListenAddr, nil)
@@ -265,7 +265,7 @@ func (this *ComAcceptor) acceptWebsocket() {
 
 	// 错误信息
 	if nil != err {
-		zplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，错误=%s", this.wsListenAddr, err)
+		zaplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，错误=%s", this.wsListenAddr, err)
 	}
 }
 

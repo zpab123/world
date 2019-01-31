@@ -9,7 +9,7 @@ import (
 
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zplog"       //日志库
+	"github.com/zpab123/zaplog"       //日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -47,14 +47,14 @@ func (this *TcpAcceptor) Run() bool {
 
 	// 创建失败
 	if nil != err {
-		zplog.Fatalf("TcpAcceptor 启动失败。ip=%s，err=%v", this.laddr.TcpAddr, err.Error())
+		zaplog.Fatalf("TcpAcceptor 启动失败。ip=%s，err=%v", this.laddr.TcpAddr, err.Error())
 
 		return false
 	}
 
 	// 创建成功
 	this.listener = ln.(net.Listener)
-	zplog.Infof("TcpAcceptor 启动成功。ip=%s", this.GetListenAddress())
+	zaplog.Infof("TcpAcceptor 启动成功。ip=%s", this.GetListenAddress())
 
 	// 侦听连接
 	go this.accept()
@@ -105,7 +105,7 @@ func (this *TcpAcceptor) accept() {
 
 		// 监听错误
 		if nil != err {
-			zplog.Errorf("TcpAcceptor 接收新连接出现错误。err=%v", err.Error())
+			zaplog.Errorf("TcpAcceptor 接收新连接出现错误。err=%v", err.Error())
 			break
 		}
 

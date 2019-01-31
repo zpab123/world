@@ -12,7 +12,7 @@ import (
 
 	"github.com/zpab123/world/config" // 配置文件库
 	"github.com/zpab123/world/state"  // 状态管理
-	"github.com/zpab123/zplog"        // log 库
+	"github.com/zpab123/zaplog"        // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ func (this *Application) Init() bool {
 	// 获取主程序路径
 	dir, err := getMainPath()
 	if err != nil {
-		zplog.Error("app Init 失败。读取根目录失败")
+		zaplog.Error("app Init 失败。读取根目录失败")
 
 		return false
 	}
@@ -74,12 +74,12 @@ func (this *Application) Init() bool {
 
 	// 改变为初始化状态
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
-		zplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
+		zaplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
 
 		return false
 	}
 
-	zplog.Infof("app 状态：init完成 ...")
+	zaplog.Infof("app 状态：init完成 ...")
 
 	return true
 }
@@ -94,11 +94,11 @@ func (this *Application) Run() {
 
 	// 改变为启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
 		return
 	} else {
-		zplog.Infof("app 状态：正在启动中 ...")
+		zaplog.Infof("app 状态：正在启动中 ...")
 	}
 
 	// 设置默认组件
@@ -111,11 +111,11 @@ func (this *Application) Run() {
 
 	// 改变为工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
 		return
 	} else {
-		zplog.Infof("app 状态：启动成功，工作中 ...")
+		zaplog.Infof("app 状态：启动成功，工作中 ...")
 	}
 
 	// 主循环
@@ -167,7 +167,7 @@ func (this *Application) GetCWsAddr() string {
 func getMainPath() (string, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		zplog.Warnf("获取 App 绝对路径失败")
+		zaplog.Warnf("获取 App 绝对路径失败")
 		return "", err
 	}
 	//strings.Replace(dir, "\\", "/", -1)

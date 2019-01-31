@@ -3,7 +3,7 @@
 
 package utils
 
-import "github.com/zpab123/zplog"
+import "github.com/zpab123/zaplog"
 
 // /////////////////////////////////////////////////////////////////////////////
 // 对外api
@@ -13,7 +13,7 @@ func CatchPanic(f func()) (err interface{}) {
 	defer func() {
 		err = recover()
 		if err != nil {
-			zplog.TraceError("%s 系统恐慌: %s", f, err)
+			zaplog.TraceError("%s 系统恐慌: %s", f, err)
 		}
 	}()
 
@@ -30,7 +30,7 @@ func RunPanicless(f func()) (panicless bool) {
 		err := recover()
 		panicless = err == nil
 		if err != nil {
-			zplog.TraceError("%s 系统恐慌: %s", f, err)
+			zaplog.TraceError("%s 系统恐慌: %s", f, err)
 		}
 	}()
 

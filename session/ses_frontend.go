@@ -7,7 +7,7 @@ import (
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/state"   // 状态管理
-	"github.com/zpab123/zplog"         // 日志库
+	"github.com/zpab123/zaplog"         // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ func NewFrontendSession(socket network.ISocket, mgr ISessionManage, opt *TSessio
 func (this *FrontendSession) Run() {
 	// 改变状态： 启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zplog.Errorf("FrontendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+		zaplog.Errorf("FrontendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
 		return
 	}
@@ -72,7 +72,7 @@ func (this *FrontendSession) Run() {
 
 	// 改变状态： 工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zplog.Errorf("FrontendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+		zaplog.Errorf("FrontendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 	}
 }
 
@@ -80,7 +80,7 @@ func (this *FrontendSession) Run() {
 func (this *FrontendSession) Close() {
 	// 状态改变为关闭中
 	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_CLOSEING) {
-		zplog.Errorf("FrontendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
+		zaplog.Errorf("FrontendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
 
 		return
 	}
@@ -90,7 +90,7 @@ func (this *FrontendSession) Close() {
 
 	// 状态改变为关闭完成
 	if !this.stateMgr.SwapState(state.C_STATE_CLOSEING, state.C_STATE_CLOSED) {
-		zplog.Errorf("FrontendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_CLOSEING, this.stateMgr.GetState())
+		zaplog.Errorf("FrontendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_CLOSEING, this.stateMgr.GetState())
 	}
 
 	// 通知 session 管理

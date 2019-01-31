@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"unsafe"
 
-	"github.com/zpab123/zplog" // log 工具
+	"github.com/zpab123/zaplog" // log 工具
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -267,7 +267,7 @@ func (this *Packet) ReadBytes(size uint32) []byte {
 
 	// 越界错误
 	if pPos > uint32(len(this.bytes)) || (pPos+size) > uint32(len(this.bytes)) {
-		zplog.Panicf("从 Packet 包中读取 Bytes 出错。Bytes 大小超过 packet 剩余可读数据大小")
+		zaplog.Panicf("从 Packet 包中读取 Bytes 出错。Bytes 大小超过 packet 剩余可读数据大小")
 	}
 
 	// 读取数据
@@ -338,7 +338,7 @@ func (this *Packet) Release() {
 		// 将 pakcet 放回对象池
 		packetPool.Put(this)
 	} else if refcount < 0 {
-		// zplog.Panicf("释放1个 packet 错误，剩余 refcount=%d", p.refcount)
+		// zaplog.Panicf("释放1个 packet 错误，剩余 refcount=%d", p.refcount)
 	}
 }
 
@@ -361,7 +361,7 @@ func (this *Packet) AllocBuffer(need uint32) {
 	poolKey := getPoolKey(uint32(newLen))
 	newBuffer := bufferPools[poolKey].Get().([]byte)
 	if len(newBuffer) != int(poolKey+_HEAD_LEN) {
-		zplog.Panicf("buffer 申请错误，申请的长度=%d,获得的长度=%d", poolKey+_HEAD_LEN, len(newBuffer))
+		zaplog.Panicf("buffer 申请错误，申请的长度=%d,获得的长度=%d", poolKey+_HEAD_LEN, len(newBuffer))
 	}
 
 	// 新旧 buff 数据交换
