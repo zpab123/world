@@ -17,6 +17,12 @@ import (
 
 // 读取 world.ini 配置文件
 func readWorldIni() {
+	// 锁住线程
+	configMutex.Lock()
+
+	// retun 后，解锁
+	defer configMutex.Unlock()
+
 	// 读取配置文件
 	fPath := filepath.Join(mainPath, iniFilePath)
 	zaplog.Infof("读取 world.ini 配置文件，路径=%s", fPath)
@@ -34,10 +40,6 @@ func readWorldIni() {
 		// 读取配置
 		if secName == "world" {
 			readWorld(sec, worldConfig) // world
-		} else if "network" == secName {
-			readNetwork(sec, config) // 握手信息配置
-		} else if "world" == secName {
-			//readWorld(sec, worldConfig) // world 服务器配置
 		}
 	}
 }
@@ -56,36 +58,27 @@ func checkConfigError(err error, msg string) {
 }
 
 // 读取 world 配置数据
-func readWorld(sec *ini.Section, config *TWorld) {
+func readWorld(sec *ini.Section, conf *TWorld) {
 	// 设置默认
-	config.Env = C_ENV_DEV
+	conf.Env = C_ENV_DEV
 
 	// 读取属性
 	for _, key := range sec.Keys() {
 		name := strings.ToLower(key.Name()) //转化成小写
 		if "env" == name {
-			config.Env = key.MustString(config.Env)
-			if config.Env != C_ENV_DEV && config.Env != C_ENV_PRO {
-				config.Env = C_ENV_DEV
+			conf.Env = key.MustString(conf.Env)
+			if conf.Env != C_ENV_DEV && conf.Env != C_ENV_PRO {
+				conf.Env = C_ENV_DEV
 				zaplog.Fatal("world.ini 中 [world]-env 参数配置错误。修改为 development")
 			}
 		} else if "log_level" == name {
-			config.LogLevel = key.MustString(config.LogLevel)
-		}
-	}
-}
-
-// 读取 network 配置信息
-func readNetwork(sec *ini.Section, config *TWorldIni) {
-	// 读取属性
-	for _, key := range sec.Keys() {
-		name := strings.ToLower(key.Name()) //转化成小写
-		if "shake_key" == name {
-			config.Key = key.MustString(config.Key)
+			conf.LogLevel = key.MustString(conf.LogLevel)
+		} else if "shake_key" == name {
+			conf.ShakeKey = key.MustString(conf.ShakeKey)
 		} else if "acceptor" == name {
-			var aptor int = 0
-			aptor = key.MustInt(aptor)
-			config.Acceptor = uint32(aptor)
+			var a int = 0
+			a = key.MustInt(a)
+			conf.Acceptor = uint32(a)
 		}
 	}
 }

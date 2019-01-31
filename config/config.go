@@ -16,15 +16,14 @@ import (
 
 // 变量
 var (
-	configMutex      sync.Mutex         // 进程互斥锁
-	mainPath         string             // 程序启动目录
-	iniConfig        *TWorldIni         // world.ini 配置信息
-	iniFilePath      = C_PATH_WORLD_INI // world.ini 默认路径
-	serverConfig     *TServerConfig     // server.json 配置表
-	serverConfigPath = C_PATH_SERVER    // servers.json 配置文件路径
-	serverMap        TServerMap         // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
-
-	worldConfig *TWorld = &TWorld{} // world 引擎配置信息
+	configMutex      sync.Mutex                        // 进程互斥锁
+	mainPath         string                            // 程序启动目录
+	iniFilePath                     = C_PATH_WORLD_INI // world.ini 默认路径
+	serverConfigPath                = C_PATH_SERVER    // servers.json 配置文件路径
+	worldConfig      *TWorld        = &TWorld{}        // world 引擎配置信息
+	serverConfig     *TServerConfig                    // server.json 配置表
+	serverMap        TServerMap                        // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
+	worldConfig      *TWorld        = &TWorld{}        // world 引擎配置信息
 )
 
 // 初始化
@@ -35,8 +34,8 @@ func init() {
 	// 读取 world.ini 配置
 	readWorldIni()
 
-	// 读取 server.json 配置
-	getServerConfig()
+	// 读取 servers.json 配置信息
+	readServerJson()
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -73,29 +72,8 @@ func getMainPath() string {
 	return dir
 }
 
-// 获取 zpworld.ini 配置对象
-func getWorldIni() {
-	// 锁住线程
-	configMutex.Lock()
-
-	// retun 后，解锁
-	defer configMutex.Unlock()
-
-	// 读取文件
-	if nil == iniConfig {
-		// 获取 main 程序路径
-		if "" == mainPath {
-			zaplog.Fatal("读取 main 程序路径失败")
-			return
-		}
-
-		// 读取 ini 文件
-		iniConfig = readWorldIni()
-	}
-}
-
-// 获取 servers.json 配置信息
-func getServerConfig() {
+// 读取 servers.json 配置信息
+func readServerJson() {
 	// 锁住线程
 	configMutex.Lock()
 
@@ -121,7 +99,7 @@ func getServerConfig() {
 		LoadJsonToMap(fPath, serverConfig)
 
 		// 根据运行环境赋值
-		if C_ENV_DEV == iniConfig.Env {
+		if C_ENV_DEV == worldConfig.Env {
 			serverMap = serverConfig.Development
 		} else {
 			serverMap = serverConfig.Production
