@@ -73,6 +73,8 @@ func readWorld(sec *ini.Section, conf *TWorld) {
 			}
 		} else if "log_level" == name {
 			conf.LogLevel = key.MustString(conf.LogLevel)
+		} else if "log_stderr" == name {
+			conf.LogStderr = key.MustBool(conf.LogStderr)
 		} else if "shake_key" == name {
 			conf.ShakeKey = key.MustString(conf.ShakeKey)
 		} else if "acceptor" == name {

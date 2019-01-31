@@ -70,7 +70,7 @@ func (this *Application) Init() {
 	this.baseInfo.MainPath = dir
 
 	// 默认设置
-	defaultConfiguration(this)
+	defaultConfig(this)
 
 	// 改变为初始化状态
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {

@@ -5,19 +5,24 @@ package app
 
 import (
 	"flag"
+	"fmt"
 
 	"github.com/zpab123/world/config"    // 配置读取工具
 	"github.com/zpab123/world/connector" // connector 组件
 	"github.com/zpab123/world/network"   // 网络库
+	"github.com/zpab123/zaplog"          // log 库
 )
 
 // 完成 app 的默认设置
-func defaultConfiguration(app *Application) {
+func defaultConfig(app *Application) {
 	// 解析命令行参数
 	parseArgs(app)
 
 	// 获取服务器信息
 	getServerInfo(app)
+
+	// 设置 log 信息
+	configLogger()
 }
 
 // 解析 命令行参数
@@ -74,6 +79,26 @@ func getServerInfo(app *Application) {
 			break
 		}
 	}
+}
+
+// 设置 log 信息
+func configLogger(app *Application) {
+	// 模块名字
+	zaplog.SetSource(app.baseInfo.Name)
+
+	// 输出等级
+	lv := config.GetWorldConfig().LogLevel
+	zaplog.SetLevel(zaplog.ParseLevel(lv))
+
+	// 输出文件
+	logFile := fmt.Sprintf("%s.log", app.baseInfo.Name)
+	var outputs []string
+	stdErr := config.GetWorldConfig().LogStderr
+	if stdErr {
+		outputs = append(outputs, "stderr")
+	}
+	outputs = append(outputs, logFile)
+	zaplog.SetOutput(outputs)
 }
 
 // 设置默认组件

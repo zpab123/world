@@ -31,10 +31,11 @@ const (
 
 // World 引擎默认配置
 type TWorld struct {
-	Env      string // 当前运行环境，production=开发环境；development=运营环境
-	LogLevel string // log 输出等级
-	ShakeKey string // 握手密钥
-	Acceptor uint32 // 1=tcp 2=websocket 3=tcp+websocket 4= tcp+websocket
+	Env       string // 当前运行环境，production=开发环境；development=运营环境
+	LogLevel  string // log 输出等级
+	LogStderr bool   // 未知
+	ShakeKey  string // 握手密钥
+	Acceptor  uint32 // 1=tcp 2=websocket 3=tcp+websocket 4= tcp+websocket
 }
 
 // /////////////////////////////////////////////////////////////////////////////
