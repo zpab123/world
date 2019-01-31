@@ -23,6 +23,8 @@ var (
 	serverConfig     *TServerConfig     // server.json 配置表
 	serverConfigPath = C_PATH_SERVER    // servers.json 配置文件路径
 	serverMap        TServerMap         // servers.json 中// 服务器 type -> *[]ServerInfo 信息集合
+
+	worldConfig *TWorld = &TWorld{} // world 引擎配置信息
 )
 
 // 初始化
@@ -31,7 +33,7 @@ func init() {
 	mainPath = getMainPath()
 
 	// 读取 world.ini 配置
-	getWorldIni()
+	readWorldIni()
 
 	// 读取 server.json 配置
 	getServerConfig()
@@ -41,8 +43,8 @@ func init() {
 // 对外 api
 
 // 获取 world.ini 配置对象
-func GetWorldIni() *TWorldIni {
-	return iniConfig
+func GetWorldConfig() *TWorld {
+	return worldConfig
 }
 
 // 获取 servers.json 配置信息

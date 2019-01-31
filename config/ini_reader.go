@@ -4,10 +4,11 @@
 package config
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/go-ini/ini"    // ini 库
+	"github.com/go-ini/ini"     // ini 库
 	"github.com/zpab123/zaplog" // log 工具
 )
 
@@ -15,12 +16,7 @@ import (
 // 私有 api
 
 // 读取 world.ini 配置文件
-func readWorldIni() *TWorldIni {
-	// 创建 WorldIni 对象
-	config := &TWorldIni{
-		Env: C_ENV_DEV, // 默认开发环境
-	}
-
+func readWorldIni() {
 	// 读取配置文件
 	fPath := filepath.Join(mainPath, iniFilePath)
 	zaplog.Infof("读取 world.ini 配置文件，路径=%s", fPath)
@@ -36,16 +32,14 @@ func readWorldIni() *TWorldIni {
 		secName = strings.ToLower(secName) // 转化成小写
 
 		// 读取配置
-		if secName == "env" {
-			readEnv(sec, config) // 开发环境
+		if secName == "world" {
+			readWorld(sec, worldConfig) // world
 		} else if "network" == secName {
 			readNetwork(sec, config) // 握手信息配置
 		} else if "world" == secName {
 			//readWorld(sec, worldConfig) // world 服务器配置
 		}
 	}
-
-	return config
 }
 
 // 检查 ini 读取错误
@@ -54,26 +48,29 @@ func checkConfigError(err error, msg string) {
 		if msg == "" {
 			msg = err.Error()
 		}
-		zaplog.Fatalf("在读取 world.ini 中出现错误 error: %s", msg)
+
+		zaplog.Fatalf("读取 world.ini 出现错误。 err=%s", msg)
+
+		os.Exit(1)
 	}
 }
 
-// 读取 env 开发环境
-func readEnv(sec *ini.Section, config *TWorldIni) {
-	// 设置成默认
+// 读取 world 配置数据
+func readWorld(sec *ini.Section, config *TWorld) {
+	// 设置默认
 	config.Env = C_ENV_DEV
 
 	// 读取属性
 	for _, key := range sec.Keys() {
 		name := strings.ToLower(key.Name()) //转化成小写
-		if name == "env" {
+		if "env" == name {
 			config.Env = key.MustString(config.Env)
 			if config.Env != C_ENV_DEV && config.Env != C_ENV_PRO {
 				config.Env = C_ENV_DEV
-				zaplog.Fatal("world.ini 中 [env] 参数配置错误。设置成默认 development")
+				zaplog.Fatal("world.ini 中 [world]-env 参数配置错误。修改为 development")
 			}
-		} else {
-			zaplog.Fatal("读取 world.ini [env] 失败")
+		} else if "log_level" == name {
+			config.LogLevel = key.MustString(config.LogLevel)
 		}
 	}
 }

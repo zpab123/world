@@ -30,9 +30,9 @@ type IAppDelegate interface {
 
 // app 启动信息
 type TBaseInfo struct {
-	AppType  string    // 服务器类型
+	AppType  string    // App 类型
 	MainPath string    // main 程序所在路径
 	Env      string    // 运行环境 production= 开发环境 development = 运营环境
-	Name     string    // 服务器名字
+	Name     string    // App 名字
 	RunTime  time.Time // 启动时间
 }

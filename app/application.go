@@ -12,7 +12,7 @@ import (
 
 	"github.com/zpab123/world/config" // 配置文件库
 	"github.com/zpab123/world/state"  // 状态管理
-	"github.com/zpab123/zaplog"        // log 库
+	"github.com/zpab123/zaplog"       // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -24,10 +24,10 @@ import (
 // 1个通用服务器对象
 type Application struct {
 	stateMgr     *state.StateManager // 状态管理
-	componentMgr *ComponentManager   // app 组件管理
-	baseInfo     *TBaseInfo          // 服务器基础信息
-	serverInfo   *config.TServerInfo // 服务器配置信息
-	appDelegate  IAppDelegate        // app 代理对象
+	componentMgr *ComponentManager   // 组件管理
+	baseInfo     *TBaseInfo          // 基础信息
+	serverInfo   *config.TServerInfo // 配置信息
+	appDelegate  IAppDelegate        // 代理对象
 }
 
 // 创建1个新的 Application 对象
@@ -40,7 +40,7 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 	// 创建组件管理
 	cptMgr := NewComponentManager()
 
-	// 创建对象
+	// 创建 app
 	app := &Application{
 		stateMgr:     st,
 		componentMgr: cptMgr,
@@ -59,13 +59,13 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 }
 
 // 初始化 Application
-func (this *Application) Init() bool {
+func (this *Application) Init() {
 	// 获取主程序路径
 	dir, err := getMainPath()
 	if err != nil {
-		zaplog.Error("app Init 失败。读取根目录失败")
+		zaplog.Error("app Init 失败。读取 main 根目录失败")
 
-		return false
+		os.Exit(1)
 	}
 	this.baseInfo.MainPath = dir
 
@@ -76,12 +76,10 @@ func (this *Application) Init() bool {
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
 		zaplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
 
-		return false
+		os.Exit(1)
 	}
 
 	zaplog.Infof("app 状态：init完成 ...")
-
-	return true
 }
 
 // 启动 app
@@ -92,11 +90,11 @@ func (this *Application) Run() {
 	// 记录启动时间
 	this.baseInfo.RunTime = time.Now()
 
-	// 改变为启动中
+	// 改变状态为：启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
 		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
-		return
+		os.Exit(1) // 程序退出
 	} else {
 		zaplog.Infof("app 状态：正在启动中 ...")
 	}
@@ -167,7 +165,8 @@ func (this *Application) GetCWsAddr() string {
 func getMainPath() (string, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		zaplog.Warnf("获取 App 绝对路径失败")
+		zaplog.Error("获取 App 绝对路径失败")
+
 		return "", err
 	}
 	//strings.Replace(dir, "\\", "/", -1)
