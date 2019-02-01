@@ -7,7 +7,7 @@ import (
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/state"   // 状态管理
-	"github.com/zpab123/zaplog"         // 日志库
+	"github.com/zpab123/zaplog"        // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -122,13 +122,12 @@ func (this *FrontendSession) recvLoop() {
 
 		// 创建消息：后续使用对象池？
 		msg := &Message{
-			session: this,
-			packet:  pkt,
+			packet: pkt,
 		}
 
 		// 消息处理
 		if this.msgHandler != nil {
-			this.msgHandler.OnNewMessage(msg)
+			this.msgHandler.OnNewMessage(this, msg)
 		}
 	}
 }

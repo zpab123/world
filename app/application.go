@@ -110,6 +110,9 @@ func (this *Application) Run() {
 	// 结束信号侦听
 	// setupSignals()
 
+	// 启动 appDelegate
+	go this.appDelegate.Run()
+
 	// 改变为工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
 		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())

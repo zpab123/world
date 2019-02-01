@@ -29,7 +29,7 @@ type ISessionManage interface {
 
 // session 消息管理
 type IMsgHandler interface {
-	OnNewMessage(msg *Message) // 收到1个新的 message 消息
+	OnNewMessage(ses *FrontendSession, msg *Message) // 收到1个新的 message 消息
 }
 
 // /////////////////////////////////////////////////////////////////////////////

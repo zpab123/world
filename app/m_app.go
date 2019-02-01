@@ -23,6 +23,7 @@ const (
 // App 代理
 type IAppDelegate interface {
 	session.IMsgHandler // 接口继承： 客户端 packet 消息处理
+	Run()               // 启动 app 主循环
 }
 
 // /////////////////////////////////////////////////////////////////////////////
