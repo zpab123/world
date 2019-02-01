@@ -85,7 +85,7 @@ func getServerInfo(app *Application) {
 	}
 
 	if app.serverInfo == nil {
-		zaplog.Error("Application 获取 server.json 信息失败。 appName=%s", app.baseInfo.Name)
+		zaplog.Errorf("Application 获取 server.json 信息失败。 appName=%s", app.baseInfo.Name)
 
 		os.Exit(1)
 	}
