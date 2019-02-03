@@ -20,7 +20,7 @@ import (
 type WorldConnection struct {
 	stateMgr      *state.StateManager // 状态管理
 	heartbeat     int64               // 心跳间隔，单位：秒。0=不设置心跳
-	opts          *TWorldConnOpts     // 配置参数
+	option        *TWorldConnOpts     // 配置参数
 	packetSocket  *PacketSocket       // 接口继承： 符合 IPacketSocket 的对象
 	timeOut       int64               // 心跳超时时间，单位：秒
 	clientTimeOut int64               // 客户端心跳超时时间点，精确到秒
@@ -46,7 +46,7 @@ func NewWorldConnection(socket ISocket, opt *TWorldConnOpts) *WorldConnection {
 		stateMgr:     st,
 		packetSocket: pktSocket,
 		heartbeat:    opt.Heartbeat,
-		opts:         opt,
+		option:       opt,
 		timeOut:      opt.Heartbeat * 2,
 	}
 
@@ -178,8 +178,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	res := &msg.HandshakeRes{}
 
 	// 版本验证
-	key := config.GetWorldConfig().ShakeKey
-	if shakeInfo.Key != key {
+	if this.option.ShakeKey != "" && shakeInfo.Key != this.option.ShakeKey {
 		res.Code = msg.SHAKE_KEY_ERROR
 		body, err := proto.Marshal(res)
 		if nil != err {

@@ -4,7 +4,8 @@
 package world
 
 import (
-	"github.com/zpab123/world/app" // 1个通用服务器对象
+	"github.com/zpab123/world/app"    // 1个通用服务器对象
+	"github.com/zpab123/world/entity" // 实体库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -19,4 +20,11 @@ func CreateApp(appType string, appDelegate app.IAppDelegate) *app.Application {
 	app.Init()
 
 	return app
+}
+
+// 注册1个 space 类型实体
+//
+// spacePtr=符合 entity.ISpace 的指针对象
+func RegisterSpace(spacePtr entity.ISpace) {
+	entity.RegisterSpace(spacePtr)
 }

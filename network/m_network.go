@@ -127,8 +127,9 @@ func NewTBufferSocketOpts() *TBufferSocketOpts {
 
 // WorldConnection 配置参数
 type TWorldConnOpts struct {
-	BuffSocketOpts *TBufferSocketOpts // BufferSocket 配置参数
+	ShakeKey       string             // 握手key
 	Heartbeat      int64              // 心跳间隔，单位：秒。0=不设置心跳
+	BuffSocketOpts *TBufferSocketOpts // BufferSocket 配置参数
 }
 
 // 新建1个 WorldConnection 对象
@@ -137,8 +138,9 @@ func NewTWorldConnOpts() *TWorldConnOpts {
 	buffOpt := NewTBufferSocketOpts()
 
 	opt := &TWorldConnOpts{
-		BuffSocketOpts: buffOpt,
+		ShakeKey:       "",
 		Heartbeat:      0,
+		BuffSocketOpts: buffOpt,
 	}
 
 	return opt

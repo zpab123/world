@@ -5,6 +5,7 @@ package session
 
 import (
 	"github.com/zpab123/syncutil"      // 原子变量
+	"github.com/zpab123/world/config"  // 配置文件
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/state"   // 状态管理
 	"github.com/zpab123/zaplog"        // 日志库
@@ -33,6 +34,7 @@ func NewFrontendSession(socket network.ISocket, mgr ISessionManage, opt *TSessio
 	// 创建 WorldConnection
 	if nil == opt {
 		opt = NewTSessionOpts(nil)
+		opt.WorldConnOpts.ShakeKey = config.GetWorldConfig().ShakeKey
 	}
 	wc := network.NewWorldConnection(socket, opt.WorldConnOpts)
 
