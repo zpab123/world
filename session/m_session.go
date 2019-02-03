@@ -32,6 +32,11 @@ type IMsgHandler interface {
 	OnNewMessage(ses *FrontendSession, msg *Message) // 收到1个新的 message 消息
 }
 
+// session 消息管理
+type IServerMsgHandler interface {
+	OnServerMessage(ses *BackendSession, msg *Message) // 收到1个新的 message 消息
+}
+
 // /////////////////////////////////////////////////////////////////////////////
 // TSessionOpts 对象
 
@@ -57,5 +62,33 @@ func NewTSessionOpts(handler IMsgHandler) *TSessionOpts {
 
 // 检查 ConnectorConfig 参数是否存在错误
 func (this *TSessionOpts) Check() error {
+	return nil
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// TBackendSessionOpts 对象
+
+// BackendSession 配置参数
+type TBackendSessionOpts struct {
+	ServerMsgHandler IServerMsgHandler       // 消息处理对象
+	WorldConnOpts    *network.TWorldConnOpts // WorldConnection 配置参数
+}
+
+// 创建1个新的 TSessionOpts
+func NewTBackendSessionOpts(handler IServerMsgHandler) *TBackendSessionOpts {
+	// 创建 WorldConnection
+	wc := network.NewTWorldConnOpts()
+
+	// 创建 TSessionOpts
+	opts := &TSessionOpts{
+		ServerMsgHandler: handler,
+		WorldConnOpts:    wc,
+	}
+
+	return opts
+}
+
+// 检查 ConnectorConfig 参数是否存在错误
+func (this *TBackendSessionOpts) Check() error {
 	return nil
 }

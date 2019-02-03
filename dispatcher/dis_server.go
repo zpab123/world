@@ -51,8 +51,27 @@ func NewDispatcherServer(addr *network.TLaddr, opts *TDispatcherServerOpts) *Dis
 }
 
 // 启动 DispatcherServer
-func (this *DispatcherServer) Run() {
+func (this *DispatcherServer) Run() bool {
+	// 改变状态： 启动中
+	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
+		zaplog.Errorf("DispatcherServer 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+
+		return false
+	}
+
+	// 启动 acceptor
 	this.acceptor.Run()
+
+	// 改变状态： 工作中
+	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
+		zaplog.Errorf("DispatcherServer 组件启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+
+		return false
+	}
+
+	zaplog.Infof("DispatcherServer 组件启动成功")
+
+	return true
 }
 
 // 收到1个新的 Tcp 连接对象
@@ -85,5 +104,14 @@ func (this *DispatcherServer) OnNewTcpConn(conn net.Conn) {
 
 // 创建 session 对象
 func (this *DispatcherServer) createSession(netconn net.Conn) {
+	// 创建 socket
+	socket := &network.Socket{
+		Conn: netconn,
+	}
 
+	// 创建 session
+	ses := session.NewBackendSession(socket, this.sessionMgr, this.option.SessiobOpts)
+
+	// 启动 session
+	ses.Run()
 }

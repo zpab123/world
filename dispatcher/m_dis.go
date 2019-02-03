@@ -20,9 +20,9 @@ const (
 
 // DispatcherServer 组件配置参数
 type TDispatcherServerOpts struct {
-	MaxConn     uint32                // 最大连接数量，超过此数值后，不再接收新连接
-	TcpConnOpts *model.TTcpConnOpts   // tcpSocket 配置参数
-	SessiobOpts *session.TSessionOpts // session 配置参数
+	MaxConn     uint32                       // 最大连接数量，超过此数值后，不再接收新连接
+	TcpConnOpts *model.TTcpConnOpts          // tcpSocket 配置参数
+	SessiobOpts *session.TBackendSessionOpts // session 配置参数
 }
 
 // 创建1个新的 TDispatcherServerOpts
@@ -38,3 +38,6 @@ func NewTDispatcherServerOpts() *TDispatcherServerOpts {
 
 	return opt
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// TDispatcherServerOpts 对象
