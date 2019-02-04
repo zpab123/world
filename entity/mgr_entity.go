@@ -65,11 +65,11 @@ func RegisterEntity(typeName string, entity IEntity, isService bool) *EntityType
 // /////////////////////////////////////////////////////////////////////////////
 // 私有 api
 
-func createEntity(typeName string, entityID ids.EntityID) *Entity {
+func createEntity(typeName string, entityID ids.EntityID, space *Space, pos Vector3) *Entity {
 	// 注册效验
 	entityTypeDesc, ok := registeredEntityTypes[typeName]
 	if !ok {
-		zaplog.Panicf("创建未注册的实体，类型=%s", typeName)
+		zaplog.Panicf("实体创建失败：类型未注册。typeName=%s", typeName)
 	}
 
 	// ID 效验
@@ -81,8 +81,17 @@ func createEntity(typeName string, entityID ids.EntityID) *Entity {
 	var entity *Entity
 	var entityInstance reflect.Value
 
-	//
 	entityInstance = reflect.New(entityTypeDesc.entityType)
+	entity = reflect.Indirect(entityInstance).FieldByName("Entity").Addr().Interface().(*Entity)
+	entity.init(typeName, entityID, entityInstance)
+	entity.Space = nilSpace
+
+	entityManager.put(entity)
+
+	// 进入空间
+	if space != nil {
+		space.enter(entity, pos, false)
+	}
 
 	return entity
 }
