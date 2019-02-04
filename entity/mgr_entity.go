@@ -6,8 +6,8 @@ package entity
 import (
 	"reflect"
 
-	"github.com/zpab123/zplog"       // log 库
-	"github.com/zpab123/zpworld/ids" // id 库
+	"github.com/zpab123/world/ids" // id 库
+	"github.com/zpab123/zaplog"    // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ var (
 func RegisterEntity(typeName string, entity IEntity, isService bool) *EntityTypeDesc {
 	// 已经注册警告
 	if _, ok := registeredEntityTypes[typeName]; ok {
-		zplog.Fatalf("实体类型=%s，已经注册过", typeName)
+		zaplog.Fatalf("实体类型=%s，已经注册过", typeName)
 	}
 
 	// 类型推断
@@ -57,7 +57,7 @@ func RegisterEntity(typeName string, entity IEntity, isService bool) *EntityType
 	}
 
 	// 返回注册信息
-	zplog.Infof(">>> 注册实体 %s => %s <<<", typeName, entityType.Name())
+	zaplog.Infof(">>> 注册实体 %s => %s <<<", typeName, entityType.Name())
 	// entity.DescribeEntityType(entityTypeDesc)
 	return entityTypeDesc
 }
@@ -69,7 +69,7 @@ func createEntity(typeName string, entityID ids.EntityID) *Entity {
 	// 注册效验
 	entityTypeDesc, ok := registeredEntityTypes[typeName]
 	if !ok {
-		zplog.Panicf("创建未注册的实体，类型=%s", typeName)
+		zaplog.Panicf("创建未注册的实体，类型=%s", typeName)
 	}
 
 	// ID 效验
