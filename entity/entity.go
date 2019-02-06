@@ -26,7 +26,7 @@ type Entity struct {
 
 // String 接口
 func (this *Entity) String() string {
-	return fmt.Sprintf("%s<%s>", this.TypeName, this.ID)
+	return fmt.Sprintf("%s<%s>", this.TypeName, this.Id)
 }
 
 // 实体初始化的时候调用

@@ -65,6 +65,7 @@ func RegisterEntity(typeName string, entity IEntity, isService bool) *EntityType
 // /////////////////////////////////////////////////////////////////////////////
 // 私有 api
 
+// 创建1个 entity
 func createEntity(typeName string, entityID ids.EntityID, space *Space, pos Vector3) *Entity {
 	// 注册效验
 	entityTypeDesc, ok := registeredEntityTypes[typeName]
