@@ -40,9 +40,11 @@ func RegisterEntity(typeName string, entity IEntity, isService bool) *EntityType
 	// 创建描述文件
 	rpcDescs := rpcDescMap{} // 实体 rpc 方法集合
 	entityTypeDesc := &EntityTypeDesc{
-		isService: isService,
-		useAOI:    false,
-		rpcDescs:  rpcDescs,
+		isService:    isService,
+		isPersistent: false,
+		useAOI:       false,
+		entityType:   entityType,
+		rpcDescs:     rpcDescs,
 	}
 
 	// 保存描述文件
@@ -56,9 +58,11 @@ func RegisterEntity(typeName string, entity IEntity, isService bool) *EntityType
 		rpcDescs.visit(method)
 	}
 
-	// 返回注册信息
-	zaplog.Infof(">>> 注册实体 %s => %s <<<", typeName, entityType.Name())
-	// entity.DescribeEntityType(entityTypeDesc)
+	zaplog.Infof("实体注册成功。typeName=%s，entityType=%s", typeName, entityType.Name())
+
+	// 设置描述文件
+	entity.SetEntityTypeDesc(entityTypeDesc)
+
 	return entityTypeDesc
 }
 
@@ -147,15 +151,4 @@ func (em *_EntityManager) del(e *Entity) {
 // 根据ID 获取1个 Entity
 func (em *_EntityManager) get(id ids.EntityID) *Entity {
 	return em.entities.Get(id)
-}
-
-// /////////////////////////////////////////////////////////////////////////////
-// EntityTypeDesc 对象
-
-// 实体描述对象
-type EntityTypeDesc struct {
-	isService  bool         // 是否是服务类型实体
-	useAOI     bool         // 是否使用 AOI
-	rpcDescs   rpcDescMap   // 实体 rpc 方法集合
-	entityType reflect.Type // 反射
 }
