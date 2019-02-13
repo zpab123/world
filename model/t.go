@@ -96,3 +96,15 @@ func NewTTcpConnOpts() *TTcpConnOpts {
 
 	return tcpOpts
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// TBaseInfo 对象
+
+// server 启动信息
+type TBaseInfo struct {
+	Type     string    // server 类型
+	MainPath string    // main 程序所在路径
+	Env      string    // 运行环境 production= 开发环境 development = 运营环境
+	Name     string    // server 名字
+	RunTime  time.Time // 启动时间
+}

@@ -8,7 +8,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
+	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zaplog"      // log 库
 )
 
@@ -24,7 +26,14 @@ var (
 
 // 启动场景服务器
 func Run() {
+	// 初始化
+	if nil == scene {
+		scene = NewScene()
+	}
+	scene.Init()
 
+	// 启动
+	scene.Run()
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -33,6 +42,7 @@ func Run() {
 // 场景服务
 type Scene struct {
 	stateMgr *state.StateManager // 状态管理
+	baseInfo *model.TBaseInfo    // 服务器启动基本信息
 }
 
 // 新建1个 Scene 对象
@@ -43,16 +53,31 @@ func NewScene() *Scene {
 	// 创建 Scene
 	scene := &Scene{
 		stateMgr: st,
+		baseInfo: &model.TBaseInfo{},
 	}
 
-	scene.stateMgr.SetState(state.C_STATE_INIT)
+	// 设置类型
+	scene.baseInfo.Type = C_SERVER_TYPE
+
+	// 设置为无效状态
+	scene.stateMgr.SetState(state.C_STATE_INVALID)
 
 	return scene
 }
 
 // 场景初始化
 func (this *Scene) Init() {
+	// 获取主程序路径
+	dir, err := utils.GetMainPath()
+	if err != nil {
+		zaplog.Error("Scene Init 失败。读取 main 根目录失败")
 
+		os.Exit(1)
+	}
+	this.baseInfo.MainPath = dir
+
+	// 设置默认参数
+	defaultConfig(this)
 }
 
 // 启动 Scene
