@@ -5,8 +5,7 @@ package scene
 
 import (
 	"flag"
-
-	"github.com/zpab123/zaplog" // log 库
+	//"github.com/zpab123/zaplog" // log 库
 )
 
 // 完成 scene 的默认设置

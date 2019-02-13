@@ -6,11 +6,10 @@ package network
 import (
 	"time"
 
-	"github.com/gogo/protobuf/proto"  // protobuf 库
-	"github.com/zpab123/world/config" // 配置文件读取
-	"github.com/zpab123/world/msg"    // world 内部通信消息
-	"github.com/zpab123/world/state"  // 状态管理
-	"github.com/zpab123/zaplog"       // 日志库
+	"github.com/gogo/protobuf/proto" // protobuf 库
+	"github.com/zpab123/world/msg"   // world 内部通信消息
+	"github.com/zpab123/world/state" // 状态管理
+	"github.com/zpab123/zaplog"      // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////

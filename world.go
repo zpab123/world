@@ -6,6 +6,7 @@ package world
 import (
 	"github.com/zpab123/world/app"    // 1个通用服务器对象
 	"github.com/zpab123/world/entity" // 实体库
+	"github.com/zpab123/world/scene"  // 场景服务器
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +21,11 @@ func CreateApp(appType string, appDelegate app.IAppDelegate) *app.Application {
 	app.Init()
 
 	return app
+}
+
+// 启动场景服务器
+func RunScene() {
+	scene.Run()
 }
 
 // 注册1个 space 类型实体

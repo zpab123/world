@@ -6,7 +6,7 @@ package entity
 import (
 	"bytes"
 
-	"github.com/zpab123/zpworld/ids" // id 类库
+	"github.com/zpab123/world/ids" // id 类库
 )
 
 // /////////////////////////////////////////////////////////////////////////////

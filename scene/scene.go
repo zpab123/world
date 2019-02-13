@@ -18,7 +18,7 @@ import (
 // 包初始化
 
 var (
-	scene *Scene = NewScene() // Scene 实例
+	scene *Scene // Scene 实例
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -78,6 +78,15 @@ func (this *Scene) Init() {
 
 	// 设置默认参数
 	defaultConfig(this)
+
+	// 改变为初始化状态
+	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
+		zaplog.Errorf("Scene Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
+
+		os.Exit(1)
+	}
+
+	zaplog.Infof("app 状态：init完成 ...")
 }
 
 // 启动 Scene
