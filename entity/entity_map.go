@@ -17,7 +17,7 @@ type EntityMap map[ids.EntityID]*Entity
 
 // 添加1个 *Entity
 func (em EntityMap) Add(entity *Entity) {
-	em[entity.ID] = entity
+	em[entity.Id] = entity
 }
 
 // 删除1个 *Entity

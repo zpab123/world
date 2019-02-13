@@ -122,33 +122,33 @@ func newEntityManager() *_EntityManager {
 }
 
 // 添加1个 Entity
-func (em *_EntityManager) put(e *Entity) {
+func (this *_EntityManager) put(e *Entity) {
 	// 添加id 集合
-	em.entities.Add(e)
+	this.entities.Add(e)
 
 	// 添加类型集合
 	etype := e.TypeName
-	eid := e.ID
-	if entitys, ok := em.typeMap[etype]; ok {
+	eid := e.Id
+	if entitys, ok := this.typeMap[etype]; ok {
 		entitys.Add(e)
 	} else {
-		em.typeMap[etype] = EntityMap{eid: entity}
+		this.typeMap[etype] = EntityMap{eid: e}
 	}
 }
 
 // 删除1个 Entity
-func (em *_EntityManager) del(e *Entity) {
+func (this *_EntityManager) del(e *Entity) {
 	// 删除 id 集合
-	eid := e.ID
-	em.entities.Del(eid)
+	eid := e.Id
+	this.entities.Del(eid)
 
 	// 删除类型集合
-	if entitys, ok := em.typeMap[e.TypeName]; ok {
+	if entitys, ok := this.typeMap[e.TypeName]; ok {
 		entitys.Del(eid)
 	}
 }
 
 // 根据ID 获取1个 Entity
-func (em *_EntityManager) get(id ids.EntityID) *Entity {
-	return em.entities.Get(id)
+func (this *_EntityManager) get(id ids.EntityID) *Entity {
+	return this.entities.Get(id)
 }

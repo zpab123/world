@@ -4,8 +4,6 @@
 package connector
 
 import (
-	"time"
-
 	"github.com/zpab123/world/model"   // 全局模型
 	"github.com/zpab123/world/network" // 网络模型
 	"github.com/zpab123/world/session" // session 库

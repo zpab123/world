@@ -48,3 +48,9 @@ type ISpace interface {
 	OnEntityLeave()  // 当某个 entity 离开的时候调用
 	OnGameReady()    // 仅仅被 nil space 调用
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// Yaw
+
+// Yaw is the type of entity Yaw
+type Yaw float32

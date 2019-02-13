@@ -19,10 +19,10 @@ var (
 
 // space 类实体
 type Space struct {
-	Entity                // 继承 Entity 对象
-	Kind   int            // space 种类
-	I      ISpace         // 未知
-	aoiMgr aoi.AOIManager // aoi 管理
+	Entity                 // 继承 Entity 对象
+	Kind   int             // space 种类
+	Self   ISpace          // 未知
+	aoiMgr aoi.IAoiManager // aoi 管理
 }
 
 // 当 space 初始化的时候调用

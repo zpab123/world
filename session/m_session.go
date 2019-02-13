@@ -80,7 +80,7 @@ func NewTBackendSessionOpts(handler IServerMsgHandler) *TBackendSessionOpts {
 	wc := network.NewTWorldConnOpts()
 
 	// 创建 TSessionOpts
-	opts := &TSessionOpts{
+	opts := &TBackendSessionOpts{
 		ServerMsgHandler: handler,
 		WorldConnOpts:    wc,
 	}
