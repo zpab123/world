@@ -7,7 +7,7 @@ package db
 // 包初始化
 
 var (
-	dataBaseEngine IEntityStorage // 数据库引擎
+	dbEngine IEntityStorage // 数据库引擎
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,10 @@ var (
 
 // 启动数据库
 func Run() {
+	// 创建引擎
+	createEngine()
 
+	go mainLoop()
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -23,8 +26,13 @@ func Run() {
 
 // 创建引擎
 func createEngine() error {
-	if nil == dataBaseEngine {
+	if nil == dbEngine {
 		return nil
 	}
+
+}
+
+// 主循环
+func mainLoop() {
 
 }

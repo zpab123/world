@@ -7,5 +7,5 @@ package db
 // 接口
 
 // 实体信息读/写接口
-type IEntityStorage interface {
+type IEntityDB interface {
 }

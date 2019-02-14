@@ -38,6 +38,12 @@ type TWorld struct {
 	Acceptor  uint32 // 1=tcp 2=websocket 3=tcp+websocket 4= tcp+websocket
 }
 
+// 数据库配置
+type TD struct {
+	Type string // 数据库类型
+	Url  string // 数据库地址
+}
+
 // /////////////////////////////////////////////////////////////////////////////
 // servers.json 配置文件
 
