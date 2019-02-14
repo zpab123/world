@@ -119,6 +119,8 @@ func (this *Scene) Run() {
 		go cpt.Run()
 	}
 
+	// 消息分发
+
 	// 改变为工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
 		zaplog.Errorf("Scene 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
