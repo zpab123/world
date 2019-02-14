@@ -5,7 +5,11 @@ package scene
 
 import (
 	"flag"
-	//"github.com/zpab123/zaplog" // log 库
+	"fmt"
+	"os"
+
+	"github.com/zpab123/world/config" // 配置工具库
+	"github.com/zpab123/zaplog"       // log 库
 )
 
 // 完成 scene 的默认设置
@@ -55,10 +59,51 @@ func parseArgs(scene *Scene) {
 
 // 获取服务器信息
 func getServerInfo(scene *Scene) {
+	// 获取服务器类型
+	serverType := scene.baseInfo.Type
 
+	// 获取服务器名字
+	name := scene.baseInfo.Name
+
+	// 获取类型列表
+	list := config.GetServerMap()[serverType]
+	if nil == list || len(list) <= 0 {
+		zaplog.Error("Scene 获取 serverType 信息失败。 serverType=%s", serverType)
+
+		os.Exit(1)
+	}
+
+	// 获取服务器信息
+	for _, info := range list {
+		if info.Name == name {
+			scene.serverInfo = info
+			break
+		}
+	}
+
+	if scene.serverInfo == nil {
+		zaplog.Errorf("Scene 获取 server.json 信息失败。 serverName=%s", scene.baseInfo.Name)
+
+		os.Exit(1)
+	}
 }
 
 // 设置 log 信息
 func configLogger(scene *Scene) {
+	// 模块名字
+	zaplog.SetSource(scene.baseInfo.Name)
 
+	// 输出等级
+	lv := config.GetWorldConfig().LogLevel
+	zaplog.SetLevel(zaplog.ParseLevel(lv))
+
+	// 输出文件
+	logFile := fmt.Sprintf("%s.log", scene.baseInfo.Name)
+	var outputs []string
+	stdErr := config.GetWorldConfig().LogStderr
+	if stdErr {
+		outputs = append(outputs, "stderr")
+	}
+	outputs = append(outputs, logFile)
+	zaplog.SetOutput(outputs)
 }
