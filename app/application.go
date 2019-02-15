@@ -162,6 +162,11 @@ func (this *Application) GetCWsAddr() string {
 	return cWsAddr
 }
 
+// 获取服务器信息
+func (this *Application) GetServerInfo() *config.TServerInfo {
+	return this.serverInfo
+}
+
 // 获取组件管理对象
 func (this *Application) GetComponentMgr() *ComponentManager {
 	return this.componentMgr

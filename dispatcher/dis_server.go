@@ -11,6 +11,9 @@ import (
 	"github.com/zpab123/world/state"   // 状态管理
 )
 
+// /////////////////////////////////////////////////////////////////////////////
+// DispatcherServer
+
 // 分发服务
 type DispatcherServer struct {
 	name       string                  // 组件名字
@@ -78,6 +81,10 @@ func (this *DispatcherServer) Run() bool {
 
 	zaplog.Infof("DispatcherServer 组件启动成功")
 
+	return true
+}
+
+func (this *DispatcherServer) Stop() bool {
 	return true
 }
 

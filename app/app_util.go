@@ -152,22 +152,30 @@ func newConnector(app *Application) {
 	// 创建 Connector
 	contor := connector.NewConnector(laddr, opts)
 
-	// 注册组件
+	// 添加组件
 	app.componentMgr.AddComponent(contor)
 }
 
 // 创建分发服务器
 func newDispatcherServer(app *Application) {
 	// 地址参数
+	serverInfo := app.GetServerInfo()
+	tcpAddr := fmt.Sprintf("%s:%d", serverInfo.Host, serverInfo.Port)
 	laddr := &network.TLaddr{
-		//TcpAddr: app.ge
+		TcpAddr: tcpAddr,
 	}
 
-	//
+	// 配置参数
 	opt := app.componentMgr.GetDisServerOpt()
 	if nil == opt {
 		opt = getDefaultDispatcherServerOpt(app)
 	}
+
+	// 创建 DispatcherServer
+	dis := dispatcher.NewDispatcherServer(laddr, opt)
+
+	// 添加组件
+	app.componentMgr.AddComponent(dis)
 }
 
 // 获取默认 ConnectorOpt
