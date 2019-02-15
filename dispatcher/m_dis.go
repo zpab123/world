@@ -12,28 +12,31 @@ import (
 // 常量
 
 const (
-	MAX_CONN = 10000 // DispatcherServer 默认最大连接数
+	MAX_CONN              = 10000              // DispatcherServer 默认最大连接数
+	COMPONENT_NAME_SERVER = "dispatcherServer" // 服务器组件名字
+	COMPONENT_NAME_CLIENT = "dispatcherClient" // 客户端组件名字
 )
 
 // /////////////////////////////////////////////////////////////////////////////
-// TDispatcherServerOpts 对象
+// TDispatcherServerOpt 对象
 
 // DispatcherServer 组件配置参数
-type TDispatcherServerOpts struct {
+type TDispatcherServerOpt struct {
 	MaxConn     uint32                       // 最大连接数量，超过此数值后，不再接收新连接
-	TcpConnOpts *model.TTcpConnOpts          // tcpSocket 配置参数
-	SessiobOpts *session.TBackendSessionOpts // session 配置参数
+	TcpConnOpts *model.TTcpConnOpt           // tcpSocket 配置参数
+	SessionOpts *session.TBackendSessionOpts // session 配置参数
 }
 
 // 创建1个新的 TDispatcherServerOpts
-func NewTDispatcherServerOpts() *TDispatcherServerOpts {
-	// 创建 tcp 配置参数
-	tcpOpts := model.NewTTcpConnOpts()
+func NewTDispatcherServerOpt() *TDispatcherServerOpt {
+	//
+	tcpOpt := model.NewTTcpConnOpt()
+	bsOpt := session.NewTBackendSessionOpt()
 
-	// 创建对象
 	opt := TDispatcherServerOpts{
 		MaxConn:     MAX_CONN,
-		TcpConnOpts: tcpOpts,
+		TcpConnOpts: tcpOpt,
+		SessionOpts: bsOpt,
 	}
 
 	return opt

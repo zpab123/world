@@ -162,14 +162,9 @@ func (this *Application) GetCWsAddr() string {
 	return cWsAddr
 }
 
-// 设置 connector 组件参数
-func (this *Application) SetConnectorOpt(opts *connector.TConnectorOpt) {
-	this.componentMgr.SetConnectorOpt(opts)
-}
-
-// 获取 connector 组件参数
-func (this *Application) GetConnectorOpt() *connector.TConnectorOpt {
-	return this.componentMgr.GetConnectorOpt()
+// 获取组件管理对象
+func (this *Application) GetComponentMgr() *ComponentManager {
+	return this.componentMgr
 }
 
 // /////////////////////////////////////////////////////////////////////////////

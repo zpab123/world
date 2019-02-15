@@ -66,21 +66,21 @@ func (this *TSessionOpts) Check() error {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TBackendSessionOpts 对象
+// TBackendSessionOpt 对象
 
 // BackendSession 配置参数
-type TBackendSessionOpts struct {
+type TBackendSessionOpt struct {
 	ServerMsgHandler IServerMsgHandler       // 消息处理对象
 	WorldConnOpts    *network.TWorldConnOpts // WorldConnection 配置参数
 }
 
 // 创建1个新的 TSessionOpts
-func NewTBackendSessionOpts(handler IServerMsgHandler) *TBackendSessionOpts {
+func NewTBackendSessionOpt(handler IServerMsgHandler) *TBackendSessionOpt {
 	// 创建 WorldConnection
 	wc := network.NewTWorldConnOpts()
 
 	// 创建 TSessionOpts
-	opts := &TBackendSessionOpts{
+	opts := &TBackendSessionOpt{
 		ServerMsgHandler: handler,
 		WorldConnOpts:    wc,
 	}
@@ -89,6 +89,6 @@ func NewTBackendSessionOpts(handler IServerMsgHandler) *TBackendSessionOpts {
 }
 
 // 检查 ConnectorConfig 参数是否存在错误
-func (this *TBackendSessionOpts) Check() error {
+func (this *TBackendSessionOpt) Check() error {
 	return nil
 }

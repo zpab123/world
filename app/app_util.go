@@ -121,7 +121,8 @@ func createComponent(app *Application) {
 		// 创建1个 Connector 组件
 		newConnector(app)
 
-		// 注册 session 组件
+		// 创建分发服务器
+		newDispatcherServer(app)
 	}
 
 	// 注册 backendSession 组件
@@ -133,7 +134,7 @@ func createComponent(app *Application) {
 	// 注册 monitor 组件
 }
 
-// 设置 Connector 组件
+// 创建 Connector 组件
 func newConnector(app *Application) {
 	// 地址参数
 	laddr := &network.TLaddr{
@@ -151,7 +152,12 @@ func newConnector(app *Application) {
 	contor := connector.NewConnector(laddr, opts)
 
 	// 注册组件
-	app.componentMgr.RegisterComponent(contor)
+	app.componentMgr.AddComponent(contor)
+}
+
+// 创建分发服务器
+func newDispatcherServer(app *Application) {
+
 }
 
 // 获取默认 ConnectorOpt
