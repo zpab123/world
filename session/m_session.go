@@ -27,14 +27,14 @@ type ISessionManage interface {
 	OnSessionClose(ses ISession) // 某个 session 关闭
 }
 
-// session 消息管理
-type IMsgHandler interface {
-	OnNewMessage(ses *FrontendSession, msg *Message) // 收到1个新的 message 消息
+// 客户端消息管理
+type IClientMsgHandler interface {
+	OnClientMessage(ses *FrontendSession, msg *Message) // 收到1个新的客户端消息
 }
 
-// session 消息管理
+// 服务端消息管理
 type IServerMsgHandler interface {
-	OnServerMessage(ses *BackendSession, msg *Message) // 收到1个新的 message 消息
+	OnServerMessage(ses *BackendSession, msg *Message) // 收到1个新的服务器消息
 }
 
 // /////////////////////////////////////////////////////////////////////////////

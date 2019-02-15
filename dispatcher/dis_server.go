@@ -13,8 +13,9 @@ import (
 
 // 分发服务
 type DispatcherServer struct {
+	name       string                  // 组件名字
 	maxConn    uint32                  // 最大连接数量，超过此数值后，不再接收新连接
-	option     *TDispatcherServerOpts  // 配置参数
+	option     *TDispatcherServerOpt   // 配置参数
 	connNum    syncutil.AtomicUint32   // 当前连接数
 	acceptor   *network.TcpAcceptor    // tcp 连接器
 	stateMgr   *state.StateManager     // 状态管理
@@ -22,7 +23,7 @@ type DispatcherServer struct {
 }
 
 // 新建1个分发服务
-func NewDispatcherServer(addr *network.TLaddr, opts *TDispatcherServerOpts) *DispatcherServer {
+func NewDispatcherServer(addr *network.TLaddr, opt *TDispatcherServerOpt) *DispatcherServer {
 	// 参数效验
 	if nil == opts {
 		opts = NewTDispatcherServerOpts()
@@ -34,8 +35,9 @@ func NewDispatcherServer(addr *network.TLaddr, opts *TDispatcherServerOpts) *Dis
 
 	// 创建 DispatcherServer
 	ds := &DispatcherServer{
-		maxConn:    opts.MaxConn,
-		option:     opts,
+		name:       C_COMPONENT_NAME_SERVER,
+		maxConn:    opt.MaxConn,
+		option:     opt,
 		stateMgr:   sm,
 		sessionMgr: sesMgr,
 	}
@@ -48,6 +50,11 @@ func NewDispatcherServer(addr *network.TLaddr, opts *TDispatcherServerOpts) *Dis
 	ds.stateMgr.SetState(state.C_STATE_INIT)
 
 	return ds
+}
+
+// 获取组件名字
+func (this *DispatcherServer) Name() string {
+	return this.name
 }
 
 // 启动 DispatcherServer
@@ -94,9 +101,9 @@ func (this *DispatcherServer) OnNewTcpConn(conn net.Conn) {
 	zaplog.Debugf("DispatcherServer 收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
 
 	// 配置 iO 参数
-	tcpConn.SetReadBuffer(this.option.TcpConnOpts.ReadBufferSize)
-	tcpConn.SetWriteBuffer(this.option.TcpConnOpts.WriteBufferSize)
-	tcpConn.SetNoDelay(this.option.TcpConnOpts.NoDelay)
+	tcpConn.SetReadBuffer(this.option.TcpConnOpt.ReadBufferSize)
+	tcpConn.SetWriteBuffer(this.option.TcpConnOpt.WriteBufferSize)
+	tcpConn.SetNoDelay(this.option.TcpConnOpt.NoDelay)
 
 	// 创建服务器 session
 	this.createSession(conn)
@@ -110,7 +117,7 @@ func (this *DispatcherServer) createSession(netconn net.Conn) {
 	}
 
 	// 创建 session
-	ses := session.NewBackendSession(socket, this.sessionMgr, this.option.SessiobOpts)
+	ses := session.NewBackendSession(socket, this.sessionMgr, this.option.SessiobOpt)
 
 	// 启动 session
 	ses.Run()

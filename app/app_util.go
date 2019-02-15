@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zpab123/world/config"    // 配置读取工具
-	"github.com/zpab123/world/connector" // connector 组件
-	"github.com/zpab123/world/network"   // 网络库
-	"github.com/zpab123/zaplog"          // log 库
+	"github.com/zpab123/world/config"     // 配置读取工具
+	"github.com/zpab123/world/connector"  // connector 组件
+	"github.com/zpab123/world/dispatcher" // dispatcher 组件
+	"github.com/zpab123/world/network"    // 网络库
+	"github.com/zpab123/zaplog"           // log 库
 )
 
 // 完成 app 的默认设置
@@ -157,7 +158,16 @@ func newConnector(app *Application) {
 
 // 创建分发服务器
 func newDispatcherServer(app *Application) {
+	// 地址参数
+	laddr := &network.TLaddr{
+		//TcpAddr: app.ge
+	}
 
+	//
+	opt := app.componentMgr.GetDisServerOpt()
+	if nil == opt {
+		opt = getDefaultDispatcherServerOpt(app)
+	}
 }
 
 // 获取默认 ConnectorOpt
@@ -166,4 +176,11 @@ func getDefaultConnectorOpt(app *Application) *connector.TConnectorOpt {
 	opts := connector.NewTConnectorOpt(app.appDelegate)
 
 	return opts
+}
+
+// 获取默认 DispatcherServerOpt
+func getDefaultDispatcherServerOpt(app *Application) *dispatcher.TDispatcherServerOpt {
+	opt := dispatcher.NewTDispatcherServerOpt(app.appDelegate)
+
+	return opt
 }
