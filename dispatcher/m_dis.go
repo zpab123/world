@@ -42,3 +42,24 @@ func NewTDispatcherServerOpt(handler session.IServerMsgHandler) *TDispatcherServ
 
 	return opt
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// TDispatcherClientOpt 对象
+
+// DispatcherServer 组件配置参数
+type TDispatcherClientOpt struct {
+	TcpConnOpt *model.TTcpConnOpt // tcpSocket 配置参数
+}
+
+// 创建1个新的 TDispatcherServerOpts
+func NewTDispatcherClientOpt(handler session.IServerMsgHandler) *TDispatcherClientOpt {
+	// 创建组合对象
+	tcpOpt := model.NewTTcpConnOpt()
+
+	// 创建对象
+	opt := TDispatcherClientOpt{
+		TcpConnOpt: tcpOpt,
+	}
+
+	return opt
+}
