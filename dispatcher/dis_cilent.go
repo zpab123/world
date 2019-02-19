@@ -21,7 +21,6 @@ type DispatcherClient struct {
 	option      *TDispatcherClientOpt   // 配置参数
 	gateServers []*config.TServerInfo   // gate 服务器配置信息
 	sessionMgr  *session.SessionManager // session 管理对象
-	//connMgrs    []*DispatcherConnMgr    // 连接管理
 }
 
 // 新建1个 DispatcherClient
@@ -41,19 +40,6 @@ func NewDispatcherClient(opt *TDispatcherClientOpt) *DispatcherClient {
 	if 0 == gateNum {
 		zaplog.Fatal("创建 DispatcherClient 出现异常。gate 服务器参数获取失败")
 	}
-
-	/*
-		mgrs := make([]*DispatcherConnMgr, gateNum)
-		if gateNum > 0 {
-			for index, gate := range gates {
-				host := gate.Host
-				port := gate.Port
-				addr := fmt.Sprintf("%s:%d", host, port)
-
-				//mgrs[index] = NewDispatcherConnMgr(addr, sesMgr, opt)
-			}
-		}
-	*/
 
 	// 创建 DispatcherClient
 	dc := &DispatcherClient{

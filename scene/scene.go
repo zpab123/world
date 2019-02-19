@@ -64,7 +64,7 @@ func NewScene() *Scene {
 	}
 
 	// 设置类型
-	scene.baseInfo.Type = C_SERVER_TYPE
+	scene.baseInfo.Type = model.C_SERVER_TYPE_SCENE
 
 	// 设置为无效状态
 	scene.stateMgr.SetState(state.C_STATE_INVALID)
@@ -87,7 +87,7 @@ func (this *Scene) Init() {
 	defaultConfig(this)
 
 	// 创建组件
-	//createComponent(this)
+	createComponent(this)
 
 	// 改变为初始化状态
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {

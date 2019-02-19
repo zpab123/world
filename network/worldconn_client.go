@@ -71,7 +71,7 @@ func (this *WorldConnClient) connectByTcp() error {
 
 	this.tcpConn = tcpConn
 
-	zaplog.Debugf("WorldConnClient 连接服务器成功。ip=%s", this.addr)
+	zaplog.Debugf("WorldConnClient 连接服务器成功。服务器 ip=%s", this.addr)
 
 	return nil
 }

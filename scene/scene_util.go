@@ -9,7 +9,8 @@ import (
 	"os"
 
 	"github.com/zpab123/world/config" // 配置工具库
-	"github.com/zpab123/zaplog"       // log 库
+	//"github.com/zpab123/world/dispatcher" // 消息分发库
+	"github.com/zpab123/zaplog" // log 库
 )
 
 // 完成 scene 的默认设置
@@ -106,4 +107,18 @@ func configLogger(scene *Scene) {
 	}
 	outputs = append(outputs, logFile)
 	zaplog.SetOutput(outputs)
+}
+
+// 创建默认组件
+func createComponent(scene *Scene) {
+	// 创建分发客户端
+
+}
+
+// 创建分发服务器
+func newDispatcherClient(scene *Scene) {
+	// 配置参数
+	//opt := scene.componentMgr.
+
+	//dc := dispatcher.NewDispatcherClient()
 }

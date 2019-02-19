@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -71,9 +70,6 @@ func (this *Application) Init() {
 	// 默认设置
 	defaultConfig(this)
 
-	// 创建组件
-	createComponent(this)
-
 	// 改变为初始化状态
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
 		zaplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
@@ -91,6 +87,9 @@ func (this *Application) Run() {
 
 	// 记录启动时间
 	this.baseInfo.RunTime = time.Now()
+
+	// 创建组件
+	createComponent(this)
 
 	// 改变状态为：启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
@@ -133,32 +132,6 @@ func (this *Application) Stop() error {
 	}
 
 	return nil
-}
-
-// 获取 tcp 服务器监听地址(格式 -> 127.0.0.1:6532)
-//
-// 如果不存在，则返回 ""
-func (this *Application) GetCTcpAddr() string {
-	// tcp 地址
-	var cTcpAddr string = ""
-	if this.serverInfo.CTcpPort > 0 {
-		cTcpAddr = fmt.Sprintf("%s:%d", this.serverInfo.ClientHost, this.serverInfo.CTcpPort) // 面向客户端的 tcp 地址
-	}
-
-	return cTcpAddr
-}
-
-// 获取 websocket 服务器监听地址(格式 -> 127.0.0.1:6532)
-//
-// 如果不存在，则返回 ""
-func (this *Application) GetCWsAddr() string {
-	// websocket 地址
-	var cWsAddr string = ""
-	if this.serverInfo.CWsPort > 0 {
-		cWsAddr = fmt.Sprintf("%s:%d", this.serverInfo.ClientHost, this.serverInfo.CWsPort) // 面向客户端的 websocket 地址
-	}
-
-	return cWsAddr
 }
 
 // 获取服务器信息

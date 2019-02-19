@@ -137,10 +137,22 @@ func createComponent(app *Application) {
 
 // 创建 Connector 组件
 func newConnector(app *Application) {
-	// 地址参数
+	// 获取地址信息
+	serverInfo := app.GetServerInfo()
+
+	var cTcpAddr string = ""
+	if serverInfo.CTcpPort > 0 {
+		cTcpAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CTcpPort) // 面向客户端的 tcp 地址
+	}
+
+	var cWsAddr string = ""
+	if serverInfo.CWsPort > 0 {
+		cWsAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CWsPort) // 面向客户端的 websocket 地址
+	}
+
 	laddr := &network.TLaddr{
-		TcpAddr: app.GetCTcpAddr(),
-		WsAddr:  app.GetCWsAddr(),
+		TcpAddr: cTcpAddr,
+		WsAddr:  cWsAddr,
 	}
 
 	// connector 参数

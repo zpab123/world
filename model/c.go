@@ -5,7 +5,8 @@ package model
 
 // 服务器类型
 const (
-	C_SERVER_TYPE_GATE = "gate" // gate 服务器
+	C_SERVER_TYPE_GATE  = "gate"  // gate 服务器
+	C_SERVER_TYPE_SCENE = "scene" // scene 服务器
 )
 
 // tcp socket 默认参数
