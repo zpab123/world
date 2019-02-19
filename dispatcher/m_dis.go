@@ -5,6 +5,7 @@ package dispatcher
 
 import (
 	"github.com/zpab123/world/model"   // 全局模型
+	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/session" // session 库
 )
 
@@ -48,17 +49,20 @@ func NewTDispatcherServerOpt(handler session.IServerMsgHandler) *TDispatcherServ
 
 // DispatcherServer 组件配置参数
 type TDispatcherClientOpt struct {
-	TcpConnOpt *model.TTcpConnOpt // tcpSocket 配置参数
+	TcpConnOpt    *model.TTcpConnOpt      // tcpSocket 配置参数
+	WorldConnOpts *network.TWorldConnOpts // WorldConnection 配置参数
 }
 
 // 创建1个新的 TDispatcherServerOpts
-func NewTDispatcherClientOpt(handler session.IServerMsgHandler) *TDispatcherClientOpt {
+func NewTDispatcherClientOpt() *TDispatcherClientOpt {
 	// 创建组合对象
 	tcpOpt := model.NewTTcpConnOpt()
+	wcOpt := network.NewTWorldConnOpts()
 
 	// 创建对象
 	opt := TDispatcherClientOpt{
-		TcpConnOpt: tcpOpt,
+		TcpConnOpt:    tcpOpt,
+		WorldConnOpts: wcOpt,
 	}
 
 	return opt
