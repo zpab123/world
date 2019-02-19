@@ -6,11 +6,11 @@ package app
 import (
 	"math/rand"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/zpab123/world/config" // 配置文件库
 	"github.com/zpab123/world/state"  // 状态管理
+	"github.com/zpab123/world/utils"  // 工具库
 	"github.com/zpab123/zaplog"       // log 库
 )
 
@@ -22,9 +22,9 @@ import (
 
 // 1个通用服务器对象
 type Application struct {
+	baseInfo     *TBaseInfo          // 基础信息
 	stateMgr     *state.StateManager // 状态管理
 	componentMgr *ComponentManager   // 组件管理
-	baseInfo     *TBaseInfo          // 基础信息
 	serverInfo   *config.TServerInfo // 配置信息
 	appDelegate  IAppDelegate        // 代理对象
 }
@@ -33,17 +33,16 @@ type Application struct {
 //
 // appType=server.json 中配置的类型
 func NewApplication(appType string, delegate IAppDelegate) *Application {
-	// 创建状态管理
+	// 创建对象
+	base := &TBaseInfo{}
 	st := state.NewStateManager()
-
-	// 创建组件管理
 	cptMgr := NewComponentManager()
 
 	// 创建 app
 	app := &Application{
+		baseInfo:     base,
 		stateMgr:     st,
 		componentMgr: cptMgr,
-		baseInfo:     &TBaseInfo{},
 		appDelegate:  delegate,
 	}
 
@@ -59,9 +58,9 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 // 初始化 Application
 func (this *Application) Init() {
 	// 获取主程序路径
-	dir, err := getMainPath()
+	dir, err := utils.GetMainPath()
 	if err != nil {
-		zaplog.Error("app Init 失败。读取 main 根目录失败")
+		zaplog.Fatal("app Init 失败。读取 main 根目录失败")
 
 		os.Exit(1)
 	}
@@ -72,12 +71,12 @@ func (this *Application) Init() {
 
 	// 改变为初始化状态
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
-		zaplog.Errorf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
+		zaplog.Fatalf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
 
 		os.Exit(1)
 	}
 
-	zaplog.Infof("app 状态：init完成 ...")
+	zaplog.Debugf("app 状态：init完成 ...")
 }
 
 // 启动 app
@@ -93,7 +92,7 @@ func (this *Application) Run() {
 
 	// 改变状态为：启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+		zaplog.Fatalf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
 		os.Exit(1)
 	} else {
@@ -142,19 +141,4 @@ func (this *Application) GetServerInfo() *config.TServerInfo {
 // 获取组件管理对象
 func (this *Application) GetComponentMgr() *ComponentManager {
 	return this.componentMgr
-}
-
-// /////////////////////////////////////////////////////////////////////////////
-// 包私有 api
-
-// 获取 当前 Application 运行的绝对路径 例如：E:\code\go\go-project\src\test
-func getMainPath() (string, error) {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		zaplog.Error("获取 App 绝对路径失败")
-
-		return "", err
-	}
-	//strings.Replace(dir, "\\", "/", -1)
-	return dir, nil
 }

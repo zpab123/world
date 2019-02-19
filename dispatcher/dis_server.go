@@ -12,6 +12,7 @@ import (
 	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/world/state"   // 状态管理
 	"github.com/zpab123/zaplog"        // log 库
+	"golang.org/x/net/websocket"       // websocket 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -23,9 +24,9 @@ type DispatcherServer struct {
 	maxConn    uint32                  // 最大连接数量，超过此数值后，不再接收新连接
 	option     *TDispatcherServerOpt   // 配置参数
 	connNum    syncutil.AtomicUint32   // 当前连接数
-	acceptor   *network.TcpAcceptor    // tcp 连接器
 	stateMgr   *state.StateManager     // 状态管理
 	sessionMgr *session.SessionManager // session 管理对象
+	acceptor   network.IAcceptor       // 网络连接器
 }
 
 // 新建1个分发服务
@@ -49,10 +50,11 @@ func NewDispatcherServer(addr *network.TLaddr, opt *TDispatcherServerOpt) model.
 	}
 
 	// 创建 acceptor
-	acpor := network.NewTcpAcceptor(addr, ds)
-	tcpAcceptor, ok := acpor.(*network.TcpAcceptor)
-	if ok {
-		ds.acceptor = tcpAcceptor
+	acpor := network.NewAcceptor(ds.option.AcceptorName, addr, ds)
+	if nil == acpor {
+		zaplog.Error("DispatcherServer 组件创建失败。原因：acceptor=nil")
+	} else {
+		ds.acceptor = acpor
 	}
 
 	// 设置为初始状态
@@ -76,7 +78,13 @@ func (this *DispatcherServer) Run() bool {
 	}
 
 	// 启动 acceptor
-	this.acceptor.Run()
+	if nil != this.acceptor {
+		this.acceptor.Run()
+	} else {
+		zaplog.Error("DispatcherServer 组件启动失败。原因：acceptor=nil")
+
+		return false
+	}
 
 	// 改变状态： 工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
@@ -120,6 +128,11 @@ func (this *DispatcherServer) OnNewTcpConn(conn net.Conn) {
 
 	// 创建服务器 session
 	this.createSession(conn)
+}
+
+// 收到1个新的 websocket 连接对象
+func (this *DispatcherServer) OnNewWsConn(wsconn *websocket.Conn) {
+
 }
 
 // 创建 session 对象

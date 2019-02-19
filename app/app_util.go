@@ -62,16 +62,13 @@ func parseArgs(app *Application) {
 
 // 获取服务器信息
 func getServerInfo(app *Application) {
-	// 获取服务器类型
+	// 根据 AppType 和 Name 获取 服务器配置参数
 	appType := app.baseInfo.AppType
-
-	// 获取服务器名字
 	name := app.baseInfo.Name
-
-	// 获取类型列表
 	list := config.GetServerMap()[appType]
+
 	if nil == list || len(list) <= 0 {
-		zaplog.Error("Application 获取 appType 信息失败。 appType=%s", appType)
+		zaplog.Fatal("Application 获取 appType 信息失败。 appType=%s", appType)
 
 		os.Exit(1)
 	}
@@ -86,7 +83,7 @@ func getServerInfo(app *Application) {
 	}
 
 	if app.serverInfo == nil {
-		zaplog.Errorf("Application 获取 server.json 信息失败。 appName=%s", app.baseInfo.Name)
+		zaplog.Fatal("Application 获取 server.json 信息失败。 appName=%s", app.baseInfo.Name)
 
 		os.Exit(1)
 	}
