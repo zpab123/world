@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"github.com/zpab123/syncutil"      // 原子变量
+	"github.com/zpab123/world/model"   // 全局模型
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/world/state"   // 状态管理
@@ -28,7 +29,7 @@ type DispatcherServer struct {
 }
 
 // 新建1个分发服务
-func NewDispatcherServer(addr *network.TLaddr, opt *TDispatcherServerOpt) *DispatcherServer {
+func NewDispatcherServer(addr *network.TLaddr, opt *TDispatcherServerOpt) model.IComponent {
 	// 参数效验
 	if nil == opt {
 		opt = NewTDispatcherServerOpt(nil)
@@ -84,7 +85,7 @@ func (this *DispatcherServer) Run() bool {
 		return false
 	}
 
-	zaplog.Infof("DispatcherServer 组件启动成功")
+	zaplog.Infof("DispatcherServer 组件启动成功。ip=%s", this.acceptor.GetListenAddress())
 
 	return true
 }

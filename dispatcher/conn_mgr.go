@@ -30,9 +30,12 @@ func NewDispatcherConnMgr(addr string, opt *TDispatcherClientOpt) *DispatcherCon
 }
 
 // 启动 DispatcherConnMgr
-func (this *DispatcherConnMgr) Run() {
+func (this *DispatcherConnMgr) Connect() {
 	// 连接服务器
 	this.worldConnClient.Connect()
 
 	// 主循环
+	for {
+
+	}
 }

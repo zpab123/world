@@ -43,7 +43,7 @@ func (this *ComponentManager) AddComponent(com model.IComponent) {
 
 	// 组件已经存在
 	if _, ok := this.componentMap[name]; ok {
-		zaplog.Warnf("组件[*s]重复注册，新组件将覆盖旧组件", name)
+		zaplog.Warnf("组件[*s]重复添加，新组件将覆盖旧组件", name)
 	}
 
 	// 保存组件

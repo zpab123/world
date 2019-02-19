@@ -86,9 +86,6 @@ func (this *Scene) Init() {
 	// 设置默认参数
 	defaultConfig(this)
 
-	// 创建组件
-	createComponent(this)
-
 	// 改变为初始化状态
 	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
 		zaplog.Errorf("Scene Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
@@ -106,6 +103,9 @@ func (this *Scene) Run() {
 
 	// 记录启动时间
 	this.baseInfo.RunTime = time.Now()
+
+	// 创建组件
+	createComponent(this)
 
 	// 改变状态为：启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
@@ -132,4 +132,9 @@ func (this *Scene) Run() {
 
 	// 主循环
 	select {}
+}
+
+// 获取组件管理对象
+func (this *Scene) GetComponentMgr() *ComponentManager {
+	return this.componentMgr
 }

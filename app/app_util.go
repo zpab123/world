@@ -180,7 +180,8 @@ func newDispatcherServer(app *Application) {
 	// 配置参数
 	opt := app.componentMgr.GetDisServerOpt()
 	if nil == opt {
-		opt = getDefaultDispatcherServerOpt(app)
+		opt = getDefaultDisServerOpt(app)
+		app.componentMgr.SetDisServerOpt(opt)
 	}
 
 	// 创建 DispatcherServer
@@ -199,7 +200,7 @@ func getDefaultConnectorOpt(app *Application) *connector.TConnectorOpt {
 }
 
 // 获取默认 DispatcherServerOpt
-func getDefaultDispatcherServerOpt(app *Application) *dispatcher.TDispatcherServerOpt {
+func getDefaultDisServerOpt(app *Application) *dispatcher.TDispatcherServerOpt {
 	opt := dispatcher.NewTDispatcherServerOpt(app.appDelegate)
 
 	return opt
