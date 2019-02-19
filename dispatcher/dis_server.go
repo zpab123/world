@@ -93,7 +93,7 @@ func (this *DispatcherServer) Run() bool {
 		return false
 	}
 
-	zaplog.Infof("DispatcherServer 组件启动成功。ip=%s", this.acceptor.GetListenAddress())
+	zaplog.Infof("DispatcherServer 组件启动成功")
 
 	return true
 }

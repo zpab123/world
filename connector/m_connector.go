@@ -30,36 +30,30 @@ const (
 
 // connector 组件配置参数
 type TConnectorOpt struct {
-	AcceptorName string                       // 接收器名字
-	MaxConn      uint32                       // 最大连接数量，超过此数值后，不再接收新连接
-	TcpConnOpt   *model.TTcpConnOpt           // tcpSocket 配置参数
-	SessionOpt   *session.TFrontendSessionOpt // session 配置参数
+	AcceptorName       string                       // 接收器名字
+	MaxConn            uint32                       // 最大连接数量，超过此数值后，不再接收新连接
+	Frontend           bool                         // 是否面向前端
+	TcpConnOpt         *model.TTcpConnOpt           // tcpSocket 配置参数
+	FrontendSessionOpt *session.TFrontendSessionOpt // FrontendSession 配置参数
+	BackendSessionOpt  *session.TBackendSessionOpt  // BackendSession 配置参数
 }
 
 // 创建1个新的 TConnectorOpt
-func NewTConnectorOpt(handler session.IClientMsgHandler) *TConnectorOpt {
-	// 创建 tcp 配置参数
-	tcpOpt := model.NewTTcpConnOpt()
-
-	// 创建 session 配置参数
-	sesOpt := session.NewTFrontendSessionOpt(handler)
-
+func NewTConnectorOpt(handler session.IMsgHandler) *TConnectorOpt {
 	// 创建对象
+	tcpOpt := model.NewTTcpConnOpt()
+	fSesOpt := session.NewTFrontendSessionOpt(handler)
+	bSesOpt := session.NewTBackendSessionOpt(handler)
+
+	// 创建 TConnectorOpt
 	opts := &TConnectorOpt{
-		AcceptorName: network.C_ACCEPTOR_NAME_COM,
-		MaxConn:      MAX_CONN,
-		TcpConnOpt:   tcpOpt,
-		SessionOpt:   sesOpt,
+		AcceptorName:       network.C_ACCEPTOR_NAME_COM,
+		MaxConn:            MAX_CONN,
+		Frontend:           true,
+		TcpConnOpt:         tcpOpt,
+		FrontendSessionOpt: fSesOpt,
+		BackendSessionOpt:  bSesOpt,
 	}
 
 	return opts
-}
-
-// 检查 ConnectorConfig 参数是否存在错误
-func (this *TConnectorOpt) Check() error {
-	if this.MaxConn <= 0 {
-		this.MaxConn = MAX_CONN
-	}
-
-	return nil
 }

@@ -37,6 +37,12 @@ type IServerMsgHandler interface {
 	OnServerMessage(ses *BackendSession, msg *Message) // 收到1个新的服务器消息
 }
 
+// 消息管理
+type IMsgHandler interface {
+	IClientMsgHandler // 客户端消息管理
+	IServerMsgHandler // 服务端消息管理
+}
+
 // /////////////////////////////////////////////////////////////////////////////
 // TFrontendSessionOpt 对象
 

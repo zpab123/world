@@ -11,7 +11,7 @@ import (
 	"github.com/zpab123/world/network" // 网络模型
 	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/world/state"   // 状态管理
-	"github.com/zpab123/zaplog"         // 日志库
+	"github.com/zpab123/zaplog"        // 日志库
 	"golang.org/x/net/websocket"       // websocket 库
 )
 
@@ -28,7 +28,7 @@ import (
 type Connector struct {
 	name       string                  // 组件名字
 	laddr      *network.TLaddr         // 监听地址集合
-	opts       *TConnectorOpt          // 配置参数
+	option     *TConnectorOpt          // 配置参数
 	acceptor   network.IAcceptor       // 某种类型的 acceptor 连接器
 	connNum    syncutil.AtomicUint32   // 当前连接数
 	stateMgr   *state.StateManager     // 状态管理
@@ -37,15 +37,9 @@ type Connector struct {
 
 // 新建1个 Connector 对象
 func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
-	// 地址检查？
-
 	// 参数效验
 	if nil == opt {
 		opt = NewTConnectorOpt(nil)
-	}
-
-	if nil != opt.Check() {
-		return nil
 	}
 
 	// 创建 StateManager
@@ -59,13 +53,12 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 		stateMgr:   sm,
 		name:       COMPONENT_NAME,
 		laddr:      addr,
-		opts:       opt,
+		option:     opt,
 		sessionMgr: sesMgr,
 	}
 
 	// 创建 Acceptor
-	aptor, _ := newAcceptor(opt.AcceptorName, addr, cntor)
-	cntor.acceptor = aptor
+	cntor.acceptor = network.NewAcceptor(opt.AcceptorName, addr, cntor)
 
 	// 设置为初始状态
 	cntor.stateMgr.SetState(state.C_STATE_INIT)
@@ -143,7 +136,7 @@ func (this *Connector) Stop() bool {
 // 收到1个新的 Tcp 连接对象
 func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	// 超过最大连接数
-	if this.connNum.Load() >= this.opts.MaxConn {
+	if this.connNum.Load() >= this.option.MaxConn {
 		conn.Close()
 
 		zaplog.Warnf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
@@ -160,9 +153,9 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	zaplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
 
 	// 配置 iO 参数
-	tcpConn.SetWriteBuffer(this.opts.TcpConnOpt.WriteBufferSize)
-	tcpConn.SetReadBuffer(this.opts.TcpConnOpt.ReadBufferSize)
-	tcpConn.SetNoDelay(this.opts.TcpConnOpt.NoDelay)
+	tcpConn.SetWriteBuffer(this.option.TcpConnOpt.WriteBufferSize)
+	tcpConn.SetReadBuffer(this.option.TcpConnOpt.ReadBufferSize)
+	tcpConn.SetNoDelay(this.option.TcpConnOpt.NoDelay)
 
 	// 创建 session 对象
 	this.createSession(conn, false)
@@ -171,7 +164,7 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 // 收到1个新的 websocket 连接对象
 func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 	// 超过最大连接数
-	if this.connNum.Load() >= this.opts.MaxConn {
+	if this.connNum.Load() >= this.option.MaxConn {
 		wsconn.Close()
 		zaplog.Debugf("收到1个新的 websocket 连接。ip=%s", wsconn.RemoteAddr())
 		zaplog.Debugf("Connector 达到最大连接数，关闭新连接。当前连接数=%d", this.connNum.Load())
@@ -191,7 +184,7 @@ func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
 	}
 
 	// 创建 session
-	ses := session.NewFrontendSession(socket, this.sessionMgr, this.opts.SessionOpt)
+	ses := session.NewFrontendSession(socket, this.sessionMgr, this.option.FrontendSessionOpt)
 
 	// 启动 session
 	ses.Run()
