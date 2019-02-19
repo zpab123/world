@@ -26,13 +26,13 @@ type BackendSession struct {
 }
 
 // 创建1个新的 BackendSession 对象
-func NewBackendSession(socket network.ISocket, mgr ISessionManage, opt *TBackendSessionOpts) ISession {
+func NewBackendSession(socket network.ISocket, mgr ISessionManage, opt *TBackendSessionOpt) ISession {
 	// 创建 StateManager
 	st := state.NewStateManager()
 
 	// 创建 WorldConnection
 	if nil == opt {
-		opt = NewTBackendSessionOpts(nil)
+		opt = NewTBackendSessionOpt(nil)
 	}
 	wc := network.NewWorldConnection(socket, opt.WorldConnOpts)
 

@@ -29,7 +29,7 @@ type DispatcherServer struct {
 func NewDispatcherServer(addr *network.TLaddr, opt *TDispatcherServerOpt) *DispatcherServer {
 	// 参数效验
 	if nil == opts {
-		opts = NewTDispatcherServerOpts()
+		opts = NewTDispatcherServerOpt(nil)
 	}
 
 	// 创建组件
