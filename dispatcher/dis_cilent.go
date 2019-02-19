@@ -4,8 +4,7 @@
 package dispatcher
 
 import (
-	"fmt"
-	"net"
+	//"fmt"
 
 	"github.com/zpab123/world/config"  // 配置文件
 	"github.com/zpab123/world/model"   // 全局模型
@@ -20,9 +19,9 @@ import (
 type DispatcherClient struct {
 	name        string                  // 组件名字
 	option      *TDispatcherClientOpt   // 配置参数
-	gateServers []*TServerInfo          // gate 服务器配置信息
+	gateServers []*config.TServerInfo   // gate 服务器配置信息
 	sessionMgr  *session.SessionManager // session 管理对象
-	connMgrs    []*DispatcherConnMgr    // 连接管理
+	//connMgrs    []*DispatcherConnMgr    // 连接管理
 }
 
 // 新建1个 DispatcherClient
@@ -42,16 +41,19 @@ func NewDispatcherClient(opt *TDispatcherClientOpt) *DispatcherClient {
 	if 0 == gateNum {
 		zaplog.Fatal("创建 DispatcherClient 出现异常。gate 服务器参数获取失败")
 	}
-	mgrs := make([]*DispatcherConnMgr, gateNum)
-	if gateNum > 0 {
-		for index, gate := range gates {
-			host := gate.Host
-			port := gate.Port
-			addr := fmt.Sprintf("%s:%d", host, port)
 
-			mgrs[index] = NewDispatcherConnMgr(addr, sesMgr, opt)
+	/*
+		mgrs := make([]*DispatcherConnMgr, gateNum)
+		if gateNum > 0 {
+			for index, gate := range gates {
+				host := gate.Host
+				port := gate.Port
+				addr := fmt.Sprintf("%s:%d", host, port)
+
+				//mgrs[index] = NewDispatcherConnMgr(addr, sesMgr, opt)
+			}
 		}
-	}
+	*/
 
 	// 创建 DispatcherClient
 	dc := &DispatcherClient{
@@ -59,7 +61,6 @@ func NewDispatcherClient(opt *TDispatcherClientOpt) *DispatcherClient {
 		option:      opt,
 		gateServers: gates,
 		sessionMgr:  sesMgr,
-		connMgrs:    mgrs,
 	}
 
 	return dc
@@ -68,9 +69,6 @@ func NewDispatcherClient(opt *TDispatcherClientOpt) *DispatcherClient {
 // 启动
 func (this *DispatcherClient) Run() {
 	// 连接所有 DispatcherServer 服务器
-	for _, mgr := range this.connMgrs {
-		go mgr.Run()
-	}
 
 	// 主循环
 }

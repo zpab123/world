@@ -18,9 +18,9 @@ import (
 
 // app 组件管理
 type ComponentManager struct {
-	componentMap map[string]model.IComponent       // 名字-> 组件 集合
-	connectorOpt *connector.TConnectorOpt          // connector 组件配置参数
-	disServerOpt *dispatcher.TDispatcherServerOpts // DispatcherServer 组件配置参数
+	componentMap map[string]model.IComponent      // 名字-> 组件 集合
+	connectorOpt *connector.TConnectorOpt         // connector 组件配置参数
+	disServerOpt *dispatcher.TDispatcherServerOpt // DispatcherServer 组件配置参数
 }
 
 // 新建1个 ComponentManager
@@ -61,11 +61,11 @@ func (this *ComponentManager) SetConnectorOpt(opt *connector.TConnectorOpt) {
 }
 
 // 获取 DispatcherServer 组件参数
-func (this *ComponentManager) GetDisServerOpt() *dispatcher.TDispatcherServerOpts {
+func (this *ComponentManager) GetDisServerOpt() *dispatcher.TDispatcherServerOpt {
 	return this.disServerOpt
 }
 
 // 设置 DispatcherServer 组件参数
-func (this *ComponentManager) SetDisServerOpt(opt *dispatcher.TDispatcherServerOpts) {
+func (this *ComponentManager) SetDisServerOpt(opt *dispatcher.TDispatcherServerOpt) {
 	this.disServerOpt = opt
 }

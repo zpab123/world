@@ -19,7 +19,7 @@ import (
 type WorldConnection struct {
 	stateMgr      *state.StateManager // 状态管理
 	heartbeat     int64               // 心跳间隔，单位：秒。0=不设置心跳
-	option        *TWorldConnOpts     // 配置参数
+	option        *TWorldConnOpt     // 配置参数
 	packetSocket  *PacketSocket       // 接口继承： 符合 IPacketSocket 的对象
 	timeOut       int64               // 心跳超时时间，单位：秒
 	clientTimeOut int64               // 客户端心跳超时时间点，精确到秒
@@ -27,10 +27,10 @@ type WorldConnection struct {
 }
 
 // 新建1个 WorldConnection 对象
-func NewWorldConnection(socket ISocket, opt *TWorldConnOpts) *WorldConnection {
+func NewWorldConnection(socket ISocket, opt *TWorldConnOpt) *WorldConnection {
 	// 参数效验
 	if nil == opt {
-		opt = NewTWorldConnOpts()
+		opt = NewTWorldConnOpt()
 	}
 
 	// 创建状态管理

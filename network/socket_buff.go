@@ -18,10 +18,10 @@ type BufferSocket struct {
 }
 
 // 创建1个新的 BufferSocket 对象
-func NewBufferSocket(socket ISocket, opts *TBufferSocketOpts) *BufferSocket {
+func NewBufferSocket(socket ISocket, opts *TBufferSocketOpt) *BufferSocket {
 	// 参数效验
 	if nil == opts {
-		opts = NewTBufferSocketOpts()
+		opts = NewTBufferSocketOpt()
 	}
 
 	// 创建对象

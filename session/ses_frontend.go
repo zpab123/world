@@ -23,20 +23,20 @@ type FrontendSession struct {
 	worldConn   *network.WorldConnection // world 引擎连接对象
 	sesssionMgr ISessionManage           // sessiong 管理对象
 	sessionId   syncutil.AtomicInt64     // session ID
-	msgHandler  IMsgHandler              // 消息处理器
+	msgHandler  IClientMsgHandler        // 消息处理器
 }
 
 // 创建1个新的 FrontendSession 对象
-func NewFrontendSession(socket network.ISocket, mgr ISessionManage, opt *TSessionOpts) ISession {
+func NewFrontendSession(socket network.ISocket, mgr ISessionManage, opt *TFrontendSessionOpt) ISession {
 	// 创建 StateManager
 	st := state.NewStateManager()
 
 	// 创建 WorldConnection
 	if nil == opt {
-		opt = NewTSessionOpts(nil)
-		opt.WorldConnOpts.ShakeKey = config.GetWorldConfig().ShakeKey
+		opt = NewTFrontendSessionOpt(nil)
+		opt.WorldConnOpt.ShakeKey = config.GetWorldConfig().ShakeKey
 	}
-	wc := network.NewWorldConnection(socket, opt.WorldConnOpts)
+	wc := network.NewWorldConnection(socket, opt.WorldConnOpt)
 
 	// 创建对象
 	cs := &FrontendSession{
@@ -129,7 +129,7 @@ func (this *FrontendSession) recvLoop() {
 
 		// 消息处理
 		if this.msgHandler != nil {
-			this.msgHandler.OnNewMessage(this, msg)
+			this.msgHandler.OnClientMessage(this, msg)
 		}
 	}
 }

@@ -160,9 +160,9 @@ func (this *Connector) OnNewTcpConn(conn net.Conn) {
 	zaplog.Debugf("收到1个新的 tcp 连接。ip=%s", tcpConn.RemoteAddr())
 
 	// 配置 iO 参数
-	tcpConn.SetWriteBuffer(this.opts.TcpConnOpts.WriteBufferSize)
-	tcpConn.SetReadBuffer(this.opts.TcpConnOpts.ReadBufferSize)
-	tcpConn.SetNoDelay(this.opts.TcpConnOpts.NoDelay)
+	tcpConn.SetWriteBuffer(this.opts.TcpConnOpt.WriteBufferSize)
+	tcpConn.SetReadBuffer(this.opts.TcpConnOpt.ReadBufferSize)
+	tcpConn.SetNoDelay(this.opts.TcpConnOpt.NoDelay)
 
 	// 创建 session 对象
 	this.createSession(conn, false)
@@ -191,7 +191,7 @@ func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
 	}
 
 	// 创建 session
-	ses := session.NewFrontendSession(socket, this.sessionMgr, this.opts.SessiobOpts)
+	ses := session.NewFrontendSession(socket, this.sessionMgr, this.opts.SessionOpt)
 
 	// 启动 session
 	ses.Run()

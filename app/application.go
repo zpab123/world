@@ -10,10 +10,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/zpab123/world/config"    // 配置文件库
-	"github.com/zpab123/world/connector" // connector 组件
-	"github.com/zpab123/world/state"     // 状态管理
-	"github.com/zpab123/zaplog"          // log 库
+	"github.com/zpab123/world/config" // 配置文件库
+	"github.com/zpab123/world/state"  // 状态管理
+	"github.com/zpab123/zaplog"       // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////

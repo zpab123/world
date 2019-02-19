@@ -30,26 +30,26 @@ const (
 
 // connector 组件配置参数
 type TConnectorOpt struct {
-	AcceptorName string                // 接收器名字
-	MaxConn      uint32                // 最大连接数量，超过此数值后，不再接收新连接
-	TcpConnOpts  *model.TTcpConnOpts   // tcpSocket 配置参数
-	SessiobOpts  *session.TSessionOpts // session 配置参数
+	AcceptorName string                       // 接收器名字
+	MaxConn      uint32                       // 最大连接数量，超过此数值后，不再接收新连接
+	TcpConnOpt   *model.TTcpConnOpt           // tcpSocket 配置参数
+	SessionOpt   *session.TFrontendSessionOpt // session 配置参数
 }
 
 // 创建1个新的 TConnectorOpt
-func NewTConnectorOpt(handler session.IMsgHandler) *TConnectorOpt {
+func NewTConnectorOpt(handler session.IClientMsgHandler) *TConnectorOpt {
 	// 创建 tcp 配置参数
-	tcpOpts := model.NewTTcpConnOpts()
+	tcpOpt := model.NewTTcpConnOpt()
 
 	// 创建 session 配置参数
-	sesOpts := session.NewTSessionOpts(handler)
+	sesOpt := session.NewTFrontendSessionOpt(handler)
 
 	// 创建对象
 	opts := &TConnectorOpt{
 		AcceptorName: network.C_ACCEPTOR_NAME_COM,
 		MaxConn:      MAX_CONN,
-		TcpConnOpts:  tcpOpts,
-		SessiobOpts:  sesOpts,
+		TcpConnOpt:   tcpOpt,
+		SessionOpt:   sesOpt,
 	}
 
 	return opts

@@ -7,7 +7,8 @@ import (
 	"net"
 	"time"
 
-	"golang.org/x/net/websocket" // websocket 库
+	"github.com/zpab123/world/model" // 全局模型
+	"golang.org/x/net/websocket"     // websocket 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -104,17 +105,17 @@ type TLaddr struct {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TBufferSocketOpts 对象
+// TBufferSocketOpt 对象
 
 // BufferSocket 配置参数
-type TBufferSocketOpts struct {
+type TBufferSocketOpt struct {
 	ReadBufferSize  int // 读取 buffer 字节大小
 	WriteBufferSize int // 写入 buffer 字节大小
 }
 
-// 新建1个 TBufferSocketOpts 对象
-func NewTBufferSocketOpts() *TBufferSocketOpts {
-	bs := &TBufferSocketOpts{
+// 新建1个 TBufferSocketOpt 对象
+func NewTBufferSocketOpt() *TBufferSocketOpt {
+	bs := &TBufferSocketOpt{
 		ReadBufferSize:  C_SOCKET_READ_BUFFSIZE,
 		WriteBufferSize: C_SOCKET_WRITE_BUFFSIZE,
 	}
@@ -123,24 +124,45 @@ func NewTBufferSocketOpts() *TBufferSocketOpts {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TWorldConnOpts 对象
+// TWorldConnOpt 对象
 
 // WorldConnection 配置参数
-type TWorldConnOpts struct {
+type TWorldConnOpt struct {
 	ShakeKey       string             // 握手key
 	Heartbeat      int64              // 心跳间隔，单位：秒。0=不设置心跳
-	BuffSocketOpts *TBufferSocketOpts // BufferSocket 配置参数
+	BuffSocketOpts *TBufferSocketOpt // BufferSocket 配置参数
 }
 
 // 新建1个 WorldConnection 对象
-func NewTWorldConnOpts() *TWorldConnOpts {
+func NewTWorldConnOpt() *TWorldConnOpt {
 	// 创建 buff opt
-	buffOpt := NewTBufferSocketOpts()
+	buffOpt := NewTBufferSocketOpt()
 
-	opt := &TWorldConnOpts{
+	opt := &TWorldConnOpt{
 		ShakeKey:       "",
 		Heartbeat:      0,
 		BuffSocketOpts: buffOpt,
+	}
+
+	return opt
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// TWorldConnClientOpt 对象
+
+// WorldConnClient 配置参数
+type TWorldConnClientOpt struct {
+	ShakeKey   string             // 握手key
+	TcpConnOpt *model.TTcpConnOpt // tcpSocket 配置参数
+}
+
+// 新建1个 TWorldConnClientOpt 对象
+func NewTWorldConnClientOpt() *TWorldConnClientOpt {
+	// 创建对象
+	tcpOpt := model.NewTTcpConnOpt()
+
+	opt := &TWorldConnClientOpt{
+		TcpConnOpt: tcpOpt,
 	}
 
 	return opt

@@ -38,30 +38,30 @@ type IServerMsgHandler interface {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TSessionOpts 对象
+// TFrontendSessionOpt 对象
 
 // session 配置参数
-type TSessionOpts struct {
-	MsgHandler    IMsgHandler             // 消息处理对象
-	WorldConnOpts *network.TWorldConnOpts // WorldConnection 配置参数
+type TFrontendSessionOpt struct {
+	MsgHandler   IClientMsgHandler      // 消息处理对象
+	WorldConnOpt *network.TWorldConnOpt // WorldConnection 配置参数
 }
 
-// 创建1个新的 TSessionOpts
-func NewTSessionOpts(handler IMsgHandler) *TSessionOpts {
+// 创建1个新的 TFrontendSessionOpt
+func NewTFrontendSessionOpt(handler IClientMsgHandler) *TFrontendSessionOpt {
 	// 创建 WorldConnection
-	wc := network.NewTWorldConnOpts()
+	wc := network.NewTWorldConnOpt()
 
-	// 创建 TSessionOpts
-	opts := &TSessionOpts{
-		MsgHandler:    handler,
-		WorldConnOpts: wc,
+	// 创建 TFrontendSessionOpt
+	opts := &TFrontendSessionOpt{
+		MsgHandler:   handler,
+		WorldConnOpt: wc,
 	}
 
 	return opts
 }
 
 // 检查 ConnectorConfig 参数是否存在错误
-func (this *TSessionOpts) Check() error {
+func (this *TFrontendSessionOpt) Check() error {
 	return nil
 }
 
@@ -70,16 +70,16 @@ func (this *TSessionOpts) Check() error {
 
 // BackendSession 配置参数
 type TBackendSessionOpt struct {
-	ServerMsgHandler IServerMsgHandler       // 消息处理对象
-	WorldConnOpts    *network.TWorldConnOpts // WorldConnection 配置参数
+	ServerMsgHandler IServerMsgHandler      // 消息处理对象
+	WorldConnOpts    *network.TWorldConnOpt // WorldConnection 配置参数
 }
 
-// 创建1个新的 TSessionOpts
+// 创建1个新的 TFrontendSessionOpt
 func NewTBackendSessionOpt(handler IServerMsgHandler) *TBackendSessionOpt {
 	// 创建 WorldConnection
-	wc := network.NewTWorldConnOpts()
+	wc := network.NewTWorldConnOpt()
 
-	// 创建 TSessionOpts
+	// 创建 TFrontendSessionOpt
 	opts := &TBackendSessionOpt{
 		ServerMsgHandler: handler,
 		WorldConnOpts:    wc,

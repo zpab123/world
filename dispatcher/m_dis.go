@@ -35,7 +35,7 @@ func NewTDispatcherServerOpt(handler session.IServerMsgHandler) *TDispatcherServ
 	bsOpt := session.NewTBackendSessionOpt(handler)
 
 	// 创建对象
-	opt := TDispatcherServerOpts{
+	opt := &TDispatcherServerOpt{
 		MaxConn:    C_MAX_CONN,
 		TcpConnOpt: tcpOpt,
 		SessionOpt: bsOpt,
@@ -49,20 +49,20 @@ func NewTDispatcherServerOpt(handler session.IServerMsgHandler) *TDispatcherServ
 
 // DispatcherServer 组件配置参数
 type TDispatcherClientOpt struct {
-	TcpConnOpt *model.TTcpConnOpt          // tcpSocket 配置参数
-	SessionOpt *session.TBackendSessionOpt // session 配置参数
+	TcpConnOpt         *model.TTcpConnOpt           // tcpSocket 配置参数
+	WorldConnClientOpt *network.TWorldConnClientOpt // 	WorldConnClient 配置参数
 }
 
 // 创建1个新的 TDispatcherServerOpts
 func NewTDispatcherClientOpt(handler session.IServerMsgHandler) *TDispatcherClientOpt {
 	// 创建组合对象
 	tcpOpt := model.NewTTcpConnOpt()
-	bsOpt := session.NewTBackendSessionOpt(handler)
+	wsOpt := network.NewTWorldConnClientOpt()
 
 	// 创建对象
-	opt := TDispatcherClientOpt{
-		TcpConnOpt: tcpOpt,
-		SessionOpt: bsOpt,
+	opt := &TDispatcherClientOpt{
+		TcpConnOpt:         tcpOpt,
+		WorldConnClientOpt: wsOpt,
 	}
 
 	return opt

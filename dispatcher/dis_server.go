@@ -6,9 +6,11 @@ package dispatcher
 import (
 	"net"
 
+	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/session" // session 库
 	"github.com/zpab123/world/state"   // 状态管理
+	"github.com/zpab123/zaplog"        // log 库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -28,8 +30,8 @@ type DispatcherServer struct {
 // 新建1个分发服务
 func NewDispatcherServer(addr *network.TLaddr, opt *TDispatcherServerOpt) *DispatcherServer {
 	// 参数效验
-	if nil == opts {
-		opts = NewTDispatcherServerOpt(nil)
+	if nil == opt {
+		opt = NewTDispatcherServerOpt(nil)
 	}
 
 	// 创建组件
@@ -47,7 +49,10 @@ func NewDispatcherServer(addr *network.TLaddr, opt *TDispatcherServerOpt) *Dispa
 
 	// 创建 acceptor
 	acpor := network.NewTcpAcceptor(addr, ds)
-	ds.acceptor = acpor
+	tcpAcceptor, ok := acpor.(*network.TcpAcceptor)
+	if ok {
+		ds.acceptor = tcpAcceptor
+	}
 
 	// 设置为初始状态
 	ds.stateMgr.SetState(state.C_STATE_INIT)
@@ -124,7 +129,7 @@ func (this *DispatcherServer) createSession(netconn net.Conn) {
 	}
 
 	// 创建 session
-	ses := session.NewBackendSession(socket, this.sessionMgr, this.option.SessiobOpt)
+	ses := session.NewBackendSession(socket, this.sessionMgr, this.option.SessionOpt)
 
 	// 启动 session
 	ses.Run()
