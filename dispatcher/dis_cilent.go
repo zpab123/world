@@ -60,8 +60,8 @@ func NewDispatcherClient(opt *TDispatcherClientOpt) *DispatcherClient {
 // 启动
 func (this *DispatcherClient) Run() {
 	// 连接所有 DispatcherServer 服务器
-	for _, proxy := range this.clients {
-		//proxy.
+	for _, mgr := range this.connMgrs {
+		//go mgr
 	}
 
 	// 主循环

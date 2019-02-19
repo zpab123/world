@@ -10,9 +10,9 @@ import (
 
 // 分发客户端
 type DispatcherConnMgr struct {
-	addr        string                // 服务器地址
-	option      *TDispatcherClientOpt // 配置参数
-	clientProxy *ClientProxy          // 客户端代理
+	addr    string                // 服务器地址
+	option  *TDispatcherClientOpt // 配置参数
+	disConn *DispatcherConn       // 连接对象
 }
 
 // 新建1个 DispatcherConnMgr
@@ -25,8 +25,8 @@ func NewDispatcherConnMgr(addr string, opt *TDispatcherClientOpt) *DispatcherCon
 	return dc
 }
 
-// 连接服务器
-func (this *DispatcherConnMgr) connect() {
+// 启动 DispatcherConnMgr
+func (this *DispatcherConnMgr) Run() {
 	conn, err := net.Dial("tcp", this.addr)
 
 	if nil != err {
@@ -38,4 +38,5 @@ func (this *DispatcherConnMgr) connect() {
 	tcpConn.SetWriteBuffer(this.option.TcpConnOpt.WriteBufferSize)
 
 	// 创建代理
+	clientProxy = NewDispatcherConn(conn, this.option.WorldConnOpts)
 }
