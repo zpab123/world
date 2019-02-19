@@ -66,7 +66,7 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	return cntor
 }
 
-// 运行 Connector [IComponent 接口]
+// 获取组件名字 [IComponent 接口]
 func (this *Connector) Name() string {
 	return this.name
 }

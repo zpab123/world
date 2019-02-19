@@ -25,6 +25,9 @@ func defaultConfig(app *Application) {
 
 	// 设置 log 信息
 	configLogger(app)
+
+	// 组件默认参数
+	defaultComponentOpt(app)
 }
 
 // 解析 命令行参数
@@ -109,18 +112,31 @@ func configLogger(app *Application) {
 	zaplog.SetOutput(outputs)
 }
 
+// 设置组件默认参数
+func defaultComponentOpt(app *Application) {
+	// Connector 组件
+	if nil == app.componentMgr.GetConnectorOpt() {
+		opt := getDefaultConnectorOpt(app)
+		app.componentMgr.SetConnectorOpt(opt)
+	}
+}
+
+// 获取默认 ConnectorOpt
+func getDefaultConnectorOpt(app *Application) *connector.TConnectorOpt {
+	// 创建默认
+	opts := connector.NewTConnectorOpt(app.appDelegate)
+
+	return opts
+}
+
 // 创建默认组件
 func createComponent(app *Application) {
 	// master 服务器 - 注册 master 组件
 
-	// 前端服务器
-	if app.serverInfo.Frontend {
-
+	// 网络连接组件
+	if nil != app.componentMgr.GetConnectorOpt() {
 		// 创建1个 Connector 组件
 		newConnector(app)
-
-		// 创建分发服务器
-		newDispatcherServer(app)
 	}
 
 	// 注册 backendSession 组件
@@ -152,14 +168,9 @@ func newConnector(app *Application) {
 		WsAddr:  cWsAddr,
 	}
 
-	// connector 参数
-	opts := app.componentMgr.GetConnectorOpt()
-	if nil == opts {
-		opts = getDefaultConnectorOpt(app)
-	}
-
 	// 创建 Connector
-	contor := connector.NewConnector(laddr, opts)
+	opt := app.componentMgr.GetConnectorOpt()
+	contor := connector.NewConnector(laddr, opt)
 
 	// 添加组件
 	app.componentMgr.AddComponent(contor)
@@ -186,14 +197,6 @@ func newDispatcherServer(app *Application) {
 
 	// 添加组件
 	app.componentMgr.AddComponent(dis)
-}
-
-// 获取默认 ConnectorOpt
-func getDefaultConnectorOpt(app *Application) *connector.TConnectorOpt {
-	// 创建默认
-	opts := connector.NewTConnectorOpt(app.appDelegate)
-
-	return opts
 }
 
 // 获取默认 DispatcherServerOpt
