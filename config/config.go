@@ -4,11 +4,11 @@
 package config
 
 import (
-	"os"
 	"path/filepath"
 	"sync"
 
-	"github.com/zpab123/zaplog" // 日志库
+	"github.com/zpab123/world/utils" // 工具库
+	"github.com/zpab123/zaplog"      // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,10 @@ var (
 // 初始化
 func init() {
 	// 获取路径
-	mainPath = getMainPath()
+	dir, err := utils.GetMainPath()
+	if nil == err {
+		mainPath = dir
+	}
 
 	// 读取 world.ini 配置
 	readWorldIni()
@@ -59,17 +62,6 @@ func GetServerMap() TServerMap {
 
 // /////////////////////////////////////////////////////////////////////////////
 // 私有 api
-
-// 获取 当前 main 程序运行的绝对路径 例如：E:\code\go\go-project\src\test
-func getMainPath() string {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		zaplog.Error("获取 main 程序 绝对路径失败")
-		return ""
-	}
-	//strings.Replace(dir, "\\", "/", -1)
-	return dir
-}
 
 // 读取 servers.json 配置信息
 func readServerJson() {

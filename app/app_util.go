@@ -134,7 +134,8 @@ func createComponent(app *Application) {
 	// master 服务器 - 注册 master 组件
 
 	// 网络连接组件
-	if nil != app.componentMgr.GetConnectorOpt() {
+	connectorOpt := app.componentMgr.GetConnectorOpt()
+	if nil != connectorOpt && connectorOpt.Enable {
 		// 创建1个 Connector 组件
 		newConnector(app)
 	}
@@ -150,29 +151,31 @@ func createComponent(app *Application) {
 
 // 创建 Connector 组件
 func newConnector(app *Application) {
-	// 获取地址信息
+	// 创建地址
 	serverInfo := app.GetServerInfo()
+	opt := app.GetComponentMgr().GetConnectorOpt()
 
-	var cTcpAddr string = ""
-	if serverInfo.CTcpPort > 0 {
-		cTcpAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CTcpPort) // 面向客户端的 tcp 地址
+	var tcpAddr string = ""
+	if opt.Frontend && serverInfo.CTcpPort > 0 {
+		tcpAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CTcpPort) // 面向客户端的 tcp 地址
+	} else if serverInfo.Port > 0 {
+		tcpAddr = fmt.Sprintf("%s:%d", serverInfo.Host, serverInfo.Port) // 面向服务器的 tcp 地址
 	}
 
-	var cWsAddr string = ""
-	if serverInfo.CWsPort > 0 {
-		cWsAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CWsPort) // 面向客户端的 websocket 地址
+	var wsAddr string = ""
+	if opt.Frontend && serverInfo.CWsPort > 0 {
+		wsAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CWsPort) // 面向客户端的 websocket 地址
+	} else if serverInfo.Port > 0 {
+		wsAddr = fmt.Sprintf("%s:%d", serverInfo.Host, serverInfo.Port) // 面向服务器的 websocket 地址
 	}
 
 	laddr := &network.TLaddr{
-		TcpAddr: cTcpAddr,
-		WsAddr:  cWsAddr,
+		TcpAddr: tcpAddr,
+		WsAddr:  wsAddr,
 	}
 
 	// 创建 Connector
-	opt := app.componentMgr.GetConnectorOpt()
 	contor := connector.NewConnector(laddr, opt)
-
-	// 添加组件
 	app.componentMgr.AddComponent(contor)
 }
 

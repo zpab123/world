@@ -50,7 +50,6 @@ type TD struct {
 // servers.json 的 server 服务器信息
 type TServerInfo struct {
 	Name       string // 服务器的名字
-	Frontend   bool   // 是否是前端服务器
 	Host       string // 服务器的ID地址
 	Port       uint   // 服务器端口
 	ClientHost string // 面向客户端的 IP地址

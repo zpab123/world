@@ -32,7 +32,7 @@ type WsAcceptor struct {
 func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) IAcceptor {
 	// 创建接收器
 	aptor := &WsAcceptor{
-		name:    C_ACCEPTOR_NAME_WEBSOCKET,
+		name:    C_ACCEPTOR_TYPE_WEBSOCKET,
 		laddr:   addr,
 		connMgr: mgr,
 	}

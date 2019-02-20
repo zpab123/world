@@ -30,7 +30,7 @@ type TcpAcceptor struct {
 func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) IAcceptor {
 	// 创建对象
 	aptor := &TcpAcceptor{
-		name:    C_ACCEPTOR_NAME_TCP,
+		name:    C_ACCEPTOR_TYPE_TCP,
 		laddr:   addr,
 		connMgr: mgr,
 	}

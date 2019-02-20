@@ -25,7 +25,7 @@ func readWorldIni() {
 
 	// 读取配置文件
 	fPath := filepath.Join(mainPath, iniFilePath)
-	zaplog.Infof("读取 world.ini 配置文件，路径=%s", fPath)
+	zaplog.Debugf("读取 world.ini 配置文件，路径=%s", fPath)
 	iniFile, err := ini.Load(fPath)
 
 	// 错误检查

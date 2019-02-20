@@ -52,6 +52,9 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 	// 设置为无效状态
 	app.stateMgr.SetState(state.C_STATE_INVALID)
 
+	// 通知代理
+	app.appDelegate.OnCreat(app)
+
 	return app
 }
 
@@ -75,6 +78,9 @@ func (this *Application) Init() {
 
 		os.Exit(1)
 	}
+
+	// 通知代理
+	this.appDelegate.OnInit(this)
 
 	zaplog.Debugf("app 状态：init完成 ...")
 }
@@ -107,9 +113,6 @@ func (this *Application) Run() {
 	// 结束信号侦听
 	// setupSignals()
 
-	// 启动 appDelegate
-	go this.appDelegate.Run()
-
 	// 改变为工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
 		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
@@ -118,6 +121,9 @@ func (this *Application) Run() {
 	} else {
 		zaplog.Infof("app 状态：启动成功，工作中 ...")
 	}
+
+	// 通知代理
+	go this.appDelegate.OnRun(this)
 
 	// 主循环
 	select {}

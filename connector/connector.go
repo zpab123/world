@@ -58,7 +58,7 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	}
 
 	// 创建 Acceptor
-	cntor.acceptor = network.NewAcceptor(opt.AcceptorName, addr, cntor)
+	cntor.acceptor = network.NewAcceptor(opt.AcceptorType, addr, cntor)
 
 	// 设置为初始状态
 	cntor.stateMgr.SetState(state.C_STATE_INIT)

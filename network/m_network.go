@@ -14,12 +14,12 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // 常量
 
-// acceptor 名字
+// acceptor 类型
 const (
-	C_ACCEPTOR_NAME_TCP       = "tcpAcceptor"  // 支持 tcp
-	C_ACCEPTOR_NAME_WEBSOCKET = "wsAcceptor"   // 支持 websocket
-	C_ACCEPTOR_NAME_MUL       = "multiformity" // 同时支持 tcp 和 websocket
-	C_ACCEPTOR_NAME_COM       = "composite"    // 同时支持 tcp 和 websocket
+	C_ACCEPTOR_TYPE_TCP       = "tcpAcceptor"  // 支持 tcp
+	C_ACCEPTOR_TYPE_WEBSOCKET = "wsAcceptor"   // 支持 websocket
+	C_ACCEPTOR_TYPE_MUL       = "multiformity" // 同时支持 tcp 和 websocket
+	C_ACCEPTOR_TYPE_COM       = "composite"    // 同时支持 tcp 和 websocket
 )
 
 const (
@@ -128,8 +128,8 @@ func NewTBufferSocketOpt() *TBufferSocketOpt {
 
 // WorldConnection 配置参数
 type TWorldConnOpt struct {
-	ShakeKey       string             // 握手key
-	Heartbeat      int64              // 心跳间隔，单位：秒。0=不设置心跳
+	ShakeKey       string            // 握手key
+	Heartbeat      int64             // 心跳间隔，单位：秒。0=不设置心跳
 	BuffSocketOpts *TBufferSocketOpt // BufferSocket 配置参数
 }
 

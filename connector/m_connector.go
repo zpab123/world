@@ -30,7 +30,8 @@ const (
 
 // connector 组件配置参数
 type TConnectorOpt struct {
-	AcceptorName       string                       // 接收器名字
+	Enable             bool                         // 是否启动 connector
+	AcceptorType       string                       // 接收器类型
 	MaxConn            uint32                       // 最大连接数量，超过此数值后，不再接收新连接
 	Frontend           bool                         // 是否面向前端
 	TcpConnOpt         *model.TTcpConnOpt           // tcpSocket 配置参数
@@ -47,7 +48,8 @@ func NewTConnectorOpt(handler session.IMsgHandler) *TConnectorOpt {
 
 	// 创建 TConnectorOpt
 	opts := &TConnectorOpt{
-		AcceptorName:       network.C_ACCEPTOR_NAME_COM,
+		Enable:             true,
+		AcceptorType:       network.C_ACCEPTOR_TYPE_COM,
 		MaxConn:            MAX_CONN,
 		Frontend:           true,
 		TcpConnOpt:         tcpOpt,

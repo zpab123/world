@@ -36,7 +36,7 @@ func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) IAcceptor {
 	// 创建对象
 	mulaptor := &MulAcceptor{
 		StateManager: sm,
-		name:         C_ACCEPTOR_NAME_MUL,
+		name:         C_ACCEPTOR_TYPE_MUL,
 		laddr:        addr,
 		tcpAcceptor:  tcpaptor,
 		wsAcceptor:   wsaptor,

@@ -22,8 +22,11 @@ const (
 
 // App 代理
 type IAppDelegate interface {
-	session.IMsgHandler // 接口继承：消息管理
-	Run()               // 启动 app 主循环
+	OnCreat(app *Application) // app 创建成功
+	OnInit(app *Application)  // app 初始化成功
+	OnRun(app *Application)   // app 开始运行
+	OnStop(app *Application)  // app 停止运行
+	session.IMsgHandler       // 接口继承：消息管理
 }
 
 // /////////////////////////////////////////////////////////////////////////////

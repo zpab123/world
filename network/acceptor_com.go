@@ -43,7 +43,7 @@ func NewComAcceptor(addr *TLaddr, mgr IComConnManager) IAcceptor {
 	// 创建 ComAcceptor
 	comaptor := &ComAcceptor{
 		stateMgr: sm,
-		name:     C_ACCEPTOR_NAME_COM,
+		name:     C_ACCEPTOR_TYPE_COM,
 		laddr:    addr,
 		connMgr:  mgr,
 	}
