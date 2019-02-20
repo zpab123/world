@@ -5,7 +5,6 @@ package dispatcher
 
 import (
 	"fmt"
-	//"fmt"
 
 	"github.com/zpab123/world/config"  // 配置文件
 	"github.com/zpab123/world/model"   // 全局模型
@@ -18,11 +17,11 @@ import (
 
 // 分发客户端
 type DispatcherClient struct {
-	name        string                  // 组件名字
-	option      *TDispatcherClientOpt   // 配置参数
-	gateServers []*config.TServerInfo   // gate 服务器配置信息
-	connMgr     []*DispatcherConnMgr    // 连接管理
-	sessionMgr  *session.SessionManager // session 管理对象
+	name          string                  // 组件名字
+	option        *TDispatcherClientOpt   // 配置参数
+	disServerInfo []*config.TServerInfo   // dispatcher 服务器配置信息
+	connMgr       []*DispatcherConnMgr    // 连接管理
+	sessionMgr    *session.SessionManager // session 管理对象
 }
 
 // 新建1个 DispatcherClient
@@ -37,17 +36,17 @@ func NewDispatcherClient(opt *TDispatcherClientOpt) model.IComponent {
 
 	// 创建连接管理
 	servers := config.GetServerMap()
-	gates := servers[model.C_SERVER_TYPE_GATE]
+	disServers := servers[model.C_SERVER_TYPE_DIS]
 
-	gateNum := len(gates)
-	connMgrs := make([]*DispatcherConnMgr, gateNum)
+	disNum := len(disServers)
+	connMgrs := make([]*DispatcherConnMgr, disNum)
 
-	if 0 == gateNum {
-		zaplog.Fatal("创建 DispatcherClient 出现异常。gate 服务器参数获取失败")
-	} else if gateNum > 0 {
-		for key, gate := range gates {
-			host := gate.Host
-			port := gate.Port
+	if 0 == disNum {
+		zaplog.Fatal("创建 DispatcherClient 出现异常。 dispatcher 服务器数量为0")
+	} else if disNum > 0 {
+		for key, dis := range disServers {
+			host := dis.Host
+			port := dis.Port
 			addr := fmt.Sprintf("%s:%d", host, port)
 
 			connMgrs[key] = NewDispatcherConnMgr(addr, opt)
@@ -56,11 +55,11 @@ func NewDispatcherClient(opt *TDispatcherClientOpt) model.IComponent {
 
 	// 创建 DispatcherClient
 	dc := &DispatcherClient{
-		name:        C_COMPONENT_NAME_CLIENT,
-		option:      opt,
-		gateServers: gates,
-		connMgr:     connMgrs,
-		sessionMgr:  sesMgr,
+		name:          C_COMPONENT_NAME_CLIENT,
+		option:        opt,
+		disServerInfo: disServers,
+		connMgr:       connMgrs,
+		sessionMgr:    sesMgr,
 	}
 
 	return dc

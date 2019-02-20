@@ -119,14 +119,26 @@ func defaultComponentOpt(app *Application) {
 		opt := getDefaultConnectorOpt(app)
 		app.componentMgr.SetConnectorOpt(opt)
 	}
+
+	// DispatcherClient 组件
+	if nil == app.componentMgr.GetDisClientOpt() {
+		opt := getDefaultDisClientOpt(app)
+		app.componentMgr.SetDisClientOpt(opt)
+	}
 }
 
 // 获取默认 ConnectorOpt
 func getDefaultConnectorOpt(app *Application) *connector.TConnectorOpt {
-	// 创建默认
-	opts := connector.NewTConnectorOpt(app.appDelegate)
+	opt := connector.NewTConnectorOpt(app.appDelegate)
 
-	return opts
+	return opt
+}
+
+// 获取默认 DispatcherClientOpt
+func getDefaultDisClientOpt(app *Application) *dispatcher.TDispatcherClientOpt {
+	opt := dispatcher.NewTDispatcherClientOpt(app.appDelegate)
+
+	return opt
 }
 
 // 创建默认组件
@@ -136,8 +148,13 @@ func createComponent(app *Application) {
 	// 网络连接组件
 	connectorOpt := app.componentMgr.GetConnectorOpt()
 	if nil != connectorOpt && connectorOpt.Enable {
-		// 创建1个 Connector 组件
 		newConnector(app)
+	}
+
+	// 消息分发客户端
+	disClientOpt := app.componentMgr.GetDisClientOpt()
+	if nil != disClientOpt && disClientOpt.Enable {
+		newDisClient(app)
 	}
 
 	// 注册 backendSession 组件
@@ -177,6 +194,14 @@ func newConnector(app *Application) {
 	// 创建 Connector
 	contor := connector.NewConnector(laddr, opt)
 	app.componentMgr.AddComponent(contor)
+}
+
+// 创建分发客户端
+func newDisClient(app *Application) {
+	opt := app.componentMgr.GetDisClientOpt()
+
+	disClient := dispatcher.NewDispatcherClient(opt)
+	app.componentMgr.AddComponent(disClient)
 }
 
 // 创建分发服务器
