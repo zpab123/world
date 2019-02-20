@@ -33,8 +33,8 @@ var (
 
 // PacketSocket
 type PacketSocket struct {
-	socket    ISocket         // 接口继承： 符合 ISocket 的对象
-	goMutex   sync.Mutex      // 线程互斥锁
+	socket    ISocket         // 符合 ISocket 的对象
+	mutex     sync.Mutex      // 线程互斥锁
 	sendQueue []*Packet       // 发送队列
 	recvedLen uint32          // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
 	headBuff  [_HEAD_LEN]byte // 存放消息头二进制数据
@@ -44,10 +44,10 @@ type PacketSocket struct {
 }
 
 // 创建1个新的 PacketSocket 对象
-func NewPacketSocket(st ISocket) *PacketSocket {
+func NewPacketSocket(socket ISocket) *PacketSocket {
 	// 创建对象
 	pktSocket := &PacketSocket{
-		socket: st,
+		socket: socket,
 	}
 
 	return pktSocket
@@ -96,6 +96,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 	if this.bodylen == 0 {
 		packet := this.newPacket
 		this.resetRecvStates()
+
 		return packet, nil
 	}
 
@@ -125,9 +126,9 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 // 发送1个 *Packe 数据
 func (this *PacketSocket) SendPacket(pkt *Packet) error {
 	// 添加到消息队列
-	this.goMutex.Lock()
+	this.mutex.Lock()
 	this.sendQueue = append(this.sendQueue, pkt)
-	this.goMutex.Unlock()
+	this.mutex.Unlock()
 
 	return nil
 }
@@ -140,16 +141,16 @@ func (this *PacketSocket) SetRecvDeadline(deadline time.Time) error {
 // 将消息队列中的数据写入 writebuff
 func (this *PacketSocket) Flush() (err error) {
 	// 复制数据
-	this.goMutex.Lock()
+	this.mutex.Lock()
 	if len(this.sendQueue) == 0 {
-		this.goMutex.Unlock()
+		this.mutex.Unlock()
 
 		return
 	}
 
 	packets := make([]*Packet, 0, len(this.sendQueue)) // 复制准备
 	packets, this.sendQueue = this.sendQueue, packets  // 交换数据, 并把原来的数据置空
-	this.goMutex.Unlock()
+	this.mutex.Unlock()
 
 	// 刷新数据
 	if 1 == len(packets) {

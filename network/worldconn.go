@@ -1,5 +1,5 @@
 // /////////////////////////////////////////////////////////////////////////////
-// 对 PacketSocket 的封装，定义一些 world 内部常用的消息
+// 对 PacketSocket 的封装，面向客户端
 
 package network
 
@@ -109,8 +109,8 @@ func (this *WorldConnection) Flush() {
 }
 
 // 关闭 WorldConnection
-func (this *WorldConnection) Close() {
-	this.packetSocket.Close()
+func (this *WorldConnection) Close() error {
+	return this.packetSocket.Close()
 }
 
 // 检查客户端心跳
@@ -137,7 +137,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 	// 根据类型处理数据
 	switch pkt.GetId() {
 	case C_PACKET_ID_INVALID: // 无效类型
-		zaplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection。")
+		zaplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection")
 		this.Close()
 
 		break

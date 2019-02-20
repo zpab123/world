@@ -185,8 +185,13 @@ func (this *Connector) createSession(netconn net.Conn, isWebSocket bool) {
 	}
 
 	// 创建 session
-	ses := session.NewFrontendSession(socket, this.sessionMgr, this.option.FrontendSessionOpt)
+	if this.option.Frontend {
+		ses := session.NewFrontendSession(socket, this.sessionMgr, this.option.FrontendSessionOpt)
 
-	// 启动 session
-	ses.Run()
+		ses.Run()
+	} else {
+		ses := session.NewBackendSession(socket, this.sessionMgr, this.option.BackendSessionOpt)
+
+		ses.Run()
+	}
 }

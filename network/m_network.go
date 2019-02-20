@@ -28,8 +28,8 @@ const (
 
 // socket 常量
 const (
-	C_SOCKET_READ_BUFFSIZE  = 16384 // scoket 读取类 buff 长度
-	C_SOCKET_WRITE_BUFFSIZE = 16384 // scoket 写入类 buff 长度
+	C_BUFF_READ_SIZE  = 16384 // scoket 读取类 buff 长度
+	C_BUFF_WRITE_SIZE = 16384 // scoket 写入类 buff 长度
 )
 
 // packet 常量
@@ -121,8 +121,8 @@ type TBufferSocketOpt struct {
 // 新建1个 TBufferSocketOpt 对象
 func NewTBufferSocketOpt() *TBufferSocketOpt {
 	bs := &TBufferSocketOpt{
-		ReadBufferSize:  C_SOCKET_READ_BUFFSIZE,
-		WriteBufferSize: C_SOCKET_WRITE_BUFFSIZE,
+		ReadBufferSize:  C_BUFF_READ_SIZE,
+		WriteBufferSize: C_BUFF_WRITE_SIZE,
 	}
 
 	return bs
@@ -144,8 +144,6 @@ func NewTWorldConnOpt() *TWorldConnOpt {
 	buffOpt := NewTBufferSocketOpt()
 
 	opt := &TWorldConnOpt{
-		ShakeKey:       "",
-		Heartbeat:      0,
 		BuffSocketOpts: buffOpt,
 	}
 
