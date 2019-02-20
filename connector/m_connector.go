@@ -12,14 +12,9 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // 常量
 
-// 组件名字
 const (
-	COMPONENT_NAME = "connector" // 组件名字
-)
-
-// 最大连接数
-const (
-	MAX_CONN = 100000 // connector 默认最大连接数
+	C_COMPONENT_NAME = "connector" // 组件名字
+	C_MAX_CONN       = 100000      // connector 默认最大连接数
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +45,7 @@ func NewTConnectorOpt(handler session.IMsgHandler) *TConnectorOpt {
 	opts := &TConnectorOpt{
 		Enable:             true,
 		AcceptorType:       network.C_ACCEPTOR_TYPE_COM,
-		MaxConn:            MAX_CONN,
+		MaxConn:            C_MAX_CONN,
 		Frontend:           true,
 		TcpConnOpt:         tcpOpt,
 		FrontendSessionOpt: fSesOpt,

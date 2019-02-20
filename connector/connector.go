@@ -29,7 +29,7 @@ type Connector struct {
 	name       string                  // 组件名字
 	laddr      *network.TLaddr         // 监听地址集合
 	option     *TConnectorOpt          // 配置参数
-	acceptor   network.IAcceptor       // 某种类型的 acceptor 连接器
+	acceptor   network.IAcceptor       // acceptor 连接器
 	connNum    syncutil.AtomicUint32   // 当前连接数
 	stateMgr   *state.StateManager     // 状态管理
 	sessionMgr *session.SessionManager // session 管理对象
@@ -51,7 +51,7 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	// 创建组件
 	cntor := &Connector{
 		stateMgr:   sm,
-		name:       COMPONENT_NAME,
+		name:       C_COMPONENT_NAME,
 		laddr:      addr,
 		option:     opt,
 		sessionMgr: sesMgr,
@@ -99,7 +99,7 @@ func (this *Connector) Run() bool {
 		return false
 	}
 
-	// zaplog.Infof("Connector 组件启动成功")
+	zaplog.Debugf("Connector 组件启动成功")
 
 	return true
 }
@@ -174,6 +174,7 @@ func (this *Connector) OnNewWsConn(wsconn *websocket.Conn) {
 	wsconn.PayloadType = websocket.BinaryFrame // 以二进制方式接受数据
 
 	// 创建 session 对象
+	this.createSession(wsconn, true)
 }
 
 // 创建 session 对象
