@@ -51,22 +51,22 @@ func NewTDispatcherServerOpt(handler session.IServerMsgHandler) *TDispatcherServ
 
 // DispatcherClient 组件配置参数
 type TDispatcherClientOpt struct {
-	Enable             bool                         // 是否启用 DispatcherClient
-	TcpConnOpt         *model.TTcpConnOpt           // tcpSocket 配置参数
-	WorldConnClientOpt *network.TWorldConnClientOpt // WorldConnClient 配置参数
+	Enable         bool                     // 是否启用 DispatcherClient
+	TcpConnOpt     *model.TTcpConnOpt       // tcpSocket 配置参数
+	WorldSocketOpt *network.TWorldSocketOpt // WorldSocketOpt 配置参数
 }
 
 // 创建1个新的 TDispatcherServerOpts
 func NewTDispatcherClientOpt(handler session.IServerMsgHandler) *TDispatcherClientOpt {
 	// 创建组合对象
 	tcpOpt := model.NewTTcpConnOpt()
-	wsOpt := network.NewTWorldConnClientOpt()
+	wsOpt := network.NewTWorldSocketOpt()
 
 	// 创建对象
 	opt := &TDispatcherClientOpt{
-		Enable:             true,
-		TcpConnOpt:         tcpOpt,
-		WorldConnClientOpt: wsOpt,
+		Enable:         true,
+		TcpConnOpt:     tcpOpt,
+		WorldSocketOpt: wsOpt,
 	}
 
 	return opt

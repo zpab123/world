@@ -203,33 +203,3 @@ func newDisClient(app *Application) {
 	disClient := dispatcher.NewDispatcherClient(opt)
 	app.componentMgr.AddComponent(disClient)
 }
-
-// 创建分发服务器
-func newDispatcherServer(app *Application) {
-	// 地址参数
-	serverInfo := app.GetServerInfo()
-	tcpAddr := fmt.Sprintf("%s:%d", serverInfo.Host, serverInfo.Port)
-	laddr := &network.TLaddr{
-		TcpAddr: tcpAddr,
-	}
-
-	// 配置参数
-	opt := app.componentMgr.GetDisServerOpt()
-	if nil == opt {
-		opt = getDefaultDisServerOpt(app)
-		app.componentMgr.SetDisServerOpt(opt)
-	}
-
-	// 创建 DispatcherServer
-	dis := dispatcher.NewDispatcherServer(laddr, opt)
-
-	// 添加组件
-	app.componentMgr.AddComponent(dis)
-}
-
-// 获取默认 DispatcherServerOpt
-func getDefaultDisServerOpt(app *Application) *dispatcher.TDispatcherServerOpt {
-	opt := dispatcher.NewTDispatcherServerOpt(app.appDelegate)
-
-	return opt
-}
