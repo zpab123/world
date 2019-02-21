@@ -40,7 +40,7 @@ type PacketSocket struct {
 	headBuff  [_HEAD_LEN]byte // 存放消息头二进制数据
 	pktId     uint16          // packet id 用于记录消息类型
 	bodylen   uint32          // 本次 pcket body 总大小
-	newPacket *Packet         // 用于存储 本次即将接收的 Packet 对象
+	packet    *Packet         // 用于存储本次即将接收的 Packet 对象
 }
 
 // 创建1个新的 PacketSocket 对象
@@ -67,6 +67,8 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 			if nil == err {
 				err = errRecvAgain
 			}
+
+			return nil, err
 		}
 
 		// 收到消息头: 保存本次 packet 消息 id
@@ -79,7 +81,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 		// 长度效验
 		if this.bodylen > _MAX_BODY_LENGTH {
-			err := errors.Errorf("packet 消息包数据 body 长度大于最大长度。长度=：%v", this.bodylen)
+			err := errors.Errorf("packet 长度大于最大长度。长度=%d，最大长度=%d", this.bodylen, _MAX_BODY_LENGTH)
 			this.resetRecvStates()
 			this.Close()
 
@@ -88,20 +90,20 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 		// 创建新的 packet 对象
 		this.recvedLen = 0 // 重置，准备记录 body
-		this.newPacket = NewPacket(this.pktId)
-		this.newPacket.AllocBuffer(this.bodylen)
+		this.packet = NewPacket(this.pktId)
+		this.packet.AllocBuffer(this.bodylen)
 	}
 
 	// 长度为0类型数据处理
 	if this.bodylen == 0 {
-		packet := this.newPacket
+		packet := this.packet
 		this.resetRecvStates()
 
 		return packet, nil
 	}
 
 	// 接收 pcket 数据的 body 部分
-	n, err := this.socket.Read(this.newPacket.GetBytes()[_HEAD_LEN+this.recvedLen : _HEAD_LEN+this.bodylen])
+	n, err := this.socket.Read(this.packet.GetBytes()[_HEAD_LEN+this.recvedLen : _HEAD_LEN+this.bodylen])
 	this.recvedLen += uint32(n)
 
 	// 接收完成， packet 数据包完整
@@ -109,7 +111,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 		// 解密
 
 		// 准备接收下1个
-		packet := this.newPacket
+		packet := this.packet
 		this.resetRecvStates()
 
 		return packet, nil
@@ -131,11 +133,6 @@ func (this *PacketSocket) SendPacket(pkt *Packet) error {
 	this.mutex.Unlock()
 
 	return nil
-}
-
-// 设置 读 超时
-func (this *PacketSocket) SetRecvDeadline(deadline time.Time) error {
-	return this.socket.SetReadDeadline(deadline)
 }
 
 // 将消息队列中的数据写入 writebuff
@@ -184,6 +181,11 @@ func (this *PacketSocket) Close() error {
 	return this.socket.Close()
 }
 
+// 设置 读 超时
+func (this *PacketSocket) SetRecvDeadline(deadline time.Time) error {
+	return this.socket.SetReadDeadline(deadline)
+}
+
 // 获取客户端 ip 地址
 func (this *PacketSocket) RemoteAddr() net.Addr {
 	return this.socket.RemoteAddr()
@@ -203,7 +205,7 @@ func (this *PacketSocket) String() string {
 func (this *PacketSocket) resetRecvStates() {
 	this.recvedLen = 0
 	this.bodylen = 0
-	this.newPacket = nil
+	this.packet = nil
 }
 
 // /////////////////////////////////////////////////////////////////////////////
