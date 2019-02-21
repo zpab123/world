@@ -29,12 +29,12 @@ type ISessionManage interface {
 
 // 客户端消息管理
 type IClientMsgHandler interface {
-	OnClientMessage(ses *FrontendSession, msg *Message) // 收到1个新的客户端消息
+	OnClientMessage(ses *FrontendSession, packet *network.Packet) // 收到1个新的客户端消息
 }
 
 // 服务端消息管理
 type IServerMsgHandler interface {
-	OnServerMessage(ses *BackendSession, msg *Message) // 收到1个新的服务器消息
+	OnServerMessage(ses *BackendSession, packet *network.Packet) // 收到1个新的服务器消息
 }
 
 // 消息管理

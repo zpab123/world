@@ -138,6 +138,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 	switch pkt.GetId() {
 	case C_PACKET_ID_INVALID: // 无效类型
 		zaplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection")
+
 		this.Close()
 
 		break
@@ -179,9 +180,9 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	// 版本验证
 	if this.option.ShakeKey != "" && shakeInfo.Key != this.option.ShakeKey {
 		res.Code = msg.SHAKE_KEY_ERROR
-		body, err := proto.Marshal(res)
+		data, err := proto.Marshal(res)
 		if nil != err {
-			this.handshakeResponse(false, body)
+			this.handshakeResponse(false, data)
 		} else {
 
 		}
@@ -192,12 +193,13 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	}
 
 	// 通信方式验证
+	//if this.option.
 
 	// 回复处理结果
 }
 
 //  返回握手消息
-func (this *WorldConnection) handshakeResponse(sucess bool, body []byte) {
+func (this *WorldConnection) handshakeResponse(sucess bool, data []byte) {
 	// 状态效验
 	if this.stateMgr.GetState() != C_WCONN_STATE_INIT {
 		return
@@ -205,7 +207,7 @@ func (this *WorldConnection) handshakeResponse(sucess bool, body []byte) {
 
 	// 返回数据
 	pkt := NewPacket(C_PACKET_ID_HANDSHAKE)
-	pkt.AppendBytes(body)
+	pkt.AppendBytes(data)
 	this.SendPacketRelease(pkt)
 
 	// 改变状态

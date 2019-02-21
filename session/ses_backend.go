@@ -124,15 +124,11 @@ func (this *BackendSession) recvLoop() {
 			continue
 		}
 
-		// 创建消息：后续使用对象池？
-		msg := &Message{
-			packet: pkt,
-		}
-
 		// 消息处理
 		if this.msgHandler != nil {
-			this.msgHandler.OnServerMessage(this, msg)
+			this.msgHandler.OnServerMessage(this, pkt)
 		}
+
 	}
 }
 
