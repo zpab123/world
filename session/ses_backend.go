@@ -118,8 +118,7 @@ func (this *BackendSession) recvLoop() {
 		this.worldConn.CheckClientHeartbeat()
 
 		// 接收消息
-		var pkt *network.Packet
-		pkt, _ = this.worldConn.RecvPacket()
+		pkt, _ := this.worldConn.RecvPacket()
 		if nil == pkt {
 			continue
 		}
