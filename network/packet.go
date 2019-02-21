@@ -336,6 +336,7 @@ func (this *Packet) Release() {
 		}
 
 		// 将 pakcet 放回对象池
+		this.readCount = 0
 		packetPool.Put(this)
 	} else if refcount < 0 {
 		// zaplog.Panicf("释放1个 packet 错误，剩余 refcount=%d", p.refcount)

@@ -37,7 +37,7 @@ func NewBackendSession(socket network.ISocket, mgr ISessionManage, opt *TBackend
 	wc := network.NewWorldConnection(socket, opt.WorldConnOpts)
 
 	// 创建对象
-	cs := &BackendSession{
+	bs := &BackendSession{
 		stateMgr:    st,
 		worldConn:   wc,
 		sesssionMgr: mgr,
@@ -45,19 +45,23 @@ func NewBackendSession(socket network.ISocket, mgr ISessionManage, opt *TBackend
 	}
 
 	// 修改为初始化状态
-	cs.stateMgr.SetState(state.C_STATE_INIT)
+	bs.stateMgr.SetState(state.C_STATE_INIT)
 
-	return cs
+	return bs
 }
 
 // 启动 session [ISession 接口]
 func (this *BackendSession) Run() {
-	// 改变状态： 启动中
-	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zaplog.Errorf("BackendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+	// 状态效验
+	s := this.stateMgr.GetState()
+	if s != state.C_STATE_INIT && s != state.C_STATE_CLOSED {
+		zaplog.Errorf("BackendSession 启动失败，状态错误。正确状态=%d或%d，当前状态=%d", state.C_STATE_INIT, state.C_STATE_CLOSED, s)
 
 		return
 	}
+
+	// 改变状态： 启动中
+	this.stateMgr.SetState(state.C_STATE_RUNING)
 
 	// 变量重置？ 状态? 发送队列？
 
