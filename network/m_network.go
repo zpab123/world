@@ -56,6 +56,14 @@ const (
 	C_WCONN_STATE_CLOSED                 // 关闭状态
 )
 
+// WorldSocket 状态
+const (
+	C_SOCKET_STATE_INIT    uint32 = iota // 初始化状态
+	C_SOCKET_STATE_SHAKE                 // 握手状态
+	C_SOCKET_STATE_WORKING               // 工作中
+	C_SOCKET_STATE_CLOSED                // 关闭状态
+)
+
 // WorldSocket 类型
 const (
 	C_NET_TYPE_TCP = "tcp" // tcp 连接对象

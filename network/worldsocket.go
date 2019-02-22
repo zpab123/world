@@ -6,9 +6,12 @@ package network
 import (
 	"net"
 
-	"github.com/pkg/errors"          // 错误库
-	"github.com/zpab123/world/state" // 状态管理
-	"github.com/zpab123/zaplog"      // 日志库
+	"github.com/gogo/protobuf/proto"  // protobuf 库
+	"github.com/pkg/errors"           // 错误库
+	"github.com/zpab123/world/config" // 配置文件
+	"github.com/zpab123/world/msg"    // world 内部通信消息
+	"github.com/zpab123/world/state"  // 状态管理
+	"github.com/zpab123/zaplog"       // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -35,7 +38,7 @@ func NewWorldSocket(addr *TLaddr, opt *TWorldSocketOpt) *WorldSocket {
 	}
 
 	// 状态： init
-	ws.stateMgr.SetState(C_WCONN_STATE_INIT)
+	ws.stateMgr.SetState(C_SOCKET_STATE_INIT)
 
 	return ws
 }
@@ -46,7 +49,7 @@ func (this *WorldSocket) Connect() error {
 
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != C_WCONN_STATE_INIT && s != C_WCONN_STATE_CLOSED {
+	if s != C_SOCKET_STATE_INIT && s != C_SOCKET_STATE_CLOSED {
 		err = errors.Errorf("WorldSocket 连接失败，状态错误。当前状态=%d", s)
 
 		return err
@@ -67,14 +70,26 @@ func (this *WorldSocket) Connect() error {
 		break
 	}
 
+	// 发送握手请求
+	if nil == err {
+		this.stateMgr.SetState(C_SOCKET_STATE_SHAKE)
+		this.sendHandshake()
+	}
+
 	return err
 }
 
 // 关闭连接
 func (this *WorldSocket) Close() (err error) {
-	// 状态：关闭中
+	// 状态效验
 	s := this.stateMgr.GetState()
-	if s == C_WCONN_STATE_CLOSED {
+	if s == C_SOCKET_STATE_INIT {
+		err = errors.New("WorldSocket 关闭失败：它处于init状态")
+
+		return
+	}
+
+	if s == C_SOCKET_STATE_CLOSED {
 		err = errors.New("WorldSocket 关闭失败：它已经处于关闭状态")
 
 		return
@@ -91,13 +106,14 @@ func (this *WorldSocket) Close() (err error) {
 	this.packetSocket = nil
 
 	// 状态：关闭成功
-	this.stateMgr.SetState(C_WCONN_STATE_CLOSED)
+	this.stateMgr.SetState(C_SOCKET_STATE_CLOSED)
 
 	return
 }
 
 // 创建统一 socket
 func (this *WorldSocket) createSocket(conn net.Conn) {
+	// 创建 packetSocket
 	socket := &Socket{
 		Conn: conn,
 	}
@@ -127,4 +143,34 @@ func (this *WorldSocket) connectTcp() error {
 	this.createSocket(conn)
 
 	return nil
+}
+
+// 发送握手请求
+func (this *WorldSocket) sendHandshake() {
+	// 状态效验
+	s := this.stateMgr.GetState()
+	if s != C_SOCKET_STATE_SHAKE {
+		zaplog.Debugf("WorldSocket 发送握手消息失败，状态错误。当前状态=%d，正确状态=%d", s, C_SOCKET_STATE_SHAKE)
+
+		return
+	}
+
+	key := config.GetWorldConfig().ShakeKey
+
+	zaplog.Debugf("WorldSocket 发送握手消息。key=%s", key)
+
+	req := &msg.HandshakeReq{
+		Key: key,
+	}
+
+	buf, err := proto.Marshal(req)
+
+	if nil == err {
+		pkt := NewPacket(C_PACKET_ID_HANDSHAKE)
+		pkt.AppendBytes(buf)
+
+		this.packetSocket.SendPacket(pkt)
+	} else {
+		zaplog.Debugf("WorldSocket 发送握手消息失败：protobuf 编码握手消息出错")
+	}
 }

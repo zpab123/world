@@ -71,7 +71,10 @@ func (this *Packet) GetId() uint16 {
 
 // 获取 Packet 的 body 部分
 func (this *Packet) GetBody() []byte {
-	return this.bytes[_HEAD_LEN:this.GetBodyLen()]
+	bodyLen := this.GetBodyLen()
+	end := (_HEAD_LEN + bodyLen)
+
+	return this.bytes[_HEAD_LEN:end]
 }
 
 // 获取 bytes
@@ -345,7 +348,9 @@ func (this *Packet) Release() {
 
 // Packet.bytes 中的所有有效数据
 func (this *Packet) Data() []byte {
-	return this.bytes[0 : _HEAD_LEN+this.GetBodyLen()]
+	end := _HEAD_LEN + this.GetBodyLen()
+
+	return this.bytes[0:end]
 }
 
 // 根据 need 数量， 为 packet 的 bytes 扩大内存，并完成旧数据复制
@@ -392,7 +397,21 @@ func (this *Packet) getPayloadCap() uint32 {
 
 // 增加 body 长度
 func (this *Packet) addBodyLen(ln uint32) {
-	*(*uint32)(unsafe.Pointer(&this.bytes[_LEN_POS])) += ln
+	pLen := (*uint32)(unsafe.Pointer(&this.bytes[_LEN_POS]))
+
+	*pLen += ln
+}
+
+// 设置 body 长度
+func (this *Packet) setBodyLen(ln uint32, compressed bool) {
+	pBody := (*uint32)(unsafe.Pointer(&this.bytes[_LEN_POS]))
+
+	// 根据压缩计算
+	if compressed {
+
+	} else {
+		*pBody = ln
+	}
 }
 
 // 获取读取位置

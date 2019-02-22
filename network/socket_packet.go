@@ -12,6 +12,7 @@ import (
 
 	"github.com/pkg/errors"          // 错误库
 	"github.com/zpab123/world/utils" // 工具库
+	"github.com/zpab123/zaplog"      // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -83,6 +84,8 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 		// 长度效验
 		if bodylen > _MAX_BODY_LENGTH {
 			err := errors.Errorf("packet 长度大于最大长度。长度=%d，最大长度=%d", bodylen, _MAX_BODY_LENGTH)
+			zaplog.Errorf("%s", err)
+
 			this.resetRecvStates()
 			this.Close()
 
@@ -113,12 +116,15 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 		// 准备接收下1个
 		packet := this.packet
+		ln := uint32(this.bodylen)
+		packet.setBodyLen(ln, false)
+
 		this.resetRecvStates()
 
 		return packet, nil
 	}
 
-	// body 收完
+	// body 未收完
 	if nil == err {
 		err = errRecvAgain
 	}
