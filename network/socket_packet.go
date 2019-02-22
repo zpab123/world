@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"          // 错误集合
+	"github.com/pkg/errors"          // 错误库
 	"github.com/zpab123/world/utils" // 工具库
 )
 
@@ -36,10 +36,10 @@ type PacketSocket struct {
 	socket    ISocket         // 符合 ISocket 的对象
 	mutex     sync.Mutex      // 线程互斥锁
 	sendQueue []*Packet       // 发送队列
-	recvedLen uint32          // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
+	recvedLen int             // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
 	headBuff  [_HEAD_LEN]byte // 存放消息头二进制数据
 	pktId     uint16          // packet id 用于记录消息类型
-	bodylen   uint32          // 本次 pcket body 总大小
+	bodylen   int             // 本次 pcket body 总大小
 	packet    *Packet         // 用于存储本次即将接收的 Packet 对象
 }
 
@@ -60,7 +60,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 	// 还未收到消息头
 	if this.recvedLen < _HEAD_LEN {
 		n, err := this.socket.Read(this.headBuff[this.recvedLen:]) // 读取数据
-		this.recvedLen += uint32(n)
+		this.recvedLen += n
 
 		// 还是没收到完整消息头
 		if this.recvedLen < _HEAD_LEN {
@@ -75,13 +75,14 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 		this.pktId = NETWORK_ENDIAN.Uint16(this.headBuff[0:_LEN_POS])
 
 		// 收到消息头: 保存本次 packet 消息 body 总大小
-		this.bodylen = NETWORK_ENDIAN.Uint32(this.headBuff[_LEN_POS:])
+		bodylen := NETWORK_ENDIAN.Uint32(this.headBuff[_LEN_POS:])
+		this.bodylen = int(bodylen)
 
 		// 解密
 
 		// 长度效验
-		if this.bodylen > _MAX_BODY_LENGTH {
-			err := errors.Errorf("packet 长度大于最大长度。长度=%d，最大长度=%d", this.bodylen, _MAX_BODY_LENGTH)
+		if bodylen > _MAX_BODY_LENGTH {
+			err := errors.Errorf("packet 长度大于最大长度。长度=%d，最大长度=%d", bodylen, _MAX_BODY_LENGTH)
 			this.resetRecvStates()
 			this.Close()
 
@@ -91,7 +92,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 		// 创建新的 packet 对象
 		this.recvedLen = 0 // 重置，准备记录 body
 		this.packet = NewPacket(this.pktId)
-		this.packet.AllocBuffer(this.bodylen)
+		this.packet.AllocBuffer(bodylen)
 	}
 
 	// 长度为0类型数据处理
@@ -104,7 +105,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 	// 接收 pcket 数据的 body 部分
 	n, err := this.socket.Read(this.packet.bytes[_HEAD_LEN+this.recvedLen : _HEAD_LEN+this.bodylen])
-	this.recvedLen += uint32(n)
+	this.recvedLen += n
 
 	// 接收完成， packet 数据包完整
 	if this.recvedLen == this.bodylen {
@@ -127,6 +128,8 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 
 // 发送1个 *Packe 数据
 func (this *PacketSocket) SendPacket(pkt *Packet) error {
+	// 状态效验
+
 	// 添加到消息队列
 	this.mutex.Lock()
 	this.sendQueue = append(this.sendQueue, pkt)
@@ -155,6 +158,7 @@ func (this *PacketSocket) Flush() (err error) {
 
 		// 将 data 写入 conn
 		err = utils.WriteAll(this.socket, pkt.Data())
+
 		pkt.Release()
 
 		if nil == err {
@@ -166,6 +170,7 @@ func (this *PacketSocket) Flush() (err error) {
 
 	for _, pkt := range packets {
 		err = utils.WriteAll(this.socket, pkt.Data())
+
 		pkt.Release()
 	}
 
@@ -181,7 +186,7 @@ func (this *PacketSocket) Close() error {
 	return this.socket.Close()
 }
 
-// 设置 读 超时
+// 设置读超时
 func (this *PacketSocket) SetRecvDeadline(deadline time.Time) error {
 	return this.socket.SetReadDeadline(deadline)
 }
