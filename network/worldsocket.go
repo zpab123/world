@@ -6,6 +6,7 @@ package network
 import (
 	"net"
 
+	"github.com/pkg/errors"          // 错误库
 	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/zaplog"      // 日志库
 )
@@ -34,7 +35,7 @@ func NewWorldSocket(addr *TLaddr, opt *TWorldSocketOpt) *WorldSocket {
 	}
 
 	// 状态： init
-	ws.stateMgr.SetState(state.C_STATE_INIT)
+	ws.stateMgr.SetState(C_WCONN_STATE_INIT)
 
 	return ws
 }
@@ -45,7 +46,9 @@ func (this *WorldSocket) Connect() error {
 
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != state.C_STATE_INIT && s != state.C_STATE_CLOSED {
+	if s != C_WCONN_STATE_INIT && s != C_WCONN_STATE_CLOSED {
+		err = errors.Errorf("WorldSocket 连接失败，状态错误。当前状态=%d", s)
+
 		return err
 	}
 
@@ -64,22 +67,22 @@ func (this *WorldSocket) Connect() error {
 		break
 	}
 
-	// 状态：工作中
-	if nil == err {
-		this.stateMgr.SetState(state.C_STATE_WORKING)
-	}
-
 	return err
 }
 
 // 关闭连接
 func (this *WorldSocket) Close() (err error) {
 	// 状态：关闭中
-	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_CLOSEING) {
+	s := this.stateMgr.GetState()
+	if s == C_WCONN_STATE_CLOSED {
+		err = errors.New("WorldSocket 关闭失败：它已经处于关闭状态")
+
 		return
 	}
 
 	if nil == this.packetSocket {
+		err = errors.New("WorldSocket 关闭失败：packetSocket 不存在")
+
 		return
 	} else {
 		err = this.packetSocket.Close()
@@ -88,7 +91,7 @@ func (this *WorldSocket) Close() (err error) {
 	this.packetSocket = nil
 
 	// 状态：关闭成功
-	this.stateMgr.SetState(state.C_STATE_CLOSED)
+	this.stateMgr.SetState(C_WCONN_STATE_CLOSED)
 
 	return
 }
