@@ -5,6 +5,7 @@ package network
 
 import (
 	"net"
+	"time"
 
 	"github.com/gogo/protobuf/proto"  // protobuf 库
 	"github.com/pkg/errors"           // 错误库
@@ -19,10 +20,13 @@ import (
 
 // World 框架内部通信使用的 socket 对象
 type WorldSocket struct {
-	addr         *TLaddr             // 连接地址
-	stateMgr     *state.StateManager // 状态管理
-	option       *TWorldSocketOpt    // 配置参数
-	packetSocket *PacketSocket       // PacketSocket 对象
+	addr            *TLaddr             // 连接地址
+	stateMgr        *state.StateManager // 状态管理
+	option          *TWorldSocketOpt    // 配置参数
+	packetSocket    *PacketSocket       // PacketSocket 对象
+	timeOut         int64               // 心跳超时时间，单位：秒
+	frontendTimeOut int64               // 前端心跳超时时间点，精确到秒
+	backendTimeOut  int64               // 后端心跳超时时间点，精确到秒
 }
 
 // 新建1个 WorldSocket
@@ -35,6 +39,7 @@ func NewWorldSocket(addr *TLaddr, opt *TWorldSocketOpt) *WorldSocket {
 		addr:     addr,
 		stateMgr: st,
 		option:   opt,
+		timeOut:  opt.Heartbeat * 2,
 	}
 
 	// 状态： init
@@ -111,6 +116,79 @@ func (this *WorldSocket) Close() (err error) {
 	return
 }
 
+// 接收1个 Packet 消息
+func (this *WorldSocket) RecvPacket() (*Packet, error) {
+	// 接收 packet
+	pkt, err := this.packetSocket.RecvPacket()
+	if nil == pkt || nil != err {
+		return nil, err
+	}
+
+	// 记录后端超时
+	if this.timeOut > 0 {
+		this.backendTimeOut = time.Now().Unix() + this.timeOut
+	}
+
+	// 握手消息
+	if pkt.pktId == C_PACKET_ID_HANDSHAKE {
+		this.handleHandshake(pkt.GetBody())
+
+		return nil, err
+	}
+
+	// 心跳消息
+	if pkt.pktId == C_PACKET_ID_HEARTBEAT {
+		//this.handleHeartbeat()
+
+		return nil, err
+	}
+
+	// 状态效验
+	s := this.stateMgr.GetState()
+	if s != C_SOCKET_STATE_WORKING {
+		this.Close()
+
+		err = errors.Errorf("WorldSocket 状态错误。当前状态=%d，正确状态=%d", s, C_SOCKET_STATE_WORKING)
+
+		return nil, err
+	}
+
+	return pkt, nil
+}
+
+// 发送1个 packet 消息
+func (this *WorldSocket) SendPacket(pkt *Packet) error {
+	// 状态效验
+
+	// 记录前端超时
+	if this.timeOut > 0 {
+		this.frontendTimeOut = time.Now().Unix() + this.timeOut
+	}
+
+	return this.packetSocket.SendPacket(pkt)
+}
+
+// 检查前端心跳
+func (this *WorldSocket) CheckFrontendHeartbeat() {
+	if this.timeOut > 0 {
+		if time.Now().Unix() >= this.frontendTimeOut {
+
+			this.sendHeartbeat()
+		}
+	}
+}
+
+// 检查后端心跳
+func (this *WorldSocket) CheckBackendHeartbeat() {
+	if this.timeOut > 0 {
+		if time.Now().Unix() >= this.backendTimeOut {
+			zaplog.Warnf("WorldSocket 后端心跳超时，断开连接")
+
+			this.Close()
+		}
+	}
+}
+
 // 创建统一 socket
 func (this *WorldSocket) createSocket(conn net.Conn) {
 	// 创建 packetSocket
@@ -150,14 +228,12 @@ func (this *WorldSocket) sendHandshake() {
 	// 状态效验
 	s := this.stateMgr.GetState()
 	if s != C_SOCKET_STATE_SHAKE {
-		zaplog.Debugf("WorldSocket 发送握手消息失败，状态错误。当前状态=%d，正确状态=%d", s, C_SOCKET_STATE_SHAKE)
+		zaplog.Errorf("WorldSocket 发送握手消息失败，状态错误。当前状态=%d，正确状态=%d", s, C_SOCKET_STATE_SHAKE)
 
 		return
 	}
 
 	key := config.GetWorldConfig().ShakeKey
-
-	zaplog.Debugf("WorldSocket 发送握手消息。key=%s", key)
 
 	req := &msg.HandshakeReq{
 		Key: key,
@@ -169,8 +245,66 @@ func (this *WorldSocket) sendHandshake() {
 		pkt := NewPacket(C_PACKET_ID_HANDSHAKE)
 		pkt.AppendBytes(buf)
 
-		this.packetSocket.SendPacket(pkt)
+		this.SendPacket(pkt)
 	} else {
-		zaplog.Debugf("WorldSocket 发送握手消息失败：protobuf 编码握手消息出错")
+		zaplog.Errorf("WorldSocket 发送握手消息失败：protobuf 编码握手消息出错")
 	}
+}
+
+//  处理握手消息
+func (this *WorldSocket) handleHandshake(data []byte) {
+	// 解码
+	res := &msg.HandshakeRes{}
+	err := proto.Unmarshal(data, res)
+	if nil != err {
+		zaplog.Error("WorldSocket: protobuf 解码握手消息出错。关闭连接")
+
+		this.Close()
+
+		return
+	}
+
+	// 握手结果
+	if res.Code == msg.OK {
+		// 保存握手数据
+
+		// 发送 ack
+		this.sendAck()
+	} else {
+		zaplog.Error("WorldSocket 握手失败。code=", res.Code)
+	}
+}
+
+// 发送握手ACK
+func (this *WorldSocket) sendAck() {
+	// 状态效验
+	if this.stateMgr.GetState() != C_SOCKET_STATE_SHAKE {
+
+		return
+	}
+
+	pkt := NewPacket(C_PACKET_ID_HANDSHAKE_ACK)
+
+	this.SendPacket(pkt)
+
+	// 状态： 工作中
+	this.stateMgr.SetState(C_SOCKET_STATE_WORKING)
+}
+
+//  发送心跳数据
+func (this *WorldSocket) sendHeartbeat() {
+	// 状态效验
+	if this.stateMgr.GetState() != C_SOCKET_STATE_WORKING {
+
+		return
+	}
+
+	// 发送心跳数据
+	pkt := NewPacket(C_PACKET_ID_HEARTBEAT)
+	this.SendPacket(pkt)
+}
+
+//  处理心跳消息
+func (this *WorldSocket) handleHeartbeat() {
+
 }

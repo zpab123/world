@@ -94,7 +94,9 @@ func (this *WorldConnection) SendPacket(pkt *Packet) error {
 	// 状态效验
 
 	// 记录超时
-	this.serverTimeOut = time.Now().Unix() + this.timeOut
+	if this.timeOut > 0 {
+		this.serverTimeOut = time.Now().Unix() + this.timeOut
+	}
 
 	return this.packetSocket.SendPacket(pkt)
 }

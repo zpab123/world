@@ -165,6 +165,7 @@ func NewTWorldConnOpt() *TWorldConnOpt {
 type TWorldSocketOpt struct {
 	NetType        string             // 类型
 	ShakeKey       string             // 握手key
+	Heartbeat      int64              // 心跳间隔，单位：秒。0=不设置心跳
 	TcpConnOpt     *model.TTcpConnOpt // tcpSocket 配置参数
 	BuffSocketOpts *TBufferSocketOpt  // BufferSocket 配置参数
 }
