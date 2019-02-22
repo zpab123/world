@@ -192,10 +192,17 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 		return
 	}
 
-	// 通信方式验证
-	//if this.option.
+	// 通信方式验证,后续添加
 
 	// 回复处理结果
+	res.Code = msg.OK
+	data, err := proto.Marshal(res)
+	if nil != err {
+		this.handshakeResponse(true, data)
+	} else {
+
+	}
+
 }
 
 //  返回握手消息

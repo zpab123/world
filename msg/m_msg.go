@@ -13,8 +13,8 @@ const (
 
 // 通用消息码(1-1000)
 const (
-	CODE_ERROR   uint32 = iota // 误类消息 0
-	CODE_SUCCESS               // 成功类消息 1
+	ERROR uint32 = iota // 误类消息 0
+	OK                  // 成功类消息 1
 )
 
 // 其他消息(1001-)

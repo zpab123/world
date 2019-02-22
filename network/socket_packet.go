@@ -103,7 +103,7 @@ func (this *PacketSocket) RecvPacket() (*Packet, error) {
 	}
 
 	// 接收 pcket 数据的 body 部分
-	n, err := this.socket.Read(this.packet.GetBytes()[_HEAD_LEN+this.recvedLen : _HEAD_LEN+this.bodylen])
+	n, err := this.socket.Read(this.packet.bytes[_HEAD_LEN+this.recvedLen : _HEAD_LEN+this.bodylen])
 	this.recvedLen += uint32(n)
 
 	// 接收完成， packet 数据包完整
@@ -204,6 +204,7 @@ func (this *PacketSocket) String() string {
 // 重置数据接收状态
 func (this *PacketSocket) resetRecvStates() {
 	this.recvedLen = 0
+	this.pktId = C_PACKET_ID_INVALID
 	this.bodylen = 0
 	this.packet = nil
 }
@@ -214,7 +215,9 @@ func (this *PacketSocket) resetRecvStates() {
 type _ErrRecvAgain struct{}
 
 func (err _ErrRecvAgain) Error() string {
-	return "继续接收 packet"
+	e := "packet 尚未完整，请继续接收"
+
+	return e
 }
 
 func (err _ErrRecvAgain) Temporary() bool {

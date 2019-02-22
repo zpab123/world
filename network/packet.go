@@ -17,7 +17,7 @@ import (
 const (
 	_HEAD_LEN        = C_PACKET_HEAD_LEN // 消息头长度
 	_LEN_POS         = 2                 // Packet 的 buffer 中，记录长度信息开始的位置： 用于 body 长度计算
-	_MIN_PAYLOAD_LEN = 128               // 有效载荷的最小长度（对象池使用）
+	_MIN_PAYLOAD_CAP = 128               // buff 最小有效容量（buff 对象池使用）
 	_BODY_LEN_MASK   = 0x7FFFFFFF        // 等于 1111111111111111111111111111111 (32个1)
 )
 
@@ -33,7 +33,7 @@ var (
 type Packet struct {
 	pktId     uint16                             // 用于记录 packet 类型
 	bytes     []byte                             // 用于存放需要通过网络 发送/接收 的数据 （head + body）
-	initBytes [_HEAD_LEN + _MIN_PAYLOAD_LEN]byte // bytes 初始化时候的 buffer 4 + 128
+	initBytes [_HEAD_LEN + _MIN_PAYLOAD_CAP]byte // bytes 初始化时候的 buffer 4 + 128
 	readCount uint32                             // bytes 中已经读取的字节数
 }
 
@@ -325,8 +325,8 @@ func (this *Packet) Release() {
 	// 对象池处理
 	if 0 == refcount {
 		// buff 放回对象池， 并对 Packet 包中 bytes 重新初始化
-		payloadLn := this.getPayloadLen() // 有效载荷长度
-		if payloadLn > _MIN_PAYLOAD_LEN {
+		payloadLn := this.getPayloadCap() // 有效载荷长度
+		if payloadLn > _MIN_PAYLOAD_CAP {
 			// 初始化
 			buffer := this.bytes
 			this.bytes = this.initBytes[:]
@@ -352,14 +352,14 @@ func (this *Packet) Data() []byte {
 func (this *Packet) AllocBuffer(need uint32) {
 	// 现有长度满足需求
 	newLen := this.GetBodyLen() + need //body 新长度 = 旧长度 + size
-	payloadLen := this.getPayloadLen() // 有效载荷长度
+	payloadCap := this.getPayloadCap() // 有效容量
 
-	if newLen <= payloadLen {
+	if newLen <= payloadCap {
 		return
 	}
 
 	// 根据 newLen 大小，从 bufferPools 中获取 buffer 对象池
-	poolKey := getPoolKey(uint32(newLen))
+	poolKey := getPoolKey(newLen)
 	newBuffer := bufferPools[poolKey].Get().([]byte)
 	if len(newBuffer) != int(poolKey+_HEAD_LEN) {
 		zaplog.Panicf("buffer 申请错误，申请的长度=%d,获得的长度=%d", poolKey+_HEAD_LEN, len(newBuffer))
@@ -367,23 +367,27 @@ func (this *Packet) AllocBuffer(need uint32) {
 
 	// 新旧 buff 数据交换
 	copy(newBuffer, this.Data())
-	oldPayloadLen := this.getPayloadLen()
+	oldPayloadLen := this.getPayloadCap()
 	oldBytes := this.bytes
 	this.bytes = newBuffer
 
 	// 将旧 buffer 放入对象池
-	if oldPayloadLen > _MIN_PAYLOAD_LEN {
-		bufferPools[oldPayloadLen].Put(oldBytes)
+	if oldPayloadLen > _MIN_PAYLOAD_CAP {
+		pool, ok := bufferPools[oldPayloadLen]
+
+		if ok {
+			pool.Put(oldBytes)
+		}
 	}
 }
 
-// 获取 packet 的 bytes 中有效载荷字节长度（总长度 - 消息头）
-func (this *Packet) getPayloadLen() uint32 {
+// 获取 packet 的 bytes 中有效容量（总容量 - 消息头）
+func (this *Packet) getPayloadCap() uint32 {
 	// bytes 长度
 	byteLen := len(this.bytes)
-	payloadLen := uint32(byteLen) - _HEAD_LEN
+	payloadCap := uint32(byteLen) - _HEAD_LEN
 
-	return payloadLen
+	return payloadCap
 }
 
 // 增加 body 长度
