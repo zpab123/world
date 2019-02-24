@@ -108,7 +108,7 @@ func (this *WorldSocket) Close() (err error) {
 		err = this.packetSocket.Close()
 	}
 
-	this.packetSocket = nil
+	// this.packetSocket = nil
 
 	// 状态：关闭成功
 	this.stateMgr.SetState(C_SOCKET_STATE_CLOSED)
@@ -119,6 +119,10 @@ func (this *WorldSocket) Close() (err error) {
 // 接收1个 Packet 消息
 func (this *WorldSocket) RecvPacket() (*Packet, error) {
 	// 接收 packet
+	if nil == this.packetSocket {
+		return nil, nil
+	}
+
 	pkt, err := this.packetSocket.RecvPacket()
 	if nil == pkt || nil != err {
 		return nil, err
@@ -138,6 +142,7 @@ func (this *WorldSocket) RecvPacket() (*Packet, error) {
 
 	// 心跳消息
 	if pkt.pktId == C_PACKET_ID_HEARTBEAT {
+		zaplog.Debugf("收到 server 心跳消息")
 		//this.handleHeartbeat()
 
 		return nil, err
@@ -168,6 +173,15 @@ func (this *WorldSocket) SendPacket(pkt *Packet) error {
 	return this.packetSocket.SendPacket(pkt)
 }
 
+// 刷新缓冲区
+func (this *WorldSocket) Flush() error {
+	if nil == this.packetSocket {
+		return nil
+	}
+
+	return this.packetSocket.Flush()
+}
+
 // 检查前端心跳
 func (this *WorldSocket) CheckFrontendHeartbeat() {
 	if this.timeOut > 0 {
@@ -179,14 +193,16 @@ func (this *WorldSocket) CheckFrontendHeartbeat() {
 }
 
 // 检查后端心跳
-func (this *WorldSocket) CheckBackendHeartbeat() {
+func (this *WorldSocket) CheckBackendHeartbeat() error {
 	if this.timeOut > 0 {
 		if time.Now().Unix() >= this.backendTimeOut {
 			zaplog.Warnf("WorldSocket 后端心跳超时，断开连接")
 
-			this.Close()
+			return this.Close()
 		}
 	}
+
+	return nil
 }
 
 // 创建统一 socket
@@ -272,6 +288,8 @@ func (this *WorldSocket) handleHandshake(data []byte) {
 		this.sendAck()
 	} else {
 		zaplog.Error("WorldSocket 握手失败。code=", res.Code)
+
+		this.Close()
 	}
 }
 

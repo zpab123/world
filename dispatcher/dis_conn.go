@@ -35,4 +35,36 @@ func NewDispatcherConn(addr *network.TLaddr, opt *TDispatcherClientOpt) *Dispatc
 // 连接服务器
 func (this *DispatcherConn) Connect() {
 	this.worldSocket.Connect()
+
+	go this.recvLoop()
+
+	go this.sendLoop()
+}
+
+// 接收线程
+func (this *DispatcherConn) recvLoop() {
+	for {
+		// 心跳检查
+		this.worldSocket.CheckBackendHeartbeat()
+
+		// 接收消息
+		pkt, _ := this.worldSocket.RecvPacket()
+		if nil == pkt {
+			continue
+		}
+
+		// 消息处理
+
+	}
+}
+
+// 发送线程
+func (this *DispatcherConn) sendLoop() {
+	for {
+		// 心跳检查
+		this.worldSocket.CheckFrontendHeartbeat()
+
+		// 刷新缓冲区
+		this.worldSocket.Flush()
+	}
 }

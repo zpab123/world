@@ -172,7 +172,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 
 		break
 	case C_PACKET_ID_HEARTBEAT: // 心跳数据
-
+		zaplog.Debugf("收到 client 心跳消息")
 		break
 	default:
 		break
