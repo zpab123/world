@@ -45,7 +45,7 @@ func (this *DispatcherConn) Connect() {
 func (this *DispatcherConn) recvLoop() {
 	for {
 		// 心跳检查
-		this.worldSocket.CheckBackendHeartbeat()
+		this.worldSocket.CheckRemoteHeartbeat()
 
 		// 接收消息
 		pkt, _ := this.worldSocket.RecvPacket()
@@ -62,7 +62,7 @@ func (this *DispatcherConn) recvLoop() {
 func (this *DispatcherConn) sendLoop() {
 	for {
 		// 心跳检查
-		this.worldSocket.CheckFrontendHeartbeat()
+		this.worldSocket.CheckLocalHeartbeat()
 
 		// 刷新缓冲区
 		this.worldSocket.Flush()

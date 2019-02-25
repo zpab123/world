@@ -20,13 +20,13 @@ import (
 
 // World 框架内部通信使用的 socket 对象
 type WorldSocket struct {
-	addr            *TLaddr             // 连接地址
-	stateMgr        *state.StateManager // 状态管理
-	option          *TWorldSocketOpt    // 配置参数
-	packetSocket    *PacketSocket       // PacketSocket 对象
-	timeOut         int64               // 心跳超时时间，单位：秒
-	frontendTimeOut int64               // 前端心跳超时时间点，精确到秒
-	backendTimeOut  int64               // 后端心跳超时时间点，精确到秒
+	addr          *TLaddr             // 连接地址
+	stateMgr      *state.StateManager // 状态管理
+	option        *TWorldSocketOpt    // 配置参数
+	packetSocket  *PacketSocket       // PacketSocket 对象
+	timeOut       int64               // 心跳超时时间，单位：秒
+	localTimeOut  int64               // 本地心跳超时时间点，精确到秒
+	remoteTimeOut int64               // 远端心跳超时时间点，精确到秒
 }
 
 // 新建1个 WorldSocket
@@ -39,7 +39,6 @@ func NewWorldSocket(addr *TLaddr, opt *TWorldSocketOpt) *WorldSocket {
 		addr:     addr,
 		stateMgr: st,
 		option:   opt,
-		timeOut:  opt.Heartbeat * 2,
 	}
 
 	// 状态： init
@@ -130,7 +129,7 @@ func (this *WorldSocket) RecvPacket() (*Packet, error) {
 
 	// 记录后端超时
 	if this.timeOut > 0 {
-		this.backendTimeOut = time.Now().Unix() + this.timeOut
+		this.remoteTimeOut = time.Now().Unix() + this.timeOut
 	}
 
 	// 握手消息
@@ -167,7 +166,7 @@ func (this *WorldSocket) SendPacket(pkt *Packet) error {
 
 	// 记录前端超时
 	if this.timeOut > 0 {
-		this.frontendTimeOut = time.Now().Unix() + this.timeOut
+		this.localTimeOut = time.Now().Unix() + this.timeOut
 	}
 
 	return this.packetSocket.SendPacket(pkt)
@@ -182,20 +181,28 @@ func (this *WorldSocket) Flush() error {
 	return this.packetSocket.Flush()
 }
 
-// 检查前端心跳
-func (this *WorldSocket) CheckFrontendHeartbeat() {
+// 检查本地心跳
+func (this *WorldSocket) CheckLocalHeartbeat() {
+	if this.stateMgr.GetState() != C_SOCKET_STATE_WORKING {
+		return
+	}
+
 	if this.timeOut > 0 {
-		if time.Now().Unix() >= this.frontendTimeOut {
+		if time.Now().Unix() >= this.localTimeOut {
 
 			this.sendHeartbeat()
 		}
 	}
 }
 
-// 检查后端心跳
-func (this *WorldSocket) CheckBackendHeartbeat() error {
+// 检查远端心跳
+func (this *WorldSocket) CheckRemoteHeartbeat() error {
+	if this.stateMgr.GetState() != C_SOCKET_STATE_WORKING {
+		return nil
+	}
+
 	if this.timeOut > 0 {
-		if time.Now().Unix() >= this.backendTimeOut {
+		if time.Now().Unix() >= this.remoteTimeOut {
 			zaplog.Warnf("WorldSocket 后端心跳超时，断开连接")
 
 			return this.Close()
@@ -283,6 +290,11 @@ func (this *WorldSocket) handleHandshake(data []byte) {
 	// 握手结果
 	if res.Code == msg.OK {
 		// 保存握手数据
+		t := int64(res.Heartbeat * 2)
+		if t > 0 {
+			this.remoteTimeOut = time.Now().Unix() + t
+			this.timeOut = t
+		}
 
 		// 发送 ack
 		this.sendAck()
@@ -316,6 +328,8 @@ func (this *WorldSocket) sendHeartbeat() {
 
 		return
 	}
+
+	zaplog.Debugf("client 发送心跳")
 
 	// 发送心跳数据
 	pkt := NewPacket(C_PACKET_ID_HEARTBEAT)

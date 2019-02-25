@@ -113,9 +113,14 @@ func (this *BackendSession) SetId(v int64) {
 
 // 接收线程
 func (this *BackendSession) recvLoop() {
+	var err error
+
 	for {
 		// 心跳检查
-		this.worldConn.CheckClientHeartbeat()
+		err = this.worldConn.CheckClientHeartbeat()
+		if nil != err {
+			break
+		}
 
 		// 接收消息
 		pkt, _ := this.worldConn.RecvPacket()
@@ -133,11 +138,16 @@ func (this *BackendSession) recvLoop() {
 
 // 发送线程
 func (this *BackendSession) sendLoop() {
+	var err error
+
 	for {
 		// 心跳检查
 		this.worldConn.CheckServerHeartbeat()
 
 		// 刷新缓冲区
-		this.worldConn.Flush()
+		err = this.worldConn.Flush()
+		if nil != err {
+			break
+		}
 	}
 }

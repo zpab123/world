@@ -19,7 +19,6 @@ import (
 // world 框架内部需要用到的一些常用网络消息
 type WorldConnection struct {
 	stateMgr      *state.StateManager // 状态管理
-	heartbeat     int64               // 心跳间隔，单位：秒。0=不设置心跳
 	option        *TWorldConnOpt      // 配置参数
 	packetSocket  *PacketSocket       // 接口继承： 符合 IPacketSocket 的对象
 	timeOut       int64               // 心跳超时时间，单位：秒
@@ -45,9 +44,8 @@ func NewWorldConnection(socket ISocket, opt *TWorldConnOpt) *WorldConnection {
 	wc := &WorldConnection{
 		stateMgr:     st,
 		packetSocket: pktSocket,
-		heartbeat:    opt.Heartbeat,
 		option:       opt,
-		timeOut:      opt.Heartbeat * 2,
+		timeOut:      int64(opt.Heartbeat * 2),
 	}
 
 	// 设置为初始化状态
@@ -133,18 +131,28 @@ func (this *WorldConnection) Close() error {
 }
 
 // 检查客户端心跳
-func (this *WorldConnection) CheckClientHeartbeat() {
+func (this *WorldConnection) CheckClientHeartbeat() error {
+	if this.stateMgr.GetState() != C_WCONN_STATE_WORKING {
+		return nil
+	}
+
 	if this.timeOut > 0 {
 		if time.Now().Unix() >= this.clientTimeOut {
 			zaplog.Warnf("客户端心跳超时，断开连接")
 
-			this.Close()
+			return this.Close()
 		}
 	}
+
+	return nil
 }
 
 // 检查服务器心跳
 func (this *WorldConnection) CheckServerHeartbeat() {
+	if this.stateMgr.GetState() != C_WCONN_STATE_WORKING {
+		return
+	}
+
 	if this.timeOut > 0 {
 		if time.Now().Unix() >= this.serverTimeOut {
 
@@ -173,6 +181,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 		break
 	case C_PACKET_ID_HEARTBEAT: // 心跳数据
 		zaplog.Debugf("收到 client 心跳消息")
+
 		break
 	default:
 		break
@@ -199,11 +208,10 @@ func (this *WorldConnection) handleHandshake(data []byte) {
 		return
 	}
 
-	zaplog.Debugf("收到握手消息。 key=%s", shakeInfo.Key)
-
 	// 回复消息
 	res := &msg.HandshakeRes{
-		Code: msg.OK,
+		Code:      msg.OK,
+		Heartbeat: this.option.Heartbeat,
 	}
 	var buf []byte
 	var sucess bool = true
@@ -240,7 +248,8 @@ func (this *WorldConnection) handshakeResponse(sucess bool, data []byte) {
 	// 返回数据
 	pkt := NewPacket(C_PACKET_ID_HANDSHAKE)
 	pkt.AppendBytes(data)
-	this.SendPacketRelease(pkt)
+	this.SendPacket(pkt)
+	//this.SendPacketRelease(pkt)
 
 	// 状态： 等待握手 ack
 	if sucess {
@@ -250,8 +259,8 @@ func (this *WorldConnection) handshakeResponse(sucess bool, data []byte) {
 
 //  处理握手ACK
 func (this *WorldConnection) handleHandshakeAck() {
-	// 改变为工作状态
-	if this.stateMgr.SwapState(C_WCONN_STATE_WAIT_ACK, C_WCONN_STATE_WORKING) {
+	// 状态：工作中
+	if !this.stateMgr.SwapState(C_WCONN_STATE_WAIT_ACK, C_WCONN_STATE_WORKING) {
 
 		return
 	}
@@ -267,6 +276,8 @@ func (this *WorldConnection) sendHeartbeat() {
 
 		return
 	}
+
+	zaplog.Debugf("sever 发送心跳")
 
 	// 发送心跳数据
 	pkt := NewPacket(C_PACKET_ID_HEARTBEAT)
