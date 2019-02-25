@@ -68,9 +68,9 @@ func getServerInfo(app *Application) {
 	// 根据 AppType 和 Name 获取 服务器配置参数
 	appType := app.baseInfo.AppType
 	name := app.baseInfo.Name
-	list := config.GetServerMap()[appType]
+	list, ok := config.GetServerMap()[appType]
 
-	if nil == list || len(list) <= 0 {
+	if nil == list || len(list) <= 0 || !ok {
 		zaplog.Fatal("Application 获取 appType 信息失败。 appType=%s", appType)
 
 		os.Exit(1)

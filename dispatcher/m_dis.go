@@ -64,7 +64,7 @@ func NewTDispatcherClientOpt(handler session.IServerMsgHandler) *TDispatcherClie
 
 	// 创建对象
 	opt := &TDispatcherClientOpt{
-		Enable:         true,
+		Enable:         false,
 		TcpConnOpt:     tcpOpt,
 		WorldSocketOpt: wsOpt,
 	}

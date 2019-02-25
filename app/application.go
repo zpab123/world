@@ -33,6 +33,19 @@ type Application struct {
 //
 // appType=server.json 中配置的类型
 func NewApplication(appType string, delegate IAppDelegate) *Application {
+	// 参数验证
+	if nil == delegate {
+		zaplog.Error("Application 创建失败。 delegate=nil")
+
+		os.Exit(1)
+	}
+
+	if "" == appType {
+		zaplog.Error("Application 创建失败。 appType为空")
+
+		os.Exit(1)
+	}
+
 	// 创建对象
 	base := &TBaseInfo{}
 	st := state.NewStateManager()
@@ -60,6 +73,13 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 
 // 初始化 Application
 func (this *Application) Init() {
+	st := this.stateMgr.GetState()
+	if st != state.C_STATE_INVALID {
+		zaplog.Fatal("app Init 失败，状态错误。当前状态=%d，正确状态=%d", st, state.C_STATE_INVALID)
+
+		os.Exit(1)
+	}
+
 	// 获取主程序路径
 	dir, err := utils.GetMainPath()
 	if err != nil {
@@ -72,21 +92,26 @@ func (this *Application) Init() {
 	// 默认设置
 	defaultConfig(this)
 
-	// 改变为初始化状态
-	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
-		zaplog.Fatalf("app Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
-
-		os.Exit(1)
-	}
-
 	// 通知代理
 	this.appDelegate.OnInit(this)
+
+	// 状态： 初始化
+	this.stateMgr.SetState(state.C_STATE_INIT)
 
 	zaplog.Debugf("app 状态：init完成 ...")
 }
 
 // 启动 app
 func (this *Application) Run() {
+	// 状态：启动中
+	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
+		zaplog.Fatalf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+
+		os.Exit(1)
+	} else {
+		zaplog.Infof("app 状态：正在启动中 ...")
+	}
+
 	// 设置随机种子
 	rand.Seed(time.Now().UnixNano())
 
@@ -96,15 +121,6 @@ func (this *Application) Run() {
 	// 创建组件
 	createComponent(this)
 
-	// 改变状态为：启动中
-	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zaplog.Fatalf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
-
-		os.Exit(1)
-	} else {
-		zaplog.Infof("app 状态：正在启动中 ...")
-	}
-
 	// 启动所有组件
 	for _, cpt := range this.componentMgr.componentMap {
 		go cpt.Run()
@@ -113,7 +129,7 @@ func (this *Application) Run() {
 	// 结束信号侦听
 	// setupSignals()
 
-	// 改变为工作中
+	// 状态：工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
 		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
@@ -122,11 +138,8 @@ func (this *Application) Run() {
 		zaplog.Infof("app 状态：启动成功，工作中 ...")
 	}
 
-	// 通知代理
-	go this.appDelegate.OnRun(this)
-
 	// 主循环
-	select {}
+	this.appDelegate.OnRun(this)
 }
 
 // 停止 app
