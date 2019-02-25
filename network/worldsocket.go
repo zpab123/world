@@ -67,10 +67,10 @@ func (this *WorldSocket) Connect() error {
 
 	switch netType {
 	case C_NET_TYPE_TCP: // tcp
-		err = this.connectTcp()
+		this.connectTcp()
 		break
 	default:
-		err = this.connectTcp()
+		this.connectTcp()
 		break
 	}
 
@@ -224,12 +224,12 @@ func (this *WorldSocket) createSocket(conn net.Conn) {
 }
 
 // 连接 tcp
-func (this *WorldSocket) connectTcp() error {
+func (this *WorldSocket) connectTcp() {
 	conn, err := net.Dial("tcp", this.addr.TcpAddr)
-	if nil != err {
-		zaplog.Errorf("WorldSocket 连接tcp服务器失败。ip=%s", this.addr.TcpAddr)
+	for nil != err {
+		zaplog.Errorf("WorldSocket 连接tcp服务器失败。ip=%s。3秒后重试...", this.addr.TcpAddr)
 
-		return err
+		time.Sleep(time.Second * 3)
 	}
 
 	tcpConn, ok := conn.(*net.TCPConn)
@@ -242,8 +242,6 @@ func (this *WorldSocket) connectTcp() error {
 	zaplog.Debugf("WorldSocket 连接tcp服务器成功。ip=%s", this.addr.TcpAddr)
 
 	this.createSocket(conn)
-
-	return nil
 }
 
 // 发送握手请求

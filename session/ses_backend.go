@@ -4,6 +4,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/state"   // 状态管理
@@ -18,7 +20,8 @@ import (
 
 // 面向后端的 session 对象
 type BackendSession struct {
-	stateMgr    *state.StateManager      // 对象继承： 状态管理
+	option      *TBackendSessionOpt      // 配置参数
+	stateMgr    *state.StateManager      // 状态管理
 	worldConn   *network.WorldConnection // world 引擎连接对象
 	sesssionMgr ISessionManage           // sessiong 管理对象
 	sessionId   syncutil.AtomicInt64     // session ID
@@ -38,6 +41,7 @@ func NewBackendSession(socket network.ISocket, mgr ISessionManage, opt *TBackend
 
 	// 创建对象
 	bs := &BackendSession{
+		option:      opt,
 		stateMgr:    st,
 		worldConn:   wc,
 		sesssionMgr: mgr,
@@ -113,11 +117,9 @@ func (this *BackendSession) SetId(v int64) {
 
 // 接收线程
 func (this *BackendSession) recvLoop() {
-	var err error
-
 	for {
 		// 心跳检查
-		err = this.worldConn.CheckClientHeartbeat()
+		err := this.worldConn.CheckClientHeartbeat()
 		if nil != err {
 			break
 		}
@@ -141,6 +143,9 @@ func (this *BackendSession) sendLoop() {
 	var err error
 
 	for {
+		// 阻塞，否则for循环会占用大量 cpu
+		time.Sleep(this.option.FlushInterval)
+
 		// 心跳检查
 		this.worldConn.CheckServerHeartbeat()
 

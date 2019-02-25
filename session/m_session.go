@@ -4,11 +4,17 @@
 package session
 
 import (
+	"time"
+
 	"github.com/zpab123/world/network" // 网络库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
 // 常量
+
+const (
+	C_SESSION_FLUSH_INTERVAL = 5 * time.Millisecond // socket 数据刷新周期
+)
 
 // /////////////////////////////////////////////////////////////////////////////
 // 接口
@@ -48,8 +54,9 @@ type IMsgHandler interface {
 
 // session 配置参数
 type TFrontendSessionOpt struct {
-	MsgHandler   IClientMsgHandler      // 消息处理对象
-	WorldConnOpt *network.TWorldConnOpt // WorldConnection 配置参数
+	FlushInterval time.Duration          // socket 数据发送周期
+	MsgHandler    IClientMsgHandler      // 消息处理对象
+	WorldConnOpt  *network.TWorldConnOpt // WorldConnection 配置参数
 }
 
 // 创建1个新的 TFrontendSessionOpt
@@ -59,8 +66,9 @@ func NewTFrontendSessionOpt(handler IClientMsgHandler) *TFrontendSessionOpt {
 
 	// 创建 TFrontendSessionOpt
 	opts := &TFrontendSessionOpt{
-		MsgHandler:   handler,
-		WorldConnOpt: wc,
+		FlushInterval: C_SESSION_FLUSH_INTERVAL,
+		MsgHandler:    handler,
+		WorldConnOpt:  wc,
 	}
 
 	return opts
@@ -76,6 +84,7 @@ func (this *TFrontendSessionOpt) Check() error {
 
 // BackendSession 配置参数
 type TBackendSessionOpt struct {
+	FlushInterval    time.Duration          // socket 数据发送周期
 	ServerMsgHandler IServerMsgHandler      // 消息处理对象
 	WorldConnOpts    *network.TWorldConnOpt // WorldConnection 配置参数
 }
@@ -87,6 +96,7 @@ func NewTBackendSessionOpt(handler IServerMsgHandler) *TBackendSessionOpt {
 
 	// 创建 TFrontendSessionOpt
 	opts := &TBackendSessionOpt{
+		FlushInterval:    C_SESSION_FLUSH_INTERVAL,
 		ServerMsgHandler: handler,
 		WorldConnOpts:    wc,
 	}

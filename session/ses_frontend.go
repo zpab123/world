@@ -4,6 +4,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/config"  // 配置文件
 	"github.com/zpab123/world/network" // 网络库
@@ -19,7 +21,8 @@ import (
 
 // 面向前端的 session 对象
 type FrontendSession struct {
-	stateMgr    *state.StateManager      // 对象继承： 状态管理
+	option      *TFrontendSessionOpt     // 配置参数
+	stateMgr    *state.StateManager      // 状态管理
 	worldConn   *network.WorldConnection // world 引擎连接对象
 	sesssionMgr ISessionManage           // sessiong 管理对象
 	sessionId   syncutil.AtomicInt64     // session ID
@@ -40,6 +43,7 @@ func NewFrontendSession(socket network.ISocket, mgr ISessionManage, opt *TFronte
 
 	// 创建对象
 	cs := &FrontendSession{
+		option:      opt,
 		stateMgr:    st,
 		worldConn:   wc,
 		sesssionMgr: mgr,
@@ -131,11 +135,19 @@ func (this *FrontendSession) recvLoop() {
 
 // 发送线程
 func (this *FrontendSession) sendLoop() {
+	var err error
+
 	for {
+		// 阻塞，否则for循环会占用大量 cpu
+		time.Sleep(this.option.FlushInterval)
+
 		// 心跳检查
 		this.worldConn.CheckServerHeartbeat()
 
 		// 刷新缓冲区
-		this.worldConn.Flush()
+		err = this.worldConn.Flush()
+		if nil != err {
+			break
+		}
 	}
 }
