@@ -193,7 +193,9 @@ func newConnector(app *Application) {
 
 	// 创建 Connector
 	contor := connector.NewConnector(laddr, opt)
-	app.componentMgr.AddComponent(contor)
+	if nil != contor {
+		app.componentMgr.AddComponent(contor)
+	}
 }
 
 // 创建分发客户端

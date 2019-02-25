@@ -54,17 +54,20 @@ func (this *DispatcherConn) recvLoop() {
 		}
 
 		// 消息处理
-
 	}
 }
 
 // 发送线程
 func (this *DispatcherConn) sendLoop() {
+	var err error
 	for {
 		// 心跳检查
 		this.worldSocket.CheckLocalHeartbeat()
 
 		// 刷新缓冲区
-		this.worldSocket.Flush()
+		err = this.worldSocket.Flush()
+		if nil != err {
+			break
+		}
 	}
 }
