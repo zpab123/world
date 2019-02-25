@@ -9,7 +9,7 @@ import (
 
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zaplog"       // log 日志库
+	"github.com/zpab123/zaplog"      // log 日志库
 	"golang.org/x/net/websocket"     // websocket 库
 )
 
@@ -30,6 +30,15 @@ type WsAcceptor struct {
 
 // 创建1个新的 wsAcceptor 对象
 func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) IAcceptor {
+	// 参数效验
+	if addr.WsAddr == "" {
+		return nil
+	}
+
+	if nil == mgr {
+		zaplog.Warnf("创建 WsAcceptor。连接管理对象为nil")
+	}
+
 	// 创建接收器
 	aptor := &WsAcceptor{
 		name:    C_ACCEPTOR_TYPE_WEBSOCKET,

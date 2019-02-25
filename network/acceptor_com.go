@@ -11,7 +11,7 @@ import (
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zaplog"       // 日志库
+	"github.com/zpab123/zaplog"      // 日志库
 	"golang.org/x/net/websocket"     // websocket 库
 )
 
@@ -37,6 +37,18 @@ type ComAcceptor struct {
 
 // 创建1个 ComAcceptor 对象
 func NewComAcceptor(addr *TLaddr, mgr IComConnManager) IAcceptor {
+	// 参数效验
+	ok := (addr.TcpAddr == "" || addr.WsAddr == "")
+	if ok {
+		return nil
+	}
+
+	if nil == mgr {
+		zaplog.Error("ComAcceptor 创建失败。 connMgr=nil")
+
+		return nil
+	}
+
 	// 创建 StateManager
 	sm := state.NewStateManager()
 
@@ -164,6 +176,7 @@ func (this *ComAcceptor) acceptTcpConn() {
 	//  出现错误，关闭监听
 	closeF := func() {
 		zaplog.Error("ComAcceptor 侦听 tcp 新连接出现错误。关闭 ComAcceptor-tcp")
+
 		this.tcpListener.Close()
 	}
 	defer closeF()

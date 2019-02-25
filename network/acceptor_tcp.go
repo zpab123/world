@@ -9,7 +9,7 @@ import (
 
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zaplog"       //日志库
+	"github.com/zpab123/zaplog"      //日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,15 @@ type TcpAcceptor struct {
 
 // 创建1个新的 TcpAcceptor 对象
 func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) IAcceptor {
+	// 参数效验
+	if addr.TcpAddr == "" {
+		return nil
+	}
+
+	if nil == mgr {
+		zaplog.Warnf("创建 TcpAcceptor。连接管理对象为nil")
+	}
+
 	// 创建对象
 	aptor := &TcpAcceptor{
 		name:    C_ACCEPTOR_TYPE_TCP,
@@ -110,6 +119,8 @@ func (this *TcpAcceptor) accept() {
 		}
 
 		// 处理连接进入独立线程, 防止 accept 无法响应
-		go this.connMgr.OnNewTcpConn(conn)
+		if nil != this.connMgr {
+			go this.connMgr.OnNewTcpConn(conn)
+		}
 	}
 }

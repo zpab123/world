@@ -42,13 +42,11 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 		opt = NewTConnectorOpt(nil)
 	}
 
-	// 创建 StateManager
+	// 创建对象
 	sm := state.NewStateManager()
-
-	// 创建 SessionManager
 	sesMgr := session.NewSessionManager()
 
-	// 创建组件
+	// 创建 Connector
 	cntor := &Connector{
 		stateMgr:   sm,
 		name:       C_COMPONENT_NAME,
@@ -58,7 +56,12 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	}
 
 	// 创建 Acceptor
-	cntor.acceptor = network.NewAcceptor(opt.AcceptorType, addr, cntor)
+	actor := network.NewAcceptor(opt.AcceptorType, addr, cntor)
+	if nil == actor {
+		return nil
+	} else {
+		cntor.acceptor = actor
+	}
 
 	// 设置为初始状态
 	cntor.stateMgr.SetState(state.C_STATE_INIT)

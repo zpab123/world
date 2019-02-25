@@ -24,6 +24,12 @@ type MulAcceptor struct {
 
 // 创建1个 mulAcceptor 对象
 func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) IAcceptor {
+	// 参数效验
+	ok := (addr.TcpAddr == "" || addr.WsAddr == "")
+	if ok {
+		return nil
+	}
+
 	// 创建 StateManager
 	sm := state.NewStateManager()
 
