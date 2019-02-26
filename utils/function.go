@@ -10,7 +10,7 @@ import "github.com/zpab123/zaplog"
 
 // 运行函数f，并返回f造成的panic错误
 func CatchPanic(f func()) interface{} {
-	var err error
+	var err interface{}
 
 	defer func() {
 		err = recover()

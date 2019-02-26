@@ -179,7 +179,7 @@ func (this *Application) listenSignal() {
 			if syscall.SIGINT == sig || syscall.SIGTERM == sig {
 				// this.Stop()
 
-				zaplog.Infof("%s 服务器，优雅地退出", this.baseInfo.Name)
+				zaplog.Infof("%s 服务器，优雅退出", this.baseInfo.Name)
 
 				os.Exit(0)
 			} else {
