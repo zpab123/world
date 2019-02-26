@@ -6,6 +6,8 @@ package app
 import (
 	"math/rand"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/zpab123/world/config" // 配置文件库
@@ -27,6 +29,7 @@ type Application struct {
 	componentMgr *ComponentManager   // 组件管理
 	serverInfo   *config.TServerInfo // 配置信息
 	appDelegate  IAppDelegate        // 代理对象
+	signalChan   chan os.Signal      // 操作系统信号
 }
 
 // 创建1个新的 Application 对象
@@ -50,6 +53,7 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 	base := &TBaseInfo{}
 	st := state.NewStateManager()
 	cptMgr := NewComponentManager()
+	signal := make(chan os.Signal, 1)
 
 	// 创建 app
 	app := &Application{
@@ -57,6 +61,7 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 		stateMgr:     st,
 		componentMgr: cptMgr,
 		appDelegate:  delegate,
+		signalChan:   signal,
 	}
 
 	// 设置类型
@@ -126,8 +131,8 @@ func (this *Application) Run() {
 		go cpt.Run()
 	}
 
-	// 结束信号侦听
-	// setupSignals()
+	// 操作系统信号
+	this.listenSignal()
 
 	// 状态：工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
@@ -160,4 +165,26 @@ func (this *Application) GetServerInfo() *config.TServerInfo {
 // 获取组件管理对象
 func (this *Application) GetComponentMgr() *ComponentManager {
 	return this.componentMgr
+}
+
+// 侦听操作系统信号
+func (this *Application) listenSignal() {
+	// 排除信号
+	signal.Ignore(syscall.Signal(10), syscall.Signal(12), syscall.SIGPIPE, syscall.SIGHUP)
+	signal.Notify(this.signalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		for {
+			sig := <-this.signalChan
+			if syscall.SIGINT == sig || syscall.SIGTERM == sig {
+				// this.Stop()
+
+				zaplog.Infof("%s 服务器，优雅地退出", this.baseInfo.Name)
+
+				os.Exit(0)
+			} else {
+				zaplog.Errorf("异常的操作系统信号=%s", sig)
+			}
+		}
+	}()
 }

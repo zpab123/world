@@ -4,6 +4,9 @@
 package utils
 
 import (
+	"io"
+	"net"
+
 	"github.com/pkg/errors" // 错误检查工具
 )
 
@@ -27,4 +30,13 @@ func IsTimeoutError(err error) bool {
 	err = errors.Cause(err)
 	ne, ok := err.(timeoutError)
 	return ok && ne.Timeout()
+}
+
+// io 错误检查
+func IsEOFOrNetReadError(err error) bool {
+	if err == io.EOF {
+		return true
+	}
+	ne, ok := err.(*net.OpError)
+	return ok && ne.Op == "read"
 }
