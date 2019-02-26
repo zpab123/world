@@ -6,44 +6,53 @@ package utils
 import "github.com/zpab123/zaplog"
 
 // /////////////////////////////////////////////////////////////////////////////
-// 对外api
+// public api
 
-// CatchPanic calls a function and returns the error if function paniced
-func CatchPanic(f func()) (err interface{}) {
+// 运行函数f，并返回f造成的panic错误
+func CatchPanic(f func()) interface{} {
+	var err error
+
 	defer func() {
 		err = recover()
+
 		if err != nil {
-			zaplog.TraceError("%s 系统恐慌: %s", f, err)
-		}
-	}()
-
-	f()
-
-	return
-}
-
-// RunPanicless calls a function panic-freely
-// 自由调用函数，并捕获恐慌
-func RunPanicless(f func()) (panicless bool) {
-	// 系统恐慌捕获
-	defer func() {
-		err := recover()
-		panicless = err == nil
-		if err != nil {
-			zaplog.TraceError("%s 系统恐慌: %s", f, err)
+			zaplog.TraceError("函数 %s 引发系统恐慌: %s", f, err)
 		}
 	}()
 
 	// 运行函数
 	f()
 
-	return
+	return err
 }
 
-// RepeatUntilPanicless runs the function repeatly until there is no panic
-// 循环调用 f 函数，直到出现 系统恐慌
+// 运行函数f，并返回该函数是否存在panic错误
+func RunPanicless(f func()) bool {
+	// 结果
+	var panicless bool
+
+	// 系统恐慌捕获
+	defer func() {
+		err := recover()
+		panicless = (err == nil)
+
+		if err != nil {
+			zaplog.TraceError("函数 %s 引发系统恐慌: %s", f, err)
+		}
+	}()
+
+	// 运行函数
+	f()
+
+	return panicless
+}
+
+// for循环调用f函数，直到f出现系统恐慌
 func RepeatFunc(f func()) {
-	for !RunPanicless(f) {
+	var haveErr bool = false
+
+	for !haveErr {
+		haveErr = RunPanicless(f)
 	}
 }
 
