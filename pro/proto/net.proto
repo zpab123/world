@@ -1,5 +1,5 @@
 syntax = "proto3";  //指定版本，必须要写（proto3、proto2）
-package msg;
+package pro;
 
 // 客户端->服务器 握手消息
 message HandshakeReq{
