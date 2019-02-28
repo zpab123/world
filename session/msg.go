@@ -47,7 +47,7 @@ type BackendMsg struct {
 
 // 创建1个 FrontendMsg
 func NewBackendMsg(ses *BackendSession, pkt *network.Packet) *BackendMsg {
-	msg := &FrontendMsg{
+	msg := &BackendMsg{
 		session: ses,
 		packet:  pkt,
 	}

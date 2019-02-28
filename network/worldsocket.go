@@ -7,12 +7,12 @@ import (
 	"net"
 	"time"
 
-	"github.com/gogo/protobuf/proto"  // protobuf 库
-	"github.com/pkg/errors"           // 错误库
-	"github.com/zpab123/world/config" // 配置文件
-	"github.com/zpab123/world/pro"    // world 内部通信消息
-	"github.com/zpab123/world/state"  // 状态管理
-	"github.com/zpab123/zaplog"       // 日志库
+	"github.com/gogo/protobuf/proto"    // protobuf 库
+	"github.com/pkg/errors"             // 错误库
+	"github.com/zpab123/world/config"   // 配置文件
+	"github.com/zpab123/world/protocol" // world 内部通信消息
+	"github.com/zpab123/world/state"    // 状态管理
+	"github.com/zpab123/zaplog"         // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -256,7 +256,7 @@ func (this *WorldSocket) sendHandshake() {
 
 	key := config.GetWorldConfig().ShakeKey
 
-	req := &pro.HandshakeReq{
+	req := &protocol.HandshakeReq{
 		Key: key,
 	}
 
@@ -275,7 +275,7 @@ func (this *WorldSocket) sendHandshake() {
 //  处理握手消息
 func (this *WorldSocket) handleHandshake(data []byte) {
 	// 解码
-	res := &pro.HandshakeRes{}
+	res := &protocol.HandshakeRes{}
 	err := proto.Unmarshal(data, res)
 	if nil != err {
 		zaplog.Error("WorldSocket: protobuf 解码握手消息出错。关闭连接")
@@ -286,7 +286,7 @@ func (this *WorldSocket) handleHandshake(data []byte) {
 	}
 
 	// 握手结果
-	if res.Code == pro.OK {
+	if res.Code == protocol.OK {
 		// 保存握手数据
 		t := int64(res.Heartbeat * 2)
 		if t > 0 {

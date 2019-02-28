@@ -6,11 +6,11 @@ package network
 import (
 	"time"
 
-	"github.com/gogo/protobuf/proto" // protobuf 库
-	"github.com/pkg/errors"          // 错误库
-	"github.com/zpab123/world/pro"   // world 内部通信协议
-	"github.com/zpab123/world/state" // 状态管理
-	"github.com/zpab123/zaplog"      // 日志库
+	"github.com/gogo/protobuf/proto"    // protobuf 库
+	"github.com/pkg/errors"             // 错误库
+	"github.com/zpab123/world/protocol" // world 内部通信协议
+	"github.com/zpab123/world/state"    // 状态管理
+	"github.com/zpab123/zaplog"         // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -196,7 +196,7 @@ func (this *WorldConnection) handleHandshake(data []byte) {
 	}
 
 	// 解码消息
-	shakeInfo := &pro.HandshakeReq{}
+	shakeInfo := &protocol.HandshakeReq{}
 	var err error
 
 	err = proto.Unmarshal(data, shakeInfo)
@@ -209,8 +209,8 @@ func (this *WorldConnection) handleHandshake(data []byte) {
 	}
 
 	// 回复消息
-	res := &pro.HandshakeRes{
-		Code:      pro.OK,
+	res := &protocol.HandshakeRes{
+		Code:      protocol.OK,
 		Heartbeat: this.option.Heartbeat,
 	}
 	var buf []byte
@@ -218,7 +218,7 @@ func (this *WorldConnection) handleHandshake(data []byte) {
 
 	// 版本验证
 	if this.option.ShakeKey != "" && shakeInfo.Key != this.option.ShakeKey {
-		res.Code = pro.SHAKE_KEY_ERROR
+		res.Code = protocol.SHAKE_KEY_ERROR
 		sucess = false
 	}
 
