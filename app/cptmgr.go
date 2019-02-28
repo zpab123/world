@@ -50,6 +50,17 @@ func (this *ComponentManager) AddComponent(com model.IComponent) {
 	this.componentMap[name] = com
 }
 
+// 根据名字获取组件
+func (this *ComponentManager) GetComponentByName(name string) model.IComponent {
+	cpt, ok := this.componentMap[name]
+
+	if ok {
+		return cpt
+	} else {
+		return nil
+	}
+}
+
 // 获取 connector 组件参数
 func (this *ComponentManager) GetConnectorOpt() *connector.TConnectorOpt {
 	return this.connectorOpt
