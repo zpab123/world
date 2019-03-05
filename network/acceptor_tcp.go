@@ -6,10 +6,12 @@ package network
 import (
 	"net"
 	"strings"
+	"sync"
 
 	"github.com/zpab123/world/model" // 全局模型
+	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zaplog"      //日志库
+	"github.com/zpab123/zaplog"      // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -20,10 +22,12 @@ import (
 
 // tcp 接收器
 type TcpAcceptor struct {
-	name     string          // 连接器名字
-	laddr    *TLaddr         // 地址集合
-	connMgr  ITcpConnManager // 符合 ITcpAcceptorManager 连接管理接口的对象
-	listener net.Listener    // 侦听器
+	name      string              // 连接器名字
+	laddr     *TLaddr             // 地址集合
+	stateMgr  *state.StateManager // 状态管理
+	connMgr   ITcpConnManager     // 符合 ITcpAcceptorManager 连接管理接口的对象
+	listener  net.Listener        // 侦听器
+	stopGroup sync.WaitGroup      // 停止组
 }
 
 // 创建1个新的 TcpAcceptor 对象
@@ -37,18 +41,30 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) IAcceptor {
 		zaplog.Warnf("创建 TcpAcceptor。连接管理对象为nil")
 	}
 
-	// 创建对象
+	// 对象
+	st := state.NewStateManager()
+
+	// 创建 TcpAcceptor
 	aptor := &TcpAcceptor{
-		name:    C_ACCEPTOR_TYPE_TCP,
-		laddr:   addr,
-		connMgr: mgr,
+		name:     C_ACCEPTOR_TYPE_TCP,
+		laddr:    addr,
+		stateMgr: st,
+		connMgr:  mgr,
 	}
+
+	aptor.stateMgr.SetState(state.C_STATE_INIT)
 
 	return aptor
 }
 
 // 异步侦听新连接 [IAcceptor 接口]
 func (this *TcpAcceptor) Run() bool {
+	// 状态效验
+	s := this.stateMgr.GetState()
+	if s != state.C_STATE_INIT && s != state.C_STATE_STOP {
+		return false
+	}
+
 	// 创建侦听器
 	ln, err := utils.DetectPort(this.laddr.TcpAddr, func(a *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", a.HostPortString(port))
@@ -62,6 +78,8 @@ func (this *TcpAcceptor) Run() bool {
 	}
 
 	// 创建成功
+	this.stateMgr.SetState(state.C_STATE_WORKING)
+
 	this.listener = ln.(net.Listener)
 	zaplog.Infof("TcpAcceptor 启动成功。ip=%s", this.GetListenAddress())
 
