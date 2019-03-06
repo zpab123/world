@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"          // 异常库
 	"github.com/zpab123/world/model" // 常用数据类型
 )
 
@@ -109,7 +110,7 @@ func DetectPort(addr string, fn func(a *model.TAddress, port int) (interface{}, 
 		}
 	}
 
-	return nil, fmt.Errorf("绑定监听地址=%s；失败", addr)
+	return nil, errors.Errorf("网络地址监听失败 ip=%s", addr)
 }
 
 // 将ip和端口合并为地址

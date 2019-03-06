@@ -80,8 +80,8 @@ type ISocket interface {
 
 // acceptor 接口
 type IAcceptor interface {
-	Run() bool  // 组件开始运行
-	Stop() bool // 组件停止运行
+	Run() error  // 组件开始运行
+	Stop() error // 组件停止运行
 }
 
 // tcpSocket 连接管理

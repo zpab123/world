@@ -63,23 +63,24 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) (IAcceptor, error) {
 }
 
 // 异步侦听新连接 [IAcceptor 接口]
-func (this *TcpAcceptor) Run() bool {
+func (this *TcpAcceptor) Run() (err error) {
 	// 状态效验
 	s := this.stateMgr.GetState()
 	if s != state.C_STATE_INIT && s != state.C_STATE_STOP {
-		return false
+		err = errors.Errorf("启动 TcpAcceptor 失败，状态错误。当前状态=%d，正确状态=%d或=%d", s, state.C_STATE_INIT, state.C_STATE_STOP)
+
+		return
 	}
 
 	// 创建侦听器
-	ln, err := utils.DetectPort(this.laddr.TcpAddr, func(a *model.TAddress, port int) (interface{}, error) {
+	var ln interface{}
+	ln, err = utils.DetectPort(this.laddr.TcpAddr, func(a *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", a.HostPortString(port))
 	})
 
 	// 创建失败
 	if nil != err {
-		zaplog.Fatalf("TcpAcceptor 启动失败。ip=%s，err=%v", this.laddr.TcpAddr, err.Error())
-
-		return false
+		return
 	}
 
 	// 创建成功
@@ -95,11 +96,10 @@ func (this *TcpAcceptor) Run() bool {
 }
 
 // 停止侦听器 [IAcceptor 接口]
-func (this *TcpAcceptor) Stop() bool {
-	// 关闭侦听器
-	this.listener.Close()
+func (this *TcpAcceptor) Stop() error {
 
-	return true
+	return this.listener.Close()
+
 }
 
 // 获取监听成功的端口
@@ -128,6 +128,8 @@ func (this *TcpAcceptor) GetListenAddress() string {
 
 // 侦听连接
 func (this *TcpAcceptor) accept() {
+	defer this.Stop()
+
 	// 主循环
 	for {
 		// 接收新连接
