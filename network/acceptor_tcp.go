@@ -8,9 +8,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pkg/errors"          // 异常库
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
+	"github.com/zpab123/world/wderr" // 异常库
 	"github.com/zpab123/zaplog"      // 日志库
 )
 
@@ -30,10 +32,14 @@ type TcpAcceptor struct {
 }
 
 // 创建1个新的 TcpAcceptor 对象
-func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) IAcceptor {
+func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) (IAcceptor, error) {
+	var err error
+
 	// 参数效验
 	if addr.TcpAddr == "" {
-		return nil
+		err = errors.New("创建 TcpAcceptor 失败。 参数 TcpAddr 为空")
+
+		return nil, err
 	}
 
 	if nil == mgr {
@@ -53,7 +59,7 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) IAcceptor {
 
 	aptor.stateMgr.SetState(state.C_STATE_INIT)
 
-	return aptor
+	return aptor, nil
 }
 
 // 异步侦听新连接 [IAcceptor 接口]
@@ -129,7 +135,12 @@ func (this *TcpAcceptor) accept() {
 
 		// 监听错误
 		if nil != err {
+			if wderr.IsTimeoutError(err) {
+				continue
+			}
+
 			zaplog.Errorf("TcpAcceptor 接收新连接出现错误。err=%v", err.Error())
+
 			break
 		}
 
