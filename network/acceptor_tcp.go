@@ -22,12 +22,11 @@ import (
 
 // tcp 接收器
 type TcpAcceptor struct {
-	name      string              // 连接器名字
-	laddr     *TLaddr             // 地址集合
-	stateMgr  *state.StateManager // 状态管理
-	connMgr   ITcpConnManager     // 符合 ITcpAcceptorManager 连接管理接口的对象
-	listener  net.Listener        // 侦听器
-	stopGroup sync.WaitGroup      // 停止组
+	name     string              // 连接器名字
+	laddr    *TLaddr             // 地址集合
+	stateMgr *state.StateManager // 状态管理
+	connMgr  ITcpConnManager     // 符合 ITcpAcceptorManager 连接管理接口的对象
+	listener net.Listener        // 侦听器
 }
 
 // 创建1个新的 TcpAcceptor 对象
@@ -94,8 +93,6 @@ func (this *TcpAcceptor) Stop() bool {
 	// 关闭侦听器
 	this.listener.Close()
 
-	// 断开所有连接
-
 	return true
 }
 
@@ -141,4 +138,6 @@ func (this *TcpAcceptor) accept() {
 			go this.connMgr.OnNewTcpConn(conn)
 		}
 	}
+
+	this.stateMgr.SetState(state.C_STATE_STOP)
 }

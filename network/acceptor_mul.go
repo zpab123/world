@@ -65,7 +65,7 @@ func (this *MulAcceptor) Run() bool {
 	this.SetState(state.C_STATE_RUNING)
 
 	// 添加启动线程数量
-	this.AddRunGo(2)
+	//this.AddRunGo(2)
 
 	// 启动 tcp
 	this.tcpAcceptor.Run()
@@ -74,7 +74,7 @@ func (this *MulAcceptor) Run() bool {
 	this.wsAcceptor.Run()
 
 	// 阻塞
-	this.RunWait()
+	//this.RunWait()
 
 	// 启动完成
 

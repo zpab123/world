@@ -7,8 +7,6 @@ package state
 // 包 初始化
 
 import (
-	"sync"
-
 	"github.com/zpab123/syncutil" // 原子变量工具
 )
 
