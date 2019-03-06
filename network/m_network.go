@@ -16,10 +16,10 @@ import (
 
 // acceptor 类型
 const (
-	C_ACCEPTOR_TYPE_TCP       = "tcpAcceptor"  // 支持 tcp
-	C_ACCEPTOR_TYPE_WEBSOCKET = "wsAcceptor"   // 支持 websocket
-	C_ACCEPTOR_TYPE_MUL       = "multiformity" // 同时支持 tcp 和 websocket
-	C_ACCEPTOR_TYPE_COM       = "composite"    // 同时支持 tcp 和 websocket
+	C_ACCEPTOR_NAME_TCP = "tcpAcceptor"  // 支持 tcp
+	C_ACCEPTOR_NAME_WS  = "wsAcceptor"   // 支持 websocket
+	C_ACCEPTOR_NAME_MUL = "multiformity" // tcpAcceptor + wsAcceptor 组合
+	C_ACCEPTOR_NAME_COM = "composite"    // 同时支持 tcp 和 websocket
 )
 
 const (

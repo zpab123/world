@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/pkg/errors"          // 异常库
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/utils" // 工具库
 	"github.com/zpab123/zaplog"      // log 日志库
@@ -29,19 +30,25 @@ type WsAcceptor struct {
 }
 
 // 创建1个新的 wsAcceptor 对象
-func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) IAcceptor {
+func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) (IAcceptor, error) {
+	var err error
+
 	// 参数效验
 	if addr.WsAddr == "" {
-		return nil
+		err = errors.New("创建 WsAcceptor 失败。参数 WsAddr 为空")
+
+		return nil, err
 	}
 
 	if nil == mgr {
-		zaplog.Warnf("创建 WsAcceptor。连接管理对象为nil")
+		err = errors.New("创建 WsAcceptor 失败。参数 IWsConnManager=nil")
+
+		return nil, err
 	}
 
 	// 创建接收器
 	aptor := &WsAcceptor{
-		name:    C_ACCEPTOR_TYPE_WEBSOCKET,
+		name:    C_ACCEPTOR_NAME_WS,
 		laddr:   addr,
 		connMgr: mgr,
 	}
@@ -50,11 +57,13 @@ func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) IAcceptor {
 }
 
 // 启动 wsAcceptor [IAcceptor 接口]
-func (this *WsAcceptor) Run() bool {
+func (this *WsAcceptor) Run() error {
 	// 变量定义
 	var (
 		addrObj *model.TAddress // 地址变量
 		wsPort  int             // 监听成功的 websocket 端口
+		ln      interface{}     // Listener
+		err     error           // 错误
 	)
 
 	// 查找1个 可用端口
@@ -63,65 +72,43 @@ func (this *WsAcceptor) Run() bool {
 		wsPort = port
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
-	ln, err := utils.DetectPort(this.laddr.WsAddr, f)
+	ln, err = utils.DetectPort(this.laddr.WsAddr, f)
 
 	// 查找失败
 	if nil != err {
-		zaplog.Errorf("WsAcceptor 启动失败。err=%v", err.Error())
-		return false
+		return err
 	}
 
 	// 端口查找成功
-	this.listener = ln.(net.Listener)
+	var ok bool
+	this.listener, ok = ln.(net.Listener)
+	if !ok {
+		err = errors.New("WsAcceptor 启动失败，创建 net.Listener 失败")
+
+		return err
+	}
+
 	//this.listener.Close() // 解除端口占用
 	this.wsListenAddr = addrObj.String(wsPort)
 
 	// 侦听新连接
 	go this.accept()
 
-	return true
+	return nil
 }
 
 // 停止 wsAcceptor [IAcceptor 接口]
-func (this *WsAcceptor) Stop() bool {
-	return true
-}
+func (this *WsAcceptor) Stop() error {
 
-// 侦听连接
-func (this *WsAcceptor) liten() {
-
-	// 创建 http 服务器
-
-	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
-	if nil != this.connMgr {
-		http.Handle("/ws", websocket.Handler(this.connMgr.OnNewWsConn)) // 有新连接的时候，会调用 wsHandler 处理新连接
-	}
-
-	var err error // 错误信息
-	zaplog.Infof("WsAcceptor 启动成功。ip=%s", this.wsListenAddr)
-
-	// 开启服务器
-	if this.certFile != "" && this.keyFile != "" {
-		zaplog.Debugf("WsAcceptor 使用 TLS。 cert=%s, key=%s", this.certFile, this.keyFile)
-		err = http.ListenAndServeTLS(this.wsListenAddr, this.certFile, this.keyFile, nil)
-	} else {
-		err = http.ListenAndServe(this.wsListenAddr, nil)
-	}
-
-	// 错误信息
-	if nil != err {
-		zaplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
-	}
+	return this.httpServer.Close()
 }
 
 // 侦听连接
 func (this *WsAcceptor) accept() {
 	// 创建 mux
 	mux := http.NewServeMux()
-	// 路由函数
-	handler := websocket.Handler(this.connMgr.OnNewWsConn)
-	//mux.HandleFunc("/ws", handler)
-	mux.Handle("/ws", handler)
+	handler := websocket.Handler(this.connMgr.OnNewWsConn) // 路由函数
+	mux.Handle("/ws", handler)                             // 客户端需要在url后面加上 /ws 路由
 
 	// 创建 httpServer
 	this.httpServer = &http.Server{
@@ -140,6 +127,6 @@ func (this *WsAcceptor) accept() {
 
 	// 错误信息
 	if nil != err {
-		zaplog.Fatalf("WsAcceptor 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
+		zaplog.Fatalf("WsAcceptor 停止服务。ip=%s，err=%s", this.wsListenAddr, err)
 	}
 }

@@ -4,6 +4,8 @@
 package network
 
 import (
+	"sync"
+
 	"github.com/zpab123/world/state" // 状态管理
 )
 
@@ -15,34 +17,41 @@ import (
 
 // 同时支持 tcp websocket 的对象
 type MulAcceptor struct {
-	*state.StateManager           // 对象继承： 状态管理
-	name                string    // 连接器名字
-	laddr               *TLaddr   // 地址集合
-	tcpAcceptor         IAcceptor // tcpAcceptor 对象
-	wsAcceptor          IAcceptor // wsAcceptor 对象
+	*state.StateManager                // 对象继承： 状态管理
+	name                string         // 连接器名字
+	laddr               *TLaddr        // 地址集合
+	tcpAcceptor         IAcceptor      // tcpAcceptor 对象
+	wsAcceptor          IAcceptor      // wsAcceptor 对象
+	stopGroup           sync.WaitGroup // 协程停止组
 }
 
 // 创建1个 mulAcceptor 对象
-func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) IAcceptor {
+func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) (IAcceptor, error) {
+	var err error
+
 	// 参数效验
 	ok := (addr.TcpAddr == "" || addr.WsAddr == "")
 	if ok {
-		return nil
+		err = errors.New("创建 MulAcceptor 失败。参数 TcpAddr WsAddr 为空")
+
+		return nil, err
 	}
 
-	// 创建 StateManager
-	sm := state.NewStateManager()
+	if nil == mgr {
+		err = errors.New("创建 MulAcceptor 失败。参数 IMulConnManager=nil")
 
-	// 创建 tcpAcceptor
-	tcpaptor := NewTcpAcceptor(addr, mgr)
-
-	// 创建 wsAcceptor
-	wsaptor := NewWsAcceptor(addr, mgr)
+		return nil, err
+	}
 
 	// 创建对象
+	sm := state.NewStateManager()
+	tcpaptor := NewTcpAcceptor(addr, mgr)
+	wsaptor := NewWsAcceptor(addr, mgr)
+
+	// 创建 MulAcceptor
 	mulaptor := &MulAcceptor{
 		StateManager: sm,
-		name:         C_ACCEPTOR_TYPE_MUL,
+		name:         C_ACCEPTOR_NAME_MUL,
 		laddr:        addr,
 		tcpAcceptor:  tcpaptor,
 		wsAcceptor:   wsaptor,
@@ -55,17 +64,18 @@ func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) IAcceptor {
 }
 
 // 启动 mulAcceptor [IAcceptor 接口]
-func (this *MulAcceptor) Run() bool {
+func (this *MulAcceptor) Run() error {
+	var err error
 	// 状态效验
 	if this.GetState() != state.C_STATE_INIT {
-		return false
+		return err
 	}
 
 	// 改变状态: 正在启动中
 	this.SetState(state.C_STATE_RUNING)
 
 	// 添加启动线程数量
-	//this.AddRunGo(2)
+	this.stopGroup.Add(2)
 
 	// 启动 tcp
 	this.tcpAcceptor.Run()
@@ -78,16 +88,16 @@ func (this *MulAcceptor) Run() bool {
 
 	// 启动完成
 
-	return true
+	return err
 }
 
 // 停止 mulAcceptor [IAcceptor 接口]
-func (this *MulAcceptor) Stop() bool {
+func (this *MulAcceptor) Stop() error {
 	// 停止 tcp
 	this.tcpAcceptor.Stop()
 
 	// 停止 websocket
 	this.wsAcceptor.Stop()
 
-	return true
+	return nil
 }

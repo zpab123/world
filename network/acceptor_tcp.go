@@ -37,13 +37,13 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) (IAcceptor, error) {
 
 	// 参数效验
 	if addr.TcpAddr == "" {
-		err = errors.New("创建TcpAcceptor失败。参数TcpAddr为空")
+		err = errors.New("创建 TcpAcceptor 失败。参数 TcpAddr 为空")
 
 		return nil, err
 	}
 
 	if nil == mgr {
-		err = errors.New("创建TcpAcceptor失败。参数ITcpConnManager=nil")
+		err = errors.New("创建 TcpAcceptor 失败。参数 ITcpConnManager=nil")
 
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) (IAcceptor, error) {
 
 	// 创建 TcpAcceptor
 	aptor := &TcpAcceptor{
-		name:     C_ACCEPTOR_TYPE_TCP,
+		name:     C_ACCEPTOR_NAME_TCP,
 		laddr:    addr,
 		stateMgr: st,
 		connMgr:  mgr,
@@ -69,7 +69,7 @@ func (this *TcpAcceptor) Run() (err error) {
 	// 状态效验
 	s := this.stateMgr.GetState()
 	if s != state.C_STATE_INIT && s != state.C_STATE_STOP {
-		err = errors.Errorf("启动TcpAcceptor失败，状态错误。当前状态=%d，正确状态=%d或=%d", s, state.C_STATE_INIT, state.C_STATE_STOP)
+		err = errors.Errorf("TcpAcceptor 启动失败，状态错误。当前状态=%d，正确状态=%d或=%d", s, state.C_STATE_INIT, state.C_STATE_STOP)
 
 		return
 	}
@@ -88,21 +88,24 @@ func (this *TcpAcceptor) Run() (err error) {
 	// 创建成功
 	this.stateMgr.SetState(state.C_STATE_WORKING)
 
-	this.listener = ln.(net.Listener)
-	zaplog.Infof("TcpAcceptor启动成功。ip=%s", this.GetListenAddress())
+	var ok bool
+	this.listener, ok = ln.(net.Listener)
+	if !ok {
+		err = errors.New("TcpAcceptor 启动失败，创建 net.Listener 失败")
+
+		return
+	}
+
+	zaplog.Infof("TcpAcceptor 启动成功。ip=%s", this.GetListenAddress())
 
 	// 侦听连接
 	go this.accept()
 
-	return true
+	return
 }
 
 // 停止侦听器 [IAcceptor 接口]
 func (this *TcpAcceptor) Stop() error {
-	if this.stateMgr.GetState() == state.C_STATE_STOP {
-		return nil
-	}
-
 	if this.stateMgr.GetState() != state.C_STATE_WORKING {
 		err := errors.Errorf("TcpAcceptor停止失败，状态错误。当前状态=%d，正确状态=%d", this.stateMgr.GetState(), state.C_STATE_WORKING)
 
@@ -146,6 +149,10 @@ func (this *TcpAcceptor) accept() {
 	for {
 		// 接收新连接
 		conn, err := this.listener.Accept()
+
+		if this.stateMgr.GetState() != state.C_STATE_WORKING {
+			return
+		}
 
 		// 监听错误
 		if nil != err {
