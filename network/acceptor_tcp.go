@@ -37,13 +37,15 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) (IAcceptor, error) {
 
 	// 参数效验
 	if addr.TcpAddr == "" {
-		err = errors.New("创建 TcpAcceptor 失败。 参数 TcpAddr 为空")
+		err = errors.New("创建TcpAcceptor失败。参数TcpAddr为空")
 
 		return nil, err
 	}
 
 	if nil == mgr {
-		zaplog.Warnf("创建 TcpAcceptor。连接管理对象为nil")
+		err = errors.New("创建TcpAcceptor失败。参数ITcpConnManager=nil")
+
+		return nil, err
 	}
 
 	// 对象
@@ -67,7 +69,7 @@ func (this *TcpAcceptor) Run() (err error) {
 	// 状态效验
 	s := this.stateMgr.GetState()
 	if s != state.C_STATE_INIT && s != state.C_STATE_STOP {
-		err = errors.Errorf("启动 TcpAcceptor 失败，状态错误。当前状态=%d，正确状态=%d或=%d", s, state.C_STATE_INIT, state.C_STATE_STOP)
+		err = errors.Errorf("启动TcpAcceptor失败，状态错误。当前状态=%d，正确状态=%d或=%d", s, state.C_STATE_INIT, state.C_STATE_STOP)
 
 		return
 	}
@@ -87,7 +89,7 @@ func (this *TcpAcceptor) Run() (err error) {
 	this.stateMgr.SetState(state.C_STATE_WORKING)
 
 	this.listener = ln.(net.Listener)
-	zaplog.Infof("TcpAcceptor 启动成功。ip=%s", this.GetListenAddress())
+	zaplog.Infof("TcpAcceptor启动成功。ip=%s", this.GetListenAddress())
 
 	// 侦听连接
 	go this.accept()
@@ -97,9 +99,19 @@ func (this *TcpAcceptor) Run() (err error) {
 
 // 停止侦听器 [IAcceptor 接口]
 func (this *TcpAcceptor) Stop() error {
+	if this.stateMgr.GetState() == state.C_STATE_STOP {
+		return nil
+	}
+
+	if this.stateMgr.GetState() != state.C_STATE_WORKING {
+		err := errors.Errorf("TcpAcceptor停止失败，状态错误。当前状态=%d，正确状态=%d", this.stateMgr.GetState(), state.C_STATE_WORKING)
+
+		return err
+	}
+
+	this.stateMgr.SetState(state.C_STATE_STOP)
 
 	return this.listener.Close()
-
 }
 
 // 获取监听成功的端口
@@ -141,7 +153,7 @@ func (this *TcpAcceptor) accept() {
 				continue
 			}
 
-			zaplog.Errorf("TcpAcceptor 接收新连接出现错误。err=%v", err.Error())
+			zaplog.Errorf("TcpAcceptor接收新连接出现错误。err=%v", err.Error())
 
 			break
 		}
@@ -151,6 +163,4 @@ func (this *TcpAcceptor) accept() {
 			go this.connMgr.OnNewTcpConn(conn)
 		}
 	}
-
-	this.stateMgr.SetState(state.C_STATE_STOP)
 }
