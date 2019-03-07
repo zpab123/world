@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/zpab123/world/connector"  // connector 组件
+	"github.com/zpab123/world/acceptor"   // acceptor 组件
 	"github.com/zpab123/world/dispatcher" // dispatcher 组件
 	"github.com/zpab123/world/model"      // 全局模型
 	"github.com/zpab123/zaplog"           // log 库
@@ -19,7 +19,7 @@ import (
 // app 组件管理
 type ComponentManager struct {
 	componentMap map[string]model.IComponent      // 名字-> 组件 集合
-	connectorOpt *connector.TConnectorOpt         // connector 组件配置参数
+	acceptorOpt  *acceptor.TAcceptorOpt           // acceptor 组件配置参数
 	disClientOpt *dispatcher.TDispatcherClientOpt // DispatcherClient 组件配置参数
 }
 
@@ -61,14 +61,14 @@ func (this *ComponentManager) GetComponentByName(name string) model.IComponent {
 	}
 }
 
-// 获取 connector 组件参数
-func (this *ComponentManager) GetConnectorOpt() *connector.TConnectorOpt {
-	return this.connectorOpt
+// 获取 acceptor 组件参数
+func (this *ComponentManager) GetAcceptorOpt() *acceptor.TAcceptorOpt {
+	return this.acceptorOpt
 }
 
 // 设置 connector 组件参数
-func (this *ComponentManager) SetConnectorOpt(opt *connector.TConnectorOpt) {
-	this.connectorOpt = opt
+func (this *ComponentManager) SetAcceptorOpt(opt *acceptor.TAcceptorOpt) {
+	this.acceptorOpt = opt
 }
 
 // 获取 DispatcherClient 组件参数

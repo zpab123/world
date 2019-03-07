@@ -48,20 +48,13 @@ const (
 	C_PACKET_ID_WORLD                       // 分界线： 以上由 WorldConnection 处理的消息
 )
 
-// WorldConnection 状态
+// Connection 状态
 const (
-	C_WCONN_STATE_INIT     uint32 = iota // 初始化状态
-	C_WCONN_STATE_WAIT_ACK               // 等待客户端握手ACK
-	C_WCONN_STATE_WORKING                // 工作中
-	C_WCONN_STATE_CLOSED                 // 关闭状态
-)
-
-// WorldSocket 状态
-const (
-	C_SOCKET_STATE_INIT    uint32 = iota // 初始化状态
-	C_SOCKET_STATE_SHAKE                 // 握手状态
-	C_SOCKET_STATE_WORKING               // 工作中
-	C_SOCKET_STATE_CLOSED                // 关闭状态
+	C_CONN_STATE_INIT     uint32 = iota // 初始化状态
+	C_CONN_STATE_SHAKE                  // 握手状态
+	C_CONN_STATE_WAIT_ACK               // 等待客户端握手ACK
+	C_CONN_STATE_WORKING                // 工作中
+	C_CONN_STATE_CLOSED                 // 关闭状态
 )
 
 // WorldSocket 类型

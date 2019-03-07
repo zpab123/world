@@ -42,7 +42,7 @@ func NewWorldSocket(addr *TLaddr, opt *TWorldSocketOpt) *WorldSocket {
 	}
 
 	// 状态： init
-	ws.stateMgr.SetState(C_SOCKET_STATE_INIT)
+	ws.stateMgr.SetState(C_CONN_STATE_INIT)
 
 	return ws
 }
@@ -53,7 +53,7 @@ func (this *WorldSocket) Connect() error {
 
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != C_SOCKET_STATE_INIT && s != C_SOCKET_STATE_CLOSED {
+	if s != C_CONN_STATE_INIT && s != C_CONN_STATE_CLOSED {
 		err = errors.Errorf("WorldSocket 连接失败，状态错误。当前状态=%d", s)
 
 		return err
@@ -76,7 +76,7 @@ func (this *WorldSocket) Connect() error {
 
 	// 发送握手请求
 	if nil == err {
-		this.stateMgr.SetState(C_SOCKET_STATE_SHAKE)
+		this.stateMgr.SetState(C_CONN_STATE_SHAKE)
 		this.sendHandshake()
 	}
 
@@ -87,13 +87,13 @@ func (this *WorldSocket) Connect() error {
 func (this *WorldSocket) Close() (err error) {
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s == C_SOCKET_STATE_INIT {
+	if s == C_CONN_STATE_INIT {
 		err = errors.New("WorldSocket 关闭失败：它处于init状态")
 
 		return
 	}
 
-	if s == C_SOCKET_STATE_CLOSED {
+	if s == C_CONN_STATE_CLOSED {
 		err = errors.New("WorldSocket 关闭失败：它已经处于关闭状态")
 
 		return
@@ -110,7 +110,7 @@ func (this *WorldSocket) Close() (err error) {
 	// this.packetSocket = nil
 
 	// 状态：关闭成功
-	this.stateMgr.SetState(C_SOCKET_STATE_CLOSED)
+	this.stateMgr.SetState(C_CONN_STATE_CLOSED)
 
 	return
 }
@@ -149,10 +149,10 @@ func (this *WorldSocket) RecvPacket() (*Packet, error) {
 
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != C_SOCKET_STATE_WORKING {
+	if s != C_CONN_STATE_WORKING {
 		this.Close()
 
-		err = errors.Errorf("WorldSocket 状态错误。当前状态=%d，正确状态=%d", s, C_SOCKET_STATE_WORKING)
+		err = errors.Errorf("WorldSocket 状态错误。当前状态=%d，正确状态=%d", s, C_CONN_STATE_WORKING)
 
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func (this *WorldSocket) Flush() error {
 
 // 检查本地心跳
 func (this *WorldSocket) CheckLocalHeartbeat() {
-	if this.stateMgr.GetState() != C_SOCKET_STATE_WORKING {
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
 		return
 	}
 
@@ -197,7 +197,7 @@ func (this *WorldSocket) CheckLocalHeartbeat() {
 
 // 检查远端心跳
 func (this *WorldSocket) CheckRemoteHeartbeat() error {
-	if this.stateMgr.GetState() != C_SOCKET_STATE_WORKING {
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
 		return nil
 	}
 
@@ -248,8 +248,8 @@ func (this *WorldSocket) connectTcp() {
 func (this *WorldSocket) sendHandshake() {
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != C_SOCKET_STATE_SHAKE {
-		zaplog.Errorf("WorldSocket 发送握手消息失败，状态错误。当前状态=%d，正确状态=%d", s, C_SOCKET_STATE_SHAKE)
+	if s != C_CONN_STATE_SHAKE {
+		zaplog.Errorf("WorldSocket 发送握手消息失败，状态错误。当前状态=%d，正确状态=%d", s, C_CONN_STATE_SHAKE)
 
 		return
 	}
@@ -306,7 +306,7 @@ func (this *WorldSocket) handleHandshake(data []byte) {
 // 发送握手ACK
 func (this *WorldSocket) sendAck() {
 	// 状态效验
-	if this.stateMgr.GetState() != C_SOCKET_STATE_SHAKE {
+	if this.stateMgr.GetState() != C_CONN_STATE_SHAKE {
 
 		return
 	}
@@ -316,13 +316,13 @@ func (this *WorldSocket) sendAck() {
 	this.SendPacket(pkt)
 
 	// 状态： 工作中
-	this.stateMgr.SetState(C_SOCKET_STATE_WORKING)
+	this.stateMgr.SetState(C_CONN_STATE_WORKING)
 }
 
 //  发送心跳数据
 func (this *WorldSocket) sendHeartbeat() {
 	// 状态效验
-	if this.stateMgr.GetState() != C_SOCKET_STATE_WORKING {
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
 
 		return
 	}

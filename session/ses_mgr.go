@@ -98,7 +98,7 @@ func (this *SessionManager) SessionCount() int64 {
 func (this *SessionManager) CloseAllSession() {
 	// 处理函数
 	f := func(ses ISession) bool {
-		ses.Close()
+		ses.Stop()
 
 		return true
 	}

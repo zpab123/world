@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/zpab123/world/acceptor"   // acceptor 组件
 	"github.com/zpab123/world/config"     // 配置读取工具
-	"github.com/zpab123/world/connector"  // connector 组件
 	"github.com/zpab123/world/dispatcher" // dispatcher 组件
 	"github.com/zpab123/world/network"    // 网络库
 	"github.com/zpab123/zaplog"           // log 库
@@ -114,10 +114,10 @@ func configLogger(app *Application) {
 
 // 设置组件默认参数
 func defaultComponentOpt(app *Application) {
-	// Connector 组件
-	if nil == app.componentMgr.GetConnectorOpt() {
-		opt := getDefaultConnectorOpt(app)
-		app.componentMgr.SetConnectorOpt(opt)
+	// Acceptor 组件
+	if nil == app.componentMgr.GetAcceptorOpt() {
+		opt := getDefaultAcceptorOpt(app)
+		app.componentMgr.SetAcceptorOpt(opt)
 	}
 
 	// DispatcherClient 组件
@@ -127,9 +127,9 @@ func defaultComponentOpt(app *Application) {
 	}
 }
 
-// 获取默认 ConnectorOpt
-func getDefaultConnectorOpt(app *Application) *connector.TConnectorOpt {
-	opt := connector.NewTConnectorOpt(app.appDelegate)
+// 获取默认 AcceptorOpt
+func getDefaultAcceptorOpt(app *Application) *acceptor.TAcceptorOpt {
+	opt := acceptor.NewTAcceptorOpt(app.appDelegate)
 
 	return opt
 }
@@ -146,9 +146,9 @@ func createComponent(app *Application) {
 	// master 服务器 - 注册 master 组件
 
 	// 网络连接组件
-	connectorOpt := app.componentMgr.GetConnectorOpt()
-	if nil != connectorOpt && connectorOpt.Enable {
-		newConnector(app)
+	acceptorOpt := app.componentMgr.GetAcceptorOpt()
+	if nil != acceptorOpt && acceptorOpt.Enable {
+		newAcceptor(app)
 	}
 
 	// 消息分发客户端
@@ -166,21 +166,21 @@ func createComponent(app *Application) {
 	// 注册 monitor 组件
 }
 
-// 创建 Connector 组件
-func newConnector(app *Application) {
+// 创建 Acceptor 组件
+func newAcceptor(app *Application) {
 	// 创建地址
 	serverInfo := app.GetServerInfo()
-	opt := app.GetComponentMgr().GetConnectorOpt()
+	opt := app.GetComponentMgr().GetAcceptorOpt()
 
 	var tcpAddr string = ""
-	if opt.Frontend && serverInfo.CTcpPort > 0 {
+	if opt.ForClient && serverInfo.CTcpPort > 0 {
 		tcpAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CTcpPort) // 面向客户端的 tcp 地址
 	} else if serverInfo.Port > 0 {
 		tcpAddr = fmt.Sprintf("%s:%d", serverInfo.Host, serverInfo.Port) // 面向服务器的 tcp 地址
 	}
 
 	var wsAddr string = ""
-	if opt.Frontend && serverInfo.CWsPort > 0 {
+	if opt.ForClient && serverInfo.CWsPort > 0 {
 		wsAddr = fmt.Sprintf("%s:%d", serverInfo.ClientHost, serverInfo.CWsPort) // 面向客户端的 websocket 地址
 	} else if serverInfo.Port > 0 {
 		wsAddr = fmt.Sprintf("%s:%d", serverInfo.Host, serverInfo.Port) // 面向服务器的 websocket 地址
@@ -192,9 +192,9 @@ func newConnector(app *Application) {
 	}
 
 	// 创建 Connector
-	contor := connector.NewConnector(laddr, opt)
-	if nil != contor {
-		app.componentMgr.AddComponent(contor)
+	actor, err := acceptor.NewAcceptor(laddr, opt)
+	if nil != err && nil != actor {
+		app.componentMgr.AddComponent(actor)
 	}
 }
 

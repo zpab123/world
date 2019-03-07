@@ -73,7 +73,7 @@ func (this *DispatcherClient) Name() string {
 }
 
 // 启动
-func (this *DispatcherClient) Run() bool {
+func (this *DispatcherClient) Run() error {
 	// 连接所有 DispatcherServer 服务器
 	if nil != this.disConn && len(this.disConn) > 0 {
 		for _, conn := range this.disConn {
@@ -83,12 +83,12 @@ func (this *DispatcherClient) Run() bool {
 
 	// 主循环
 
-	return true
+	return nil
 }
 
 // 关闭
-func (this *DispatcherClient) Stop() bool {
+func (this *DispatcherClient) Stop() error {
 	// 关闭所有 DispatcherServer 连接
 
-	return true
+	return nil
 }

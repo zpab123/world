@@ -8,17 +8,17 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////
-// FrontendMsg
+// ClientMsg
 
-// FrontendSession 消息
-type FrontendMsg struct {
-	session *FrontendSession // session 对象
-	packet  *network.Packet  // packet 数据包
+// ClientSession 消息
+type ClientMsg struct {
+	session *ClientSession  // session 对象
+	packet  *network.Packet // packet 数据包
 }
 
-// 创建1个 FrontendMsg
-func NewFrontendMsg(ses *FrontendSession, pkt *network.Packet) *FrontendMsg {
-	msg := &FrontendMsg{
+// 创建1个 ClientMsg
+func NewClientMsg(ses *ClientSession, pkt *network.Packet) *ClientMsg {
+	msg := &ClientMsg{
 		session: ses,
 		packet:  pkt,
 	}
@@ -27,27 +27,27 @@ func NewFrontendMsg(ses *FrontendSession, pkt *network.Packet) *FrontendMsg {
 }
 
 // 获取 session 对象
-func (this *FrontendMsg) GetSession() *FrontendSession {
+func (this *ClientMsg) GetSession() *ClientSession {
 	return this.session
 }
 
 // 获取 packet 对象
-func (this *FrontendMsg) GetPacket() *network.Packet {
+func (this *ClientMsg) GetPacket() *network.Packet {
 	return this.packet
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// BackendSesMsg
+// ServerMsg
 
-// BackendSession 消息
-type BackendMsg struct {
-	session *BackendSession // session 对象
+// ServerSession 消息
+type ServerMsg struct {
+	session *ServerSession  // session 对象
 	packet  *network.Packet // packet 数据包
 }
 
-// 创建1个 FrontendMsg
-func NewBackendMsg(ses *BackendSession, pkt *network.Packet) *BackendMsg {
-	msg := &BackendMsg{
+// 创建1个 ClientMsg
+func NewServerMsg(ses *ServerSession, pkt *network.Packet) *ServerMsg {
+	msg := &ServerMsg{
 		session: ses,
 		packet:  pkt,
 	}
@@ -56,11 +56,11 @@ func NewBackendMsg(ses *BackendSession, pkt *network.Packet) *BackendMsg {
 }
 
 // 获取 session 对象
-func (this *BackendMsg) GetSession() *BackendSession {
+func (this *ServerMsg) GetSession() *ServerSession {
 	return this.session
 }
 
 // 获取 packet 对象
-func (this *BackendMsg) GetPacket() *network.Packet {
+func (this *ServerMsg) GetPacket() *network.Packet {
 	return this.packet
 }

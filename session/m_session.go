@@ -13,7 +13,16 @@ import (
 // 常量
 
 const (
-	C_SESSION_FLUSH_INTERVAL = 5 * time.Millisecond // socket 数据刷新周期
+	C_SES_FLUSH_INTERVAL = 5 * time.Millisecond // socket 数据刷新周期
+)
+
+// session 状态
+const (
+	C_SES_STATE_INIT    uint32 = iota // 初始化状态
+	C_SES_STATE_RUNING                // 正在启动中
+	C_SES_STATE_WORKING               // 工作状态
+	C_SES_STATE_STOPING               // 正在停止中
+	C_SES_STATE_STOPED                // 停止完成
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -21,8 +30,8 @@ const (
 
 // session 接口
 type ISession interface {
-	Run()
-	Close()
+	Run() error
+	Stop() error
 	GetId() int64
 	SetId(v int64)
 }
@@ -35,12 +44,12 @@ type ISessionManage interface {
 
 // 客户端消息管理
 type IClientMsgHandler interface {
-	OnClientMessage(ses *FrontendSession, packet *network.Packet) // 收到1个新的客户端消息
+	OnClientMessage(ses *ClientSession, packet *network.Packet) // 收到1个新的客户端消息
 }
 
 // 服务端消息管理
 type IServerMsgHandler interface {
-	OnServerMessage(ses *BackendSession, packet *network.Packet) // 收到1个新的服务器消息
+	OnServerMessage(ses *ServerSession, packet *network.Packet) // 收到1个新的服务器消息
 }
 
 // 消息管理
@@ -50,61 +59,51 @@ type IMsgHandler interface {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TFrontendSessionOpt 对象
+// TClientSessionOpt 对象
 
-// session 配置参数
-type TFrontendSessionOpt struct {
+// ClientSession 配置参数
+type TClientSessionOpt struct {
 	FlushInterval time.Duration          // socket 数据发送周期
 	MsgHandler    IClientMsgHandler      // 消息处理对象
 	WorldConnOpt  *network.TWorldConnOpt // WorldConnection 配置参数
 }
 
 // 创建1个新的 TFrontendSessionOpt
-func NewTFrontendSessionOpt(handler IClientMsgHandler) *TFrontendSessionOpt {
+func NewTClientSessionOpt(handler IClientMsgHandler) *TClientSessionOpt {
 	// 创建 WorldConnection
 	wc := network.NewTWorldConnOpt()
 
 	// 创建 TFrontendSessionOpt
-	opts := &TFrontendSessionOpt{
-		FlushInterval: C_SESSION_FLUSH_INTERVAL,
+	opt := &TClientSessionOpt{
+		FlushInterval: C_SES_FLUSH_INTERVAL,
 		MsgHandler:    handler,
 		WorldConnOpt:  wc,
 	}
 
-	return opts
-}
-
-// 检查 ConnectorConfig 参数是否存在错误
-func (this *TFrontendSessionOpt) Check() error {
-	return nil
+	return opt
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TBackendSessionOpt 对象
+// TServerSessionOpt 对象
 
-// BackendSession 配置参数
-type TBackendSessionOpt struct {
+// ServerSession 配置参数
+type TServerSessionOpt struct {
 	FlushInterval    time.Duration          // socket 数据发送周期
 	ServerMsgHandler IServerMsgHandler      // 消息处理对象
-	WorldConnOpts    *network.TWorldConnOpt // WorldConnection 配置参数
+	WorldConnOpt     *network.TWorldConnOpt // WorldConnection 配置参数
 }
 
-// 创建1个新的 TFrontendSessionOpt
-func NewTBackendSessionOpt(handler IServerMsgHandler) *TBackendSessionOpt {
+// 创建1个新的 TServerSessionOpt
+func NewTServerSessionOpt(handler IServerMsgHandler) *TServerSessionOpt {
 	// 创建 WorldConnection
 	wc := network.NewTWorldConnOpt()
 
-	// 创建 TFrontendSessionOpt
-	opts := &TBackendSessionOpt{
-		FlushInterval:    C_SESSION_FLUSH_INTERVAL,
+	// 创建 TServerSessionOpt
+	opt := &TServerSessionOpt{
+		FlushInterval:    C_SES_FLUSH_INTERVAL,
 		ServerMsgHandler: handler,
-		WorldConnOpts:    wc,
+		WorldConnOpt:     wc,
 	}
 
-	return opts
-}
-
-// 检查 ConnectorConfig 参数是否存在错误
-func (this *TBackendSessionOpt) Check() error {
-	return nil
+	return opt
 }

@@ -1,12 +1,12 @@
 // /////////////////////////////////////////////////////////////////////////////
-// 面向前端的 session 组件
+// 面向客户端的 session 组件
 
 package session
 
 import (
-	"time"
-
+	"github.com/pkg/errors"            // 异常库
 	"github.com/zpab123/syncutil"      // 原子变量
+	"github.com/zpab123/world/config"  // 配置文件
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/state"   // 状态管理
 	"github.com/zpab123/zaplog"        // 日志库
@@ -16,56 +16,55 @@ import (
 // 包初始化
 
 // /////////////////////////////////////////////////////////////////////////////
-// BackendSession 对象
+// ClientSession 对象
 
-// 面向后端的 session 对象
-type BackendSession struct {
-	option      *TBackendSessionOpt      // 配置参数
+// 面向客户端的 session 对象
+type ClientSession struct {
+	option      *TClientSessionOpt       // 配置参数
 	stateMgr    *state.StateManager      // 状态管理
-	worldConn   *network.WorldConnection // world 引擎连接对象
+	worldConn   *network.WorldConnection // server 端连接对象
 	sesssionMgr ISessionManage           // sessiong 管理对象
 	sessionId   syncutil.AtomicInt64     // session ID
-	msgHandler  IServerMsgHandler        // 消息处理器
+	msgHandler  IClientMsgHandler        // 消息处理器
 }
 
-// 创建1个新的 BackendSession 对象
-func NewBackendSession(socket network.ISocket, mgr ISessionManage, opt *TBackendSessionOpt) ISession {
+// 创建1个新的 ClientSession 对象
+func NewClientSession(socket network.ISocket, mgr ISessionManage, opt *TClientSessionOpt) ISession {
 	// 创建 StateManager
 	st := state.NewStateManager()
 
 	// 创建 WorldConnection
 	if nil == opt {
-		opt = NewTBackendSessionOpt(nil)
+		opt = NewTClientSessionOpt(nil)
+		opt.WorldConnOpt.ShakeKey = config.GetWorldConfig().ShakeKey
 	}
-	wc := network.NewWorldConnection(socket, opt.WorldConnOpts)
+	sc := network.NewWorldConnection(socket, opt.WorldConnOpt)
 
 	// 创建对象
-	bs := &BackendSession{
+	cs := &ClientSession{
 		option:      opt,
 		stateMgr:    st,
-		worldConn:   wc,
+		worldConn:   sc,
 		sesssionMgr: mgr,
-		msgHandler:  opt.ServerMsgHandler,
+		msgHandler:  opt.MsgHandler,
 	}
 
 	// 修改为初始化状态
-	bs.stateMgr.SetState(state.C_STATE_INIT)
+	cs.stateMgr.SetState(C_SES_STATE_INIT)
 
-	return bs
+	return cs
 }
 
 // 启动 session [ISession 接口]
-func (this *BackendSession) Run() {
-	// 状态效验
-	s := this.stateMgr.GetState()
-	if s != state.C_STATE_INIT && s != state.C_STATE_CLOSED {
-		zaplog.Errorf("BackendSession 启动失败，状态错误。正确状态=%d或%d，当前状态=%d", state.C_STATE_INIT, state.C_STATE_CLOSED, s)
-
-		return
-	}
-
+func (this *ClientSession) Run() (err error) {
 	// 改变状态： 启动中
-	this.stateMgr.SetState(state.C_STATE_RUNING)
+	if !this.stateMgr.SwapState(C_SES_STATE_INIT, C_SES_STATE_RUNING) {
+		if !this.stateMgr.SwapState(C_SES_STATE_STOPED, C_SES_STATE_RUNING) {
+			err = errors.Errorf("ClientSession 启动失败，状态错误。当前状态=%d，正确状态=%d或%d", this.stateMgr.GetState(), C_SES_STATE_INIT, C_SES_STATE_STOPED)
+
+			return
+		}
+	}
 
 	// 变量重置？ 状态? 发送队列？
 
@@ -80,15 +79,17 @@ func (this *BackendSession) Run() {
 
 	// 改变状态： 工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zaplog.Errorf("BackendSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+		zaplog.Errorf("ClientSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 	}
+
+	return
 }
 
 // 关闭 session [ISession 接口]
-func (this *BackendSession) Close() {
+func (this *ClientSession) Stop() (err error) {
 	// 状态改变为关闭中
 	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_CLOSEING) {
-		zaplog.Errorf("BackendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
+		err = errors.Errorf("ClientSession 关闭失败，状态错误。当前状态=%d，正确状态=%d", this.stateMgr.GetState(), C_SES_STATE_WORKING)
 
 		return
 	}
@@ -98,57 +99,50 @@ func (this *BackendSession) Close() {
 
 	// 状态改变为关闭完成
 	if !this.stateMgr.SwapState(state.C_STATE_CLOSEING, state.C_STATE_CLOSED) {
-		zaplog.Errorf("BackendSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_CLOSEING, this.stateMgr.GetState())
+		zaplog.Errorf("ClientSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_CLOSEING, this.stateMgr.GetState())
 	}
 
 	// 通知 session 管理
 	this.sesssionMgr.OnSessionClose(this)
+
+	return
 }
 
 // 获取 session ID [ISession 接口]
-func (this *BackendSession) GetId() int64 {
+func (this *ClientSession) GetId() int64 {
 	return this.sessionId.Load()
 }
 
 // 设置 session ID [ISession 接口]
-func (this *BackendSession) SetId(v int64) {
+func (this *ClientSession) SetId(v int64) {
 	this.sessionId.Store(v)
 }
 
 // 接收线程
-func (this *BackendSession) recvLoop() {
+func (this *ClientSession) recvLoop() {
 	for {
 		// 心跳检查
-		err := this.worldConn.CheckClientHeartbeat()
-		if nil != err {
-			break
-		}
+		this.worldConn.CheckClientHeartbeat()
 
 		// 接收消息
-		pkt, _ := this.worldConn.RecvPacket()
+		var pkt *network.Packet
+		pkt, _ = this.worldConn.RecvPacket()
 		if nil == pkt {
 			continue
 		}
 
 		// 消息处理
 		if this.msgHandler != nil {
-			this.msgHandler.OnServerMessage(this, pkt)
+			this.msgHandler.OnClientMessage(this, pkt)
 		}
-
 	}
 }
 
 // 发送线程
-func (this *BackendSession) sendLoop() {
+func (this *ClientSession) sendLoop() {
 	var err error
 
 	for {
-		// 阻塞，否则for循环会占用大量 cpu
-		time.Sleep(this.option.FlushInterval)
-
-		// 心跳检查
-		this.worldConn.CheckServerHeartbeat()
-
 		// 刷新缓冲区
 		err = this.worldConn.Flush()
 		if nil != err {

@@ -36,6 +36,7 @@ var (
 type PacketSocket struct {
 	socket    ISocket         // 符合 ISocket 的对象
 	mutex     sync.Mutex      // 线程互斥锁
+	cond      *sync.Cond      // 条件同步
 	sendQueue []*Packet       // 发送队列
 	recvedLen int             // 从 socket 的 readbuffer 中已经读取的数据大小：字节（用于消息读取记录）
 	headBuff  [_HEAD_LEN]byte // 存放消息头二进制数据
@@ -46,10 +47,11 @@ type PacketSocket struct {
 
 // 创建1个新的 PacketSocket 对象
 func NewPacketSocket(socket ISocket) *PacketSocket {
-	// 创建对象
 	pktSocket := &PacketSocket{
 		socket: socket,
 	}
+
+	pktSocket.cond = sync.NewCond(&pktSocket.mutex)
 
 	return pktSocket
 }
@@ -141,19 +143,22 @@ func (this *PacketSocket) SendPacket(pkt *Packet) error {
 	this.sendQueue = append(this.sendQueue, pkt)
 	this.mutex.Unlock()
 
+	this.cond.Signal()
+
 	return nil
 }
 
 // 将消息队列中的数据写入 writebuff
 func (this *PacketSocket) Flush() (err error) {
+	// 等待数据
+	this.mutex.Lock()
+	for len(this.sendQueue) == 0 {
+		this.cond.Wait()
+	}
+	this.mutex.Unlock()
+
 	// 复制数据
 	this.mutex.Lock()
-	if len(this.sendQueue) == 0 {
-		this.mutex.Unlock()
-
-		return
-	}
-
 	packets := make([]*Packet, 0, len(this.sendQueue)) // 复制准备
 	packets, this.sendQueue = this.sendQueue, packets  // 交换数据, 并把原来的数据置空
 	this.mutex.Unlock()

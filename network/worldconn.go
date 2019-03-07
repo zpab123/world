@@ -49,7 +49,7 @@ func NewWorldConnection(socket ISocket, opt *TWorldConnOpt) *WorldConnection {
 	}
 
 	// 设置为初始化状态
-	wc.stateMgr.SetState(C_WCONN_STATE_INIT)
+	wc.stateMgr.SetState(C_CONN_STATE_INIT)
 
 	return wc
 }
@@ -76,10 +76,10 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != C_WCONN_STATE_WORKING {
+	if s != C_CONN_STATE_WORKING {
 		this.Close()
 
-		err = errors.Errorf("WorldConnection 状态错误。正确状态=%d，当前状态=%d", C_WCONN_STATE_WORKING, s)
+		err = errors.Errorf("WorldConnection 状态错误。正确状态=%d，当前状态=%d", C_CONN_STATE_WORKING, s)
 
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (this *WorldConnection) Close() error {
 	var err error
 	s := this.stateMgr.GetState()
 
-	if s == C_WCONN_STATE_CLOSED {
+	if s == C_CONN_STATE_CLOSED {
 		err = errors.New("WorldConnection 关闭失败：它已经处于关闭状态")
 
 		return err
@@ -125,14 +125,14 @@ func (this *WorldConnection) Close() error {
 
 	err = this.packetSocket.Close()
 
-	this.stateMgr.SetState(C_WCONN_STATE_CLOSED)
+	this.stateMgr.SetState(C_CONN_STATE_CLOSED)
 
 	return err
 }
 
 // 检查客户端心跳
 func (this *WorldConnection) CheckClientHeartbeat() error {
-	if this.stateMgr.GetState() != C_WCONN_STATE_WORKING {
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
 		return nil
 	}
 
@@ -149,7 +149,7 @@ func (this *WorldConnection) CheckClientHeartbeat() error {
 
 // 检查服务器心跳
 func (this *WorldConnection) CheckServerHeartbeat() {
-	if this.stateMgr.GetState() != C_WCONN_STATE_WORKING {
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
 		return
 	}
 
@@ -191,7 +191,7 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 //  处理握手消息
 func (this *WorldConnection) handleHandshake(data []byte) {
 	// 状态效验
-	if this.stateMgr.GetState() != C_WCONN_STATE_INIT {
+	if this.stateMgr.GetState() != C_CONN_STATE_INIT {
 		return
 	}
 
@@ -241,7 +241,7 @@ func (this *WorldConnection) handleHandshake(data []byte) {
 //  返回握手消息
 func (this *WorldConnection) handshakeResponse(sucess bool, data []byte) {
 	// 状态效验
-	if this.stateMgr.GetState() != C_WCONN_STATE_INIT {
+	if this.stateMgr.GetState() != C_CONN_STATE_INIT {
 		return
 	}
 
@@ -253,14 +253,14 @@ func (this *WorldConnection) handshakeResponse(sucess bool, data []byte) {
 
 	// 状态： 等待握手 ack
 	if sucess {
-		this.stateMgr.SetState(C_WCONN_STATE_WAIT_ACK)
+		this.stateMgr.SetState(C_CONN_STATE_WAIT_ACK)
 	}
 }
 
 //  处理握手ACK
 func (this *WorldConnection) handleHandshakeAck() {
 	// 状态：工作中
-	if !this.stateMgr.SwapState(C_WCONN_STATE_WAIT_ACK, C_WCONN_STATE_WORKING) {
+	if !this.stateMgr.SwapState(C_CONN_STATE_WAIT_ACK, C_CONN_STATE_WORKING) {
 
 		return
 	}
@@ -272,7 +272,7 @@ func (this *WorldConnection) handleHandshakeAck() {
 //  发送心跳数据
 func (this *WorldConnection) sendHeartbeat() {
 	// 状态效验
-	if this.stateMgr.GetState() != C_WCONN_STATE_WORKING {
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
 
 		return
 	}
