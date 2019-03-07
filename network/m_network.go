@@ -57,9 +57,9 @@ const (
 	C_CONN_STATE_CLOSED                 // 关闭状态
 )
 
-// WorldSocket 类型
+// Connector 类型
 const (
-	C_NET_TYPE_TCP = "tcp" // tcp 连接对象
+	C_CONNECTOR_TCP = "tcp" // tcp 连接对象
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -152,7 +152,7 @@ func NewTWorldConnOpt() *TWorldConnOpt {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TWorldConnClientOpt 对象
+// TWorldSocketOpt 对象
 
 // WorldConnClient 配置参数
 type TWorldSocketOpt struct {
@@ -162,14 +162,40 @@ type TWorldSocketOpt struct {
 	BuffSocketOpts *TBufferSocketOpt  // BufferSocket 配置参数
 }
 
-// 新建1个 TWorldConnClientOpt 对象
+// 新建1个 TWorldSocketOpt 对象
 func NewTWorldSocketOpt() *TWorldSocketOpt {
 	// 创建对象
 	tcpOpt := model.NewTTcpConnOpt()
 	buffOpt := NewTBufferSocketOpt()
 
 	opt := &TWorldSocketOpt{
-		NetType:        C_NET_TYPE_TCP,
+		NetType:        C_CONNECTOR_TCP,
+		TcpConnOpt:     tcpOpt,
+		BuffSocketOpts: buffOpt,
+	}
+
+	return opt
+}
+
+// /////////////////////////////////////////////////////////////////////////////
+// TConnectorOpt 对象
+
+// Connector 配置参数
+type TConnectorOpt struct {
+	NetType        string             // 类型
+	ShakeKey       string             // 握手key
+	TcpConnOpt     *model.TTcpConnOpt // tcpSocket 配置参数
+	BuffSocketOpts *TBufferSocketOpt  // BufferSocket 配置参数
+}
+
+// 新建1个 TConnectorOpt 对象
+func NewTConnectorOpt() *TConnectorOpt {
+	// 创建对象
+	tcpOpt := model.NewTTcpConnOpt()
+	buffOpt := NewTBufferSocketOpt()
+
+	opt := &TConnectorOpt{
+		NetType:        C_CONNECTOR_TCP,
 		TcpConnOpt:     tcpOpt,
 		BuffSocketOpts: buffOpt,
 	}
