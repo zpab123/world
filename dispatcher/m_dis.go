@@ -40,7 +40,7 @@ func NewTDispatcherServerOpt(handler session.IServerMsgHandler) *TDispatcherServ
 
 	// 创建对象
 	opt := &TDispatcherServerOpt{
-		AcceptorName: network.C_ACCEPTOR_TYPE_TCP,
+		AcceptorName: network.C_ACCEPTOR_NAME_TCP,
 		MaxConn:      C_MAX_CONN,
 		TcpConnOpt:   tcpOpt,
 		SessionOpt:   bsOpt,

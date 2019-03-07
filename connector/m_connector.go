@@ -44,7 +44,7 @@ func NewTConnectorOpt(handler session.IMsgHandler) *TConnectorOpt {
 	// 创建 TConnectorOpt
 	opts := &TConnectorOpt{
 		Enable:             true,
-		AcceptorType:       network.C_ACCEPTOR_TYPE_COM,
+		AcceptorType:       network.C_ACCEPTOR_NAME_COM,
 		MaxConn:            C_MAX_CONN,
 		Frontend:           true,
 		TcpConnOpt:         tcpOpt,

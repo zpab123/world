@@ -6,6 +6,7 @@ package network
 import (
 	"sync"
 
+	"github.com/pkg/errors"          // 异常库
 	"github.com/zpab123/world/state" // 状态管理
 )
 
@@ -45,8 +46,8 @@ func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) (IAcceptor, error) {
 
 	// 创建对象
 	sm := state.NewStateManager()
-	tcpaptor := NewTcpAcceptor(addr, mgr)
-	wsaptor := NewWsAcceptor(addr, mgr)
+	tcpaptor, _ := NewTcpAcceptor(addr, mgr)
+	wsaptor, _ := NewWsAcceptor(addr, mgr)
 
 	// 创建 MulAcceptor
 	mulaptor := &MulAcceptor{
@@ -60,7 +61,7 @@ func NewMulAcceptor(addr *TLaddr, mgr IMulConnManager) (IAcceptor, error) {
 	// 设置为初始化状态
 	mulaptor.SetState(state.C_STATE_INIT)
 
-	return mulaptor
+	return mulaptor, nil
 }
 
 // 启动 mulAcceptor [IAcceptor 接口]

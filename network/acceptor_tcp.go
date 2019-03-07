@@ -6,7 +6,6 @@ package network
 import (
 	"net"
 	"strings"
-	"sync"
 
 	"github.com/pkg/errors"          // 异常库
 	"github.com/zpab123/world/model" // 全局模型

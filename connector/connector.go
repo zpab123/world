@@ -56,7 +56,7 @@ func NewConnector(addr *network.TLaddr, opt *TConnectorOpt) model.IComponent {
 	}
 
 	// 创建 Acceptor
-	actor := network.NewAcceptor(opt.AcceptorType, addr, cntor)
+	actor, _ := network.NewAcceptor(opt.AcceptorType, addr, cntor)
 	if nil == actor {
 		return nil
 	} else {
@@ -91,7 +91,7 @@ func (this *Connector) Run() bool {
 	}
 
 	// 启动 acceptor
-	if !this.acceptor.Run() {
+	if err := this.acceptor.Run(); nil == err {
 		return false
 	}
 
@@ -117,7 +117,7 @@ func (this *Connector) Stop() bool {
 	}
 
 	// 停止 acceptor
-	if !this.acceptor.Stop() {
+	if err := this.acceptor.Stop(); nil != err {
 		return false
 	}
 

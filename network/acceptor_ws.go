@@ -53,7 +53,7 @@ func NewWsAcceptor(addr *TLaddr, mgr IWsConnManager) (IAcceptor, error) {
 		connMgr: mgr,
 	}
 
-	return aptor
+	return aptor, nil
 }
 
 // 启动 wsAcceptor [IAcceptor 接口]

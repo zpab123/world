@@ -12,6 +12,7 @@ import (
 	"github.com/zpab123/world/model" // 全局模型
 	"github.com/zpab123/world/state" // 状态管理
 	"github.com/zpab123/world/utils" // 工具库
+	"github.com/zpab123/world/wderr" // 异常库
 	"github.com/zpab123/zaplog"      // 日志库
 	"golang.org/x/net/websocket"     // websocket 库
 )
@@ -68,36 +69,40 @@ func NewComAcceptor(addr *TLaddr, mgr IComConnManager) (IAcceptor, error) {
 	// 设置为初始化状态
 	comaptor.stateMgr.SetState(state.C_STATE_INIT)
 
-	return comaptor
+	return comaptor, nil
 }
 
 // 启动 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Run() error {
+	var err error
+
 	// 改变状态: 正在启动中
 	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zaplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+		err = errors.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
 
-		return nil
+		return err
 	}
 
 	// 启动 tcp 侦听
-	if !this.runTcpListener() {
-		return nil
+	err = this.runTcpListener()
+	if nil != err {
+		return err
 	}
 
 	// 启动 websocket 侦听
-	if !this.runWsListener() {
-		return nil
+	err = this.runWsListener()
+	if nil != err {
+		return err
 	}
 
 	// 改变状态: 工作中
 	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
 		zaplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
 
-		return nil
+		return err
 	}
 
-	return nil
+	return err
 }
 
 // 停止 Acceptor [IAcceptor 接口]
@@ -152,28 +157,36 @@ func (this *ComAcceptor) GetTcpAddr() string {
 }
 
 // 启动 tcp 侦听
-func (this *ComAcceptor) runTcpListener() bool {
+func (this *ComAcceptor) runTcpListener() error {
+	var err error
+	var ln interface{}
+
 	// 创建侦听器
 	f := func(addr *model.TAddress, port int) (interface{}, error) {
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
-	ln, err := utils.DetectPort(this.laddr.TcpAddr, f)
+	ln, err = utils.DetectPort(this.laddr.TcpAddr, f)
 
 	// 创建失败
 	if nil != err {
-		zaplog.Errorf("ComAcceptor-tcp 启动失败。err=%v", err.Error())
-
-		return false
+		return err
 	}
 
 	// 创建成功
-	this.tcpListener = ln.(net.Listener)
+	var ok bool
+	this.tcpListener, ok = ln.(net.Listener)
+	if !ok {
+		err = errors.New("ComAcceptor 启动失败，创建 net.Listener 失败")
+
+		return err
+	}
+
 	zaplog.Infof("ComAcceptor-tcp 启动成功。ip=%s", this.GetTcpAddr())
 
 	// 侦听 tcp 连接
 	go this.acceptTcpConn()
 
-	return true
+	return err
 }
 
 // 接收新的 tcp 连接
@@ -184,30 +197,35 @@ func (this *ComAcceptor) acceptTcpConn() {
 
 		this.tcpListener.Close()
 	}
+
 	defer closeF()
 
 	// 监听新连接
 	for {
 		newConn, err := this.tcpListener.Accept()
 		if nil != err {
-			if utils.IsTimeoutError(err) {
+			if wderr.IsTimeoutError(err) {
 				continue
 			} else {
 				break
 			}
 		}
 
-		// 开启新线程，处理新 tcp 连接
-		go this.connMgr.OnNewTcpConn(newConn)
+		// 开启新协程，处理新 tcp 连接
+		if nil != this.connMgr {
+			go this.connMgr.OnNewTcpConn(newConn)
+		}
 	}
 }
 
 // 启动 websocket 侦听
-func (this *ComAcceptor) runWsListener() bool {
+func (this *ComAcceptor) runWsListener() error {
 	// 变量定义
 	var (
 		addrObj *model.TAddress // 地址变量
 		wsPort  int             // 监听成功的 websocket 端口
+		err     error           // 错误
+		ln      interface{}     // 监听接口
 	)
 
 	// 查找1个 可用端口
@@ -218,12 +236,11 @@ func (this *ComAcceptor) runWsListener() bool {
 		return net.Listen("tcp", addr.HostPortString(port))
 	}
 
-	ln, err := utils.DetectPort(this.laddr.WsAddr, f)
+	ln, err = utils.DetectPort(this.laddr.WsAddr, f)
 
 	// 查找失败
 	if nil != err {
-		zaplog.Errorf("ComAcceptor-websocket 启动失败。err=%v", err.Error())
-		return false
+		return err
 	}
 
 	// 端口查找成功
@@ -233,9 +250,8 @@ func (this *ComAcceptor) runWsListener() bool {
 
 	// 侦听新连接
 	go this.acceptWsConn()
-	//go this.acceptWebsocket()
 
-	return true
+	return err
 }
 
 // 接收新的 websocket 连接
@@ -252,8 +268,9 @@ func (this *ComAcceptor) acceptWsConn() {
 	}
 
 	// 开启服务器
-	var err error
 	zaplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
+
+	var err error
 	if this.certFile != "" && this.keyFile != "" {
 		err = this.httpServer.ServeTLS(this.wsListener, this.certFile, this.keyFile)
 	} else {
@@ -263,27 +280,6 @@ func (this *ComAcceptor) acceptWsConn() {
 	// 错误信息
 	if nil != err {
 		zaplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，err=%s", this.wsListenAddr, err)
-	}
-}
-
-// 接收新的 websocket 连接
-func (this *ComAcceptor) acceptWebsocket() {
-	// 设置 "/ws" 消息协议处理函数(客户端需要在url后面加上 /ws 路由)
-	http.Handle("/ws", websocket.Handler(this.connMgr.OnNewWsConn)) // 有新连接的时候，会调用 OnNewWsConn 处理新连接
-
-	// 侦听新连接
-	var err error
-	zaplog.Infof("ComAcceptor-websocket 启动成功。ip=%s", this.wsListenAddr)
-	if "" != this.keyFile && "" != this.certFile {
-		zaplog.Debugf("ComAcceptor-websocket 使用 TLS。 key=%s, cert=%s", this.keyFile, this.certFile)
-		err = http.ListenAndServeTLS(this.wsListenAddr, this.certFile, this.keyFile, nil)
-	} else {
-		err = http.ListenAndServe(this.wsListenAddr, nil)
-	}
-
-	// 错误信息
-	if nil != err {
-		zaplog.Fatalf("ComAcceptor-websocket 启动失败。ip=%s，错误=%s", this.wsListenAddr, err)
 	}
 }
 
