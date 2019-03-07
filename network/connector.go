@@ -83,14 +83,13 @@ func (this *Connector) Connect() error {
 // 关闭连接
 func (this *Connector) Close() (err error) {
 	// 状态效验
-	s := this.stateMgr.GetState()
-	if s == C_CONN_STATE_INIT {
+	if this.stateMgr.GetState() == C_CONN_STATE_INIT {
 		err = errors.New("Connector 关闭失败：它处于init状态")
 
 		return
 	}
 
-	if s == C_CONN_STATE_CLOSED {
+	if this.stateMgr.GetState() == C_CONN_STATE_CLOSED {
 		err = errors.New("Connector 关闭失败：它已经处于关闭状态")
 
 		return
