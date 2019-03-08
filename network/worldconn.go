@@ -57,42 +57,22 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	}
 
 	// 内部 packet
-	if pkt.pktId < C_PACKET_ID_WORLD {
+	if pkt.pktId < protocol.C_PKT_ID_WORLD {
 		this.handlePacket(pkt)
 
 		return nil, err
 	}
 
 	// 状态效验
-	s := this.stateMgr.GetState()
-	if s != C_CONN_STATE_WORKING {
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
 		this.Close()
 
-		err = errors.Errorf("WorldConnection 状态错误。正确状态=%d，当前状态=%d", C_CONN_STATE_WORKING, s)
+		err = errors.Errorf("WorldConnection %s 收到数据，但是状态错误。当前状态=%d，正确状态=%s", this, this.stateMgr.GetState(), C_CONN_STATE_WORKING)
 
 		return nil, err
 	}
 
 	return pkt, nil
-}
-
-// 发送1个 packet 消息
-func (this *WorldConnection) SendPacket(pkt *Packet) error {
-	// 状态效验
-	return this.packetSocket.SendPacket(pkt)
-}
-
-// 发送1个 packet 消息，然后将 packet 放回对象池
-func (this *WorldConnection) SendPacketRelease(pkt *Packet) error {
-	err := this.SendPacket(pkt)
-	pkt.Release()
-
-	return err
-}
-
-// 刷新缓冲区
-func (this *WorldConnection) Flush() error {
-	return this.packetSocket.Flush()
 }
 
 // 关闭 WorldConnection
@@ -113,25 +93,72 @@ func (this *WorldConnection) Close() error {
 	return err
 }
 
+// 发送1个 packet 消息
+func (this *WorldConnection) SendPacket(pkt *Packet) error {
+	var err error
+
+	// 状态效验
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
+		err = errors.Errorf("WorldConnection %s 发送 Packet 数据失败：状态不在 working 中", this)
+
+		return err
+	}
+
+	return this.packetSocket.SendPacket(pkt)
+}
+
+// 发送1个 packet 消息，然后将 packet 放回对象池
+func (this *WorldConnection) SendPacketRelease(pkt *Packet) error {
+	err := this.SendPacket(pkt)
+	pkt.Release()
+
+	return err
+}
+
+//  发送心跳数据
+func (this *WorldConnection) SendHeartbeat() {
+	zaplog.Debugf("WorldConnection %s 发送心跳", this)
+
+	// 发送心跳数据
+	pkt := NewPacket(protocol.C_PKT_ID_HEARTBEAT)
+	this.SendPacket(pkt)
+}
+
+// 发送通用数据
+func (this *WorldConnection) SendData(data []byte) {
+	pkt := NewPacket(protocol.C_PKT_ID_DATA)
+	pkt.AppendBytes(data)
+
+	this.SendPacket(pkt)
+}
+
+// 刷新缓冲区
+func (this *WorldConnection) Flush() error {
+	return this.packetSocket.Flush()
+}
+
+// 打印信息
+func (this *WorldConnection) String() string {
+	return this.packetSocket.String()
+}
+
 // 处理 Packet 消息
 func (this *WorldConnection) handlePacket(pkt *Packet) {
 	// 根据类型处理数据
 	switch pkt.pktId {
-	case C_PACKET_ID_INVALID: // 无效类型
-		zaplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection")
-
-		this.Close()
-	case C_PACKET_ID_HANDSHAKE: // 客户端握手请求
+	case protocol.C_PKT_ID_HANDSHAKE: // 客户端握手请求
 		this.handleHandshake(pkt.GetBody())
-	case C_PACKET_ID_HANDSHAKE_ACK: // 客户端握手 ACK
+	case protocol.C_PKT_ID_HANDSHAKE_ACK: // 客户端握手 ACK
 		this.handleHandshakeAck()
 	default:
-		break
+		zaplog.Errorf("WorldConnection &s 收到无效消息类型=%d，关闭连接", this, pkt.pktId)
+
+		this.Close()
 	}
 }
 
 //  处理握手消息
-func (this *WorldConnection) handleHandshake(body []byte) {
+func (this *WorldConnection) handleHandshake(data []byte) {
 	var err error
 
 	// 状态效验
@@ -141,9 +168,9 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 
 	// 消息解码
 	req := &protocol.HandshakeReq{}
-	err = msgpack.Unmarshal(body, req)
+	err = msgpack.Unmarshal(data, req)
 	if nil != err {
-		zaplog.Error("msgpack 解码握手消息出错，关闭 WorldConnection")
+		zaplog.Errorf("WorldConnection %s 解码握手消息出错，关闭该连接", this)
 
 		this.Close()
 	}
@@ -167,7 +194,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	// 回复处理结果
 	buf, err = msgpack.Marshal(res)
 	if nil != err {
-		zaplog.Error("msgpack 编码握手消息出错。WorldConnection 返回握手消息失败")
+		zaplog.Errorf("WorldConnection %s 返回握手消息失败，编码握手消息出错", this)
 	} else {
 		this.handshakeResponse(sucess, buf)
 	}
@@ -186,10 +213,9 @@ func (this *WorldConnection) handshakeResponse(sucess bool, data []byte) {
 	}
 
 	// 返回数据
-	pkt := NewPacket(C_PACKET_ID_HANDSHAKE)
+	pkt := NewPacket(protocol.C_PKT_ID_HANDSHAKE)
 	pkt.AppendBytes(data)
-	this.SendPacket(pkt)
-	//this.SendPacketRelease(pkt)
+	this.packetSocket.SendPacket(pkt) // 越过工作状态发送消息
 
 	// 状态： 等待握手 ack
 	if sucess {
@@ -206,20 +232,5 @@ func (this *WorldConnection) handleHandshakeAck() {
 	}
 
 	// 发送心跳数据
-	this.sendHeartbeat()
-}
-
-//  发送心跳数据
-func (this *WorldConnection) sendHeartbeat() {
-	// 状态效验
-	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
-
-		return
-	}
-
-	zaplog.Debugf("WorldConnection 发送心跳")
-
-	// 发送心跳数据
-	pkt := NewPacket(C_PACKET_ID_HEARTBEAT)
-	this.SendPacketRelease(pkt)
+	this.SendHeartbeat()
 }

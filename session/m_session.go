@@ -13,7 +13,7 @@ import (
 // 常量
 
 const (
-	C_SES_FLUSH_INTERVAL = 5 * time.Millisecond // socket 数据刷新周期
+	C_HEARTBEAT = 0 * time.Second // session 默认心跳周期
 )
 
 // session 状态
@@ -75,7 +75,7 @@ func NewTClientSessionOpt(handler IClientMsgHandler) *TClientSessionOpt {
 
 	// 创建 TFrontendSessionOpt
 	opt := &TClientSessionOpt{
-		FlushInterval: C_SES_FLUSH_INTERVAL,
+		FlushInterval: C_HEARTBEAT,
 		MsgHandler:    handler,
 		WorldConnOpt:  wc,
 	}
@@ -88,7 +88,7 @@ func NewTClientSessionOpt(handler IClientMsgHandler) *TClientSessionOpt {
 
 // ServerSession 配置参数
 type TServerSessionOpt struct {
-	FlushInterval    time.Duration          // socket 数据发送周期
+	Heartbeat        time.Duration          // 心跳周期
 	ServerMsgHandler IServerMsgHandler      // 消息处理对象
 	WorldConnOpt     *network.TWorldConnOpt // WorldConnection 配置参数
 }
@@ -100,7 +100,7 @@ func NewTServerSessionOpt(handler IServerMsgHandler) *TServerSessionOpt {
 
 	// 创建 TServerSessionOpt
 	opt := &TServerSessionOpt{
-		FlushInterval:    C_SES_FLUSH_INTERVAL,
+		Heartbeat:        C_HEARTBEAT,
 		ServerMsgHandler: handler,
 		WorldConnOpt:     wc,
 	}

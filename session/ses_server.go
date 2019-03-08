@@ -1,12 +1,14 @@
 // /////////////////////////////////////////////////////////////////////////////
-// 面向前端的 session 组件
+// 面向服务器连接的 session 组件
 
 package session
 
 import (
+	"github.com/pkg/errors"            // 异常库
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/state"   // 状态管理
+	"github.com/zpab123/world/wderr"   // 异常库
 	"github.com/zpab123/zaplog"        // 日志库
 )
 
@@ -16,7 +18,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////
 // ServerSession 对象
 
-// 面向后端的 session 对象
+// 面向服务器连接的 session 对象
 type ServerSession struct {
 	option      *TServerSessionOpt       // 配置参数
 	stateMgr    *state.StateManager      // 状态管理
@@ -55,16 +57,13 @@ func NewServerSession(socket network.ISocket, mgr ISessionManage, opt *TServerSe
 // 启动 session [ISession 接口]
 func (this *ServerSession) Run() (err error) {
 	// 状态效验
-	s := this.stateMgr.GetState()
-	if s != state.C_INIT && s != state.C_CLOSED {
-		zaplog.Errorf("ServerSession 启动失败，状态错误。正确状态=%d或%d，当前状态=%d", state.C_INIT, state.C_CLOSED, s)
+	if !this.stateMgr.SwapState(state.C_INIT, state.C_RUNING) {
+		if !this.stateMgr.SwapState(state.C_STOPED, state.C_RUNING) {
+			err = errors.Errorf("ServerSession 启动失败，状态错误。当前状态=%d，正确状态=%d或%d", this.stateMgr.GetState(), state.C_INIT, state.C_STOPED)
 
-		return
+			return
+		}
 	}
-
-	// 改变状态： 启动中
-	this.stateMgr.SetState(state.C_RUNING)
-
 	// 变量重置？ 状态? 发送队列？
 
 	// 将 session 添加到管理器, 在线程处理前添加到管理器(分配id), 避免ID还未分配,就开始使用id的竞态问题
@@ -76,9 +75,13 @@ func (this *ServerSession) Run() (err error) {
 	// 开启发送线程
 	go this.sendLoop()
 
+	// 主循环
+
 	// 改变状态： 工作中
 	if !this.stateMgr.SwapState(state.C_RUNING, state.C_WORKING) {
-		zaplog.Errorf("ServerSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_RUNING, this.stateMgr.GetState())
+		err = errors.Errorf("ServerSession 启动失败，状态错误。当前状态=%d，正确状态=%d", this.stateMgr.GetState(), state.C_RUNING)
+
+		return
 	}
 
 	return
@@ -88,17 +91,24 @@ func (this *ServerSession) Run() (err error) {
 func (this *ServerSession) Stop() (err error) {
 	// 状态改变为关闭中
 	if !this.stateMgr.SwapState(state.C_WORKING, state.C_CLOSEING) {
-		zaplog.Errorf("ServerSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_WORKING, this.stateMgr.GetState())
+		err = errors.Errorf("ServerSession %s 关闭失败，状态错误。当前状态=%d, 正确状态=%d", this, this.stateMgr.GetState(), state.C_WORKING)
 
 		return
 	}
 
 	// 关闭连接
-	this.worldConn.Close()
+	err = this.worldConn.Close()
+	if nil != err {
+		err = errors.Errorf("ServerSession %s 关闭失败。错误=%s", this, err)
+
+		return
+	}
 
 	// 状态改变为关闭完成
 	if !this.stateMgr.SwapState(state.C_CLOSEING, state.C_CLOSED) {
-		zaplog.Errorf("ServerSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_CLOSEING, this.stateMgr.GetState())
+		err = errors.Errorf("ServerSession %s 关闭失败，状态错误。当前状态=%d, 正确状态=%d", this, this.stateMgr.GetState(), state.C_CLOSEING)
+
+		return
 	}
 
 	// 通知 session 管理
@@ -117,18 +127,53 @@ func (this *ServerSession) SetId(v int64) {
 	this.sessionId.Store(v)
 }
 
+// 打印信息
+func (this *ServerSession) String() string {
+	return this.worldConn.String()
+}
+
+// 发送心跳消息
+func (this *ServerSession) SendHeartbeat() {
+	this.worldConn.SendHeartbeat()
+}
+
+// 发送通用消息
+func (this *ServerSession) SendData(data []byte) {
+	this.worldConn.SendData(data)
+}
+
 // 接收线程
 func (this *ServerSession) recvLoop() {
-	for {
+	defer func() {
+		this.Stop()
+
+		if err := recover(); nil != err && !wderr.IsConnectionError(err.(error)) {
+			zaplog.TraceError("ServerSession %s 接收数据出现错误：%s", this, err.(error))
+		} else {
+			zaplog.Debugf("ServerSession %s 断开连接", this)
+		}
+	}()
+
+	for this.stateMgr.GetState() == state.C_WORKING {
 		// 接收消息
-		pkt, _ := this.worldConn.RecvPacket()
+		pkt, err := this.worldConn.RecvPacket()
+
+		// 错误处理
+		if nil != err && !wderr.IsTimeoutError(err) {
+			if wderr.IsConnectionError(err) {
+				break
+			} else {
+				panic(err)
+			}
+		}
+
+		// 消息处理
 		if nil == pkt {
 			continue
 		}
 
-		// 消息处理
 		if this.msgHandler != nil {
-			this.msgHandler.OnServerMessage(this, pkt)
+			this.msgHandler.OnServerMessage(this, pkt) // 这里还需要增加异常处理
 		}
 
 	}
@@ -138,11 +183,16 @@ func (this *ServerSession) recvLoop() {
 func (this *ServerSession) sendLoop() {
 	var err error
 
-	for {
-		// 刷新缓冲区
-		err = this.worldConn.Flush()
+	for this.stateMgr.GetState() == state.C_WORKING {
+		err = this.worldConn.Flush() // 刷新缓冲区
+
 		if nil != err {
 			break
 		}
 	}
+}
+
+// 主循环
+func (this *ServerSession) mainLoop() {
+
 }

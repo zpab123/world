@@ -10,9 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"          // 错误库
-	"github.com/zpab123/world/utils" // 工具库
-	"github.com/zpab123/zaplog"      // 日志库
+	"github.com/pkg/errors"             // 错误库
+	"github.com/zpab123/world/protocol" // 通信协议
+	"github.com/zpab123/world/utils"    // 工具库
+	"github.com/zpab123/zaplog"         // 日志库
 )
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -212,7 +213,7 @@ func (this *PacketSocket) LocalAddr() net.Addr {
 	return this.socket.LocalAddr()
 }
 
-// fmt 字符串输出接口
+// 打印信息
 func (this *PacketSocket) String() string {
 	return fmt.Sprintf("[%s >>> %s]", this.LocalAddr(), this.RemoteAddr())
 }
@@ -220,7 +221,7 @@ func (this *PacketSocket) String() string {
 // 重置数据接收状态
 func (this *PacketSocket) resetRecvStates() {
 	this.recvedLen = 0
-	this.pktId = C_PACKET_ID_INVALID
+	this.pktId = protocol.C_PKT_ID_INVALID
 	this.bodylen = 0
 	this.packet = nil
 }

@@ -19,7 +19,7 @@ type timeoutError interface {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// 对外 api
+// net 相关
 
 // err 是否是1个超时错误
 func IsTimeoutError(err error) bool {
@@ -41,4 +41,32 @@ func IsEOFOrNetReadError(err error) bool {
 	ne, ok := err.(*net.OpError)
 
 	return ok && ne.Op == "read"
+}
+
+// 是否是网络连接相关错误
+func IsConnectionError(_err interface{}) bool {
+	// 非错误类
+	err, ok := _err.(error)
+	if !ok {
+		return false
+	}
+
+	// EOF 错误（比如网络断开）
+	err = errors.Cause(err)
+	if err == io.EOF {
+		return true
+	}
+
+	// 非 net.Error 错误
+	neterr, ok := err.(net.Error)
+	if !ok {
+		return false
+	}
+
+	// net.Error 错误 但属于 io 超时
+	if neterr.Timeout() {
+		return false
+	}
+
+	return true
 }

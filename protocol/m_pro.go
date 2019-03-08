@@ -6,9 +6,18 @@ package protocol
 // /////////////////////////////////////////////////////////////////////////////
 // 常量
 
-// 消息 id
+// world 框架消息 (1-100)
 const (
-	PKT_ID_SHAKE uint16 = iota + 1 // 握手消息 ID
+	C_PKT_ID_INVALID       uint16 = iota // 无效消息
+	C_PKT_ID_HANDSHAKE                   // 握手消息ID
+	C_PKT_ID_HANDSHAKE_ACK               // 握手 ACK
+	C_PKT_ID_WORLD                       // 分界线： 以上由 WorldConnection 处理的消息
+)
+
+// world 框架消息 (101-)
+const (
+	C_PKT_ID_HEARTBEAT uint16 = iota + 101 // 心跳消息
+	C_PKT_ID_DATA                          // 通用消息
 )
 
 // 通用消息码(1-1000)

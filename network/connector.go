@@ -54,9 +54,8 @@ func (this *Connector) Connect() error {
 	var err error
 
 	// 状态效验
-	s := this.stateMgr.GetState()
-	if s != C_CONN_STATE_INIT && s != C_CONN_STATE_CLOSED {
-		err = errors.Errorf("Connector 连接失败，状态错误。当前状态=%d", s)
+	if this.stateMgr.GetState() != C_CONN_STATE_INIT && this.stateMgr.GetState() != C_CONN_STATE_CLOSED {
+		err = errors.Errorf("Connector %s 连接失败，状态错误。当前状态=%d", this.stateMgr.GetState())
 
 		return err
 	}
@@ -78,6 +77,12 @@ func (this *Connector) Connect() error {
 	if nil == err {
 		this.stateMgr.SetState(C_CONN_STATE_SHAKE)
 		err = this.sendHandshake()
+
+		if nil != err {
+			this.Close()
+
+			return err
+		}
 	}
 
 	return err
@@ -127,7 +132,7 @@ func (this *Connector) RecvPacket() (*Packet, error) {
 	}
 
 	// 握手消息
-	if pkt.pktId == C_PACKET_ID_HANDSHAKE {
+	if pkt.pktId == protocol.C_PKT_ID_HANDSHAKE {
 		this.handleHandshake(pkt.GetBody())
 
 		return nil, nil
@@ -158,6 +163,15 @@ func (this *Connector) Flush() error {
 	}
 
 	return this.packetSocket.Flush()
+}
+
+// 打印信息
+func (this *Connector) String() string {
+	if nil == this.packetSocket {
+		return ""
+	}
+
+	return this.packetSocket.String()
 }
 
 // 创建统一 socket
@@ -196,7 +210,7 @@ func (this *Connector) connectTcp() error {
 		tcpConn.SetNoDelay(this.option.TcpConnOpt.NoDelay)
 	}
 
-	zaplog.Debugf("Connector 连接tcp服务器成功。ip=%s", this.addr.TcpAddr)
+	zaplog.Debugf("Connector %s 连接tcp服务器成功", this)
 
 	this.createSocket(conn)
 
@@ -206,17 +220,28 @@ func (this *Connector) connectTcp() error {
 // 发送握手请求
 func (this *Connector) sendHandshake() (err error) {
 	// 状态效验
-	s := this.stateMgr.GetState()
-	if s != C_CONN_STATE_SHAKE {
-		err = errors.Errorf("Connector 发送握手消息失败，状态错误。当前状态=%d，正确状态=%d", s, C_CONN_STATE_SHAKE)
+	if this.stateMgr.GetState() != C_CONN_STATE_SHAKE {
+		err = errors.Errorf("Connector %s 发送握手消息失败，状态错误。当前状态=%d，正确状态=%d", this, this.stateMgr.GetState(), C_CONN_STATE_SHAKE)
 
 		return
 	}
 
-	key := config.GetWorldConfig().ShakeKey
+	// 发送消息
+	shakeKey := config.GetWorldConfig().ShakeKey
+	req := &protocol.HandshakeReq{
+		Key:      shakeKey,
+		Acceptor: 0,
+	}
 
-	pkt := NewPacket(C_PACKET_ID_HANDSHAKE)
-	pkt.AppendString(key)
+	data, err := msgpack.Marshal(req)
+	if nil != err {
+		err = errors.Errorf("Connector %s 发送握手消息失败，msgpack 编码错误", this)
+
+		return
+	}
+
+	pkt := NewPacket(protocol.C_PKT_ID_HANDSHAKE)
+	pkt.AppendBytes(data)
 
 	this.SendPacket(pkt)
 
@@ -238,7 +263,7 @@ func (this *Connector) handleHandshake(data []byte) {
 
 	// 握手结果
 	if res.Code == protocol.OK {
-		zaplog.Debugf("Connector 握手成功")
+		zaplog.Debugf("Connector %s 握手成功", this)
 
 		this.heartbeat = res.Heartbeat // 保存握手数据
 		this.sendAck()                 // 发送 ack
@@ -257,8 +282,7 @@ func (this *Connector) sendAck() {
 		return
 	}
 
-	pkt := NewPacket(C_PACKET_ID_HANDSHAKE_ACK)
-
+	pkt := NewPacket(protocol.C_PKT_ID_HANDSHAKE_ACK)
 	this.SendPacket(pkt)
 
 	// 状态： 工作中
