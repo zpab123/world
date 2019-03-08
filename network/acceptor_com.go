@@ -67,7 +67,7 @@ func NewComAcceptor(addr *TLaddr, mgr IComConnManager) (IAcceptor, error) {
 	}
 
 	// 设置为初始化状态
-	comaptor.stateMgr.SetState(state.C_STATE_INIT)
+	comaptor.stateMgr.SetState(state.C_INIT)
 
 	return comaptor, nil
 }
@@ -77,8 +77,8 @@ func (this *ComAcceptor) Run() error {
 	var err error
 
 	// 改变状态: 正在启动中
-	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		err = errors.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_INIT, state.C_RUNING) {
+		err = errors.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_INIT, this.stateMgr.GetState())
 
 		return err
 	}
@@ -96,8 +96,8 @@ func (this *ComAcceptor) Run() error {
 	}
 
 	// 改变状态: 工作中
-	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zaplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_RUNING, state.C_WORKING) {
+		zaplog.Errorf("ComAcceptor 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_RUNING, this.stateMgr.GetState())
 
 		return err
 	}
@@ -108,8 +108,8 @@ func (this *ComAcceptor) Run() error {
 // 停止 Acceptor [IAcceptor 接口]
 func (this *ComAcceptor) Stop() error {
 	// 改变状态: 关闭中
-	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_STOPING) {
-		zaplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_WORKING, state.C_STOPING) {
+		zaplog.Errorf("ComAcceptor 停止失败，状态错误。正确状态=%d，当前状态=%d", state.C_WORKING, this.stateMgr.GetState())
 
 		return nil
 	}
@@ -121,8 +121,8 @@ func (this *ComAcceptor) Stop() error {
 	this.httpServer.Close()
 
 	// 改变状态: 关闭完成
-	if !this.stateMgr.SwapState(state.C_STATE_STOPING, state.C_STATE_STOP) {
-		zaplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", state.C_STATE_STOPING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_STOPING, state.C_STOPED) {
+		zaplog.Errorf("ComAcceptor 停止失败。状态错误。正确状态=%d，当前状态=%d", state.C_STOPING, this.stateMgr.GetState())
 
 		return nil
 	}
@@ -285,5 +285,5 @@ func (this *ComAcceptor) acceptWsConn() {
 
 // 是否需要停止
 func (this *ComAcceptor) needStop() bool {
-	return this.stateMgr.GetState() == state.C_STATE_STOPING
+	return this.stateMgr.GetState() == state.C_STOPING
 }

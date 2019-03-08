@@ -68,7 +68,7 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 	app.baseInfo.AppType = appType
 
 	// 设置为无效状态
-	app.stateMgr.SetState(state.C_STATE_INVALID)
+	app.stateMgr.SetState(state.C_INVALID)
 
 	// 通知代理
 	app.appDelegate.OnCreat(app)
@@ -79,8 +79,8 @@ func NewApplication(appType string, delegate IAppDelegate) *Application {
 // 初始化 Application
 func (this *Application) Init() {
 	st := this.stateMgr.GetState()
-	if st != state.C_STATE_INVALID {
-		zaplog.Fatal("app Init 失败，状态错误。当前状态=%d，正确状态=%d", st, state.C_STATE_INVALID)
+	if st != state.C_INVALID {
+		zaplog.Fatal("app Init 失败，状态错误。当前状态=%d，正确状态=%d", st, state.C_INVALID)
 
 		os.Exit(1)
 	}
@@ -101,7 +101,7 @@ func (this *Application) Init() {
 	this.appDelegate.OnInit(this)
 
 	// 状态： 初始化
-	this.stateMgr.SetState(state.C_STATE_INIT)
+	this.stateMgr.SetState(state.C_INIT)
 
 	zaplog.Debugf("app 状态：init完成 ...")
 }
@@ -109,8 +109,8 @@ func (this *Application) Init() {
 // 启动 app
 func (this *Application) Run() {
 	// 状态：启动中
-	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zaplog.Fatalf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_INIT, state.C_RUNING) {
+		zaplog.Fatalf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_INIT, this.stateMgr.GetState())
 
 		os.Exit(1)
 	} else {
@@ -135,8 +135,8 @@ func (this *Application) Run() {
 	this.listenSignal()
 
 	// 状态：工作中
-	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_RUNING, state.C_WORKING) {
+		zaplog.Errorf("app 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_RUNING, this.stateMgr.GetState())
 
 		os.Exit(1)
 	} else {

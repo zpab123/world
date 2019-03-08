@@ -47,7 +47,7 @@ func NewServerSession(socket network.ISocket, mgr ISessionManage, opt *TServerSe
 	}
 
 	// 修改为初始化状态
-	ss.stateMgr.SetState(state.C_STATE_INIT)
+	ss.stateMgr.SetState(state.C_INIT)
 
 	return ss
 }
@@ -56,14 +56,14 @@ func NewServerSession(socket network.ISocket, mgr ISessionManage, opt *TServerSe
 func (this *ServerSession) Run() (err error) {
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != state.C_STATE_INIT && s != state.C_STATE_CLOSED {
-		zaplog.Errorf("ServerSession 启动失败，状态错误。正确状态=%d或%d，当前状态=%d", state.C_STATE_INIT, state.C_STATE_CLOSED, s)
+	if s != state.C_INIT && s != state.C_CLOSED {
+		zaplog.Errorf("ServerSession 启动失败，状态错误。正确状态=%d或%d，当前状态=%d", state.C_INIT, state.C_CLOSED, s)
 
 		return
 	}
 
 	// 改变状态： 启动中
-	this.stateMgr.SetState(state.C_STATE_RUNING)
+	this.stateMgr.SetState(state.C_RUNING)
 
 	// 变量重置？ 状态? 发送队列？
 
@@ -77,8 +77,8 @@ func (this *ServerSession) Run() (err error) {
 	go this.sendLoop()
 
 	// 改变状态： 工作中
-	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zaplog.Errorf("ServerSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_RUNING, state.C_WORKING) {
+		zaplog.Errorf("ServerSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_RUNING, this.stateMgr.GetState())
 	}
 
 	return
@@ -87,8 +87,8 @@ func (this *ServerSession) Run() (err error) {
 // 关闭 session [ISession 接口]
 func (this *ServerSession) Stop() (err error) {
 	// 状态改变为关闭中
-	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_CLOSEING) {
-		zaplog.Errorf("ServerSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_WORKING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_WORKING, state.C_CLOSEING) {
+		zaplog.Errorf("ServerSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_WORKING, this.stateMgr.GetState())
 
 		return
 	}
@@ -97,8 +97,8 @@ func (this *ServerSession) Stop() (err error) {
 	this.worldConn.Close()
 
 	// 状态改变为关闭完成
-	if !this.stateMgr.SwapState(state.C_STATE_CLOSEING, state.C_STATE_CLOSED) {
-		zaplog.Errorf("ServerSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_CLOSEING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_CLOSEING, state.C_CLOSED) {
+		zaplog.Errorf("ServerSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_CLOSEING, this.stateMgr.GetState())
 	}
 
 	// 通知 session 管理

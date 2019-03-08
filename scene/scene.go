@@ -67,7 +67,7 @@ func NewScene() *Scene {
 	scene.baseInfo.Type = model.C_SERVER_TYPE_SCENE
 
 	// 设置为无效状态
-	scene.stateMgr.SetState(state.C_STATE_INVALID)
+	scene.stateMgr.SetState(state.C_INVALID)
 
 	return scene
 }
@@ -87,8 +87,8 @@ func (this *Scene) Init() {
 	defaultConfig(this)
 
 	// 改变为初始化状态
-	if !this.stateMgr.SwapState(state.C_STATE_INVALID, state.C_STATE_INIT) {
-		zaplog.Errorf("Scene Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INVALID, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_INVALID, state.C_INIT) {
+		zaplog.Errorf("Scene Init失败，状态错误。正确状态=%d，当前状态=%d", state.C_INVALID, this.stateMgr.GetState())
 
 		os.Exit(1)
 	}
@@ -108,8 +108,8 @@ func (this *Scene) Run() {
 	createComponent(this)
 
 	// 改变状态为：启动中
-	if !this.stateMgr.SwapState(state.C_STATE_INIT, state.C_STATE_RUNING) {
-		zaplog.Errorf("Scene 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_INIT, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_INIT, state.C_RUNING) {
+		zaplog.Errorf("Scene 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_INIT, this.stateMgr.GetState())
 
 		os.Exit(1)
 	}
@@ -122,8 +122,8 @@ func (this *Scene) Run() {
 	// 消息分发
 
 	// 改变为工作中
-	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zaplog.Errorf("Scene 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_RUNING, state.C_WORKING) {
+		zaplog.Errorf("Scene 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_RUNING, this.stateMgr.GetState())
 
 		os.Exit(1)
 	} else {

@@ -78,8 +78,8 @@ func (this *ClientSession) Run() (err error) {
 	go this.sendLoop()
 
 	// 改变状态： 工作中
-	if !this.stateMgr.SwapState(state.C_STATE_RUNING, state.C_STATE_WORKING) {
-		zaplog.Errorf("ClientSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_RUNING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_RUNING, state.C_WORKING) {
+		zaplog.Errorf("ClientSession 启动失败，状态错误。正确状态=%d，当前状态=%d", state.C_RUNING, this.stateMgr.GetState())
 	}
 
 	return
@@ -88,7 +88,7 @@ func (this *ClientSession) Run() (err error) {
 // 关闭 session [ISession 接口]
 func (this *ClientSession) Stop() (err error) {
 	// 状态改变为关闭中
-	if !this.stateMgr.SwapState(state.C_STATE_WORKING, state.C_STATE_CLOSEING) {
+	if !this.stateMgr.SwapState(state.C_WORKING, state.C_CLOSEING) {
 		err = errors.Errorf("ClientSession 关闭失败，状态错误。当前状态=%d，正确状态=%d", this.stateMgr.GetState(), C_SES_STATE_WORKING)
 
 		return
@@ -98,8 +98,8 @@ func (this *ClientSession) Stop() (err error) {
 	this.worldConn.Close()
 
 	// 状态改变为关闭完成
-	if !this.stateMgr.SwapState(state.C_STATE_CLOSEING, state.C_STATE_CLOSED) {
-		zaplog.Errorf("ClientSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_STATE_CLOSEING, this.stateMgr.GetState())
+	if !this.stateMgr.SwapState(state.C_CLOSEING, state.C_CLOSED) {
+		zaplog.Errorf("ClientSession 关闭失败，状态错误。正确状态=%d，当前状态=%d", state.C_CLOSEING, this.stateMgr.GetState())
 	}
 
 	// 通知 session 管理

@@ -58,7 +58,7 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) (IAcceptor, error) {
 		connMgr:  mgr,
 	}
 
-	aptor.stateMgr.SetState(state.C_STATE_INIT)
+	aptor.stateMgr.SetState(state.C_INIT)
 
 	return aptor, nil
 }
@@ -67,8 +67,8 @@ func NewTcpAcceptor(addr *TLaddr, mgr ITcpConnManager) (IAcceptor, error) {
 func (this *TcpAcceptor) Run() (err error) {
 	// 状态效验
 	s := this.stateMgr.GetState()
-	if s != state.C_STATE_INIT && s != state.C_STATE_STOP {
-		err = errors.Errorf("TcpAcceptor 启动失败，状态错误。当前状态=%d，正确状态=%d或=%d", s, state.C_STATE_INIT, state.C_STATE_STOP)
+	if s != state.C_INIT && s != state.C_STOPED {
+		err = errors.Errorf("TcpAcceptor 启动失败，状态错误。当前状态=%d，正确状态=%d或=%d", s, state.C_INIT, state.C_STOPED)
 
 		return
 	}
@@ -85,7 +85,7 @@ func (this *TcpAcceptor) Run() (err error) {
 	}
 
 	// 创建成功
-	this.stateMgr.SetState(state.C_STATE_WORKING)
+	this.stateMgr.SetState(state.C_WORKING)
 
 	var ok bool
 	this.listener, ok = ln.(net.Listener)
@@ -105,13 +105,13 @@ func (this *TcpAcceptor) Run() (err error) {
 
 // 停止侦听器 [IAcceptor 接口]
 func (this *TcpAcceptor) Stop() error {
-	if this.stateMgr.GetState() != state.C_STATE_WORKING {
-		err := errors.Errorf("TcpAcceptor停止失败，状态错误。当前状态=%d，正确状态=%d", this.stateMgr.GetState(), state.C_STATE_WORKING)
+	if this.stateMgr.GetState() != state.C_WORKING {
+		err := errors.Errorf("TcpAcceptor停止失败，状态错误。当前状态=%d，正确状态=%d", this.stateMgr.GetState(), state.C_WORKING)
 
 		return err
 	}
 
-	this.stateMgr.SetState(state.C_STATE_STOP)
+	this.stateMgr.SetState(state.C_STOPED)
 
 	return this.listener.Close()
 }
@@ -149,7 +149,7 @@ func (this *TcpAcceptor) accept() {
 		// 接收新连接
 		conn, err := this.listener.Accept()
 
-		if this.stateMgr.GetState() != state.C_STATE_WORKING {
+		if this.stateMgr.GetState() != state.C_WORKING {
 			return
 		}
 
