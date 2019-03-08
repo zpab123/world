@@ -152,32 +152,6 @@ func NewTWorldConnOpt() *TWorldConnOpt {
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// TWorldSocketOpt 对象
-
-// WorldConnClient 配置参数
-type TWorldSocketOpt struct {
-	NetType        string             // 类型
-	ShakeKey       string             // 握手key
-	TcpConnOpt     *model.TTcpConnOpt // tcpSocket 配置参数
-	BuffSocketOpts *TBufferSocketOpt  // BufferSocket 配置参数
-}
-
-// 新建1个 TWorldSocketOpt 对象
-func NewTWorldSocketOpt() *TWorldSocketOpt {
-	// 创建对象
-	tcpOpt := model.NewTTcpConnOpt()
-	buffOpt := NewTBufferSocketOpt()
-
-	opt := &TWorldSocketOpt{
-		NetType:        C_CONNECTOR_TCP,
-		TcpConnOpt:     tcpOpt,
-		BuffSocketOpts: buffOpt,
-	}
-
-	return opt
-}
-
-// /////////////////////////////////////////////////////////////////////////////
 // TConnectorOpt 对象
 
 // Connector 配置参数

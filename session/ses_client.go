@@ -121,9 +121,6 @@ func (this *ClientSession) SetId(v int64) {
 // 接收线程
 func (this *ClientSession) recvLoop() {
 	for {
-		// 心跳检查
-		this.worldConn.CheckClientHeartbeat()
-
 		// 接收消息
 		var pkt *network.Packet
 		pkt, _ = this.worldConn.RecvPacket()

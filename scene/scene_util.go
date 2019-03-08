@@ -125,7 +125,7 @@ func newDispatcherClient(scene *Scene) {
 	}
 
 	// 创建 dispatcherClient
-	dc := dispatcher.NewDispatcherClient(opt)
+	dc, _ := dispatcher.NewDispatcherClient(opt)
 
 	// 添加组件
 	scene.componentMgr.AddComponent(dc)

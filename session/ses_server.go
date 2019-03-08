@@ -4,8 +4,6 @@
 package session
 
 import (
-	"time"
-
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/network" // 网络库
 	"github.com/zpab123/world/state"   // 状态管理
@@ -141,12 +139,6 @@ func (this *ServerSession) sendLoop() {
 	var err error
 
 	for {
-		// 阻塞，否则for循环会占用大量 cpu
-		time.Sleep(this.option.FlushInterval)
-
-		// 心跳检查
-		this.worldConn.CheckServerHeartbeat()
-
 		// 刷新缓冲区
 		err = this.worldConn.Flush()
 		if nil != err {

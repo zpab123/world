@@ -5,9 +5,9 @@ package network
 
 import (
 	"net"
-	"time"
 
 	"github.com/pkg/errors"             // 错误库
+	"github.com/vmihailenco/msgpack"    // 消息编码/解码
 	"github.com/zpab123/world/config"   // 配置文件
 	"github.com/zpab123/world/protocol" // world 内部通信消息
 	"github.com/zpab123/world/state"    // 状态管理
@@ -19,17 +19,20 @@ import (
 
 // World 框架内部通信使用的 socket 对象
 type Connector struct {
-	addr          *TLaddr             // 连接地址
-	stateMgr      *state.StateManager // 状态管理
-	option        *TConnectorOpt      // 配置参数
-	packetSocket  *PacketSocket       // PacketSocket 对象
-	timeOut       int64               // 心跳超时时间，单位：秒
-	localTimeOut  int64               // 本地心跳超时时间点，精确到秒
-	remoteTimeOut int64               // 远端心跳超时时间点，精确到秒
+	addr         *TLaddr             // 连接地址
+	stateMgr     *state.StateManager // 状态管理
+	option       *TConnectorOpt      // 配置参数
+	packetSocket *PacketSocket       // PacketSocket 对象
+	heartbeat    uint32              // 心跳周期
 }
 
 // 新建1个 Connector
 func NewConnector(addr *TLaddr, opt *TConnectorOpt) *Connector {
+	// 参数效验
+	if nil == opt {
+		opt = NewTConnectorOpt()
+	}
+
 	// 创建对象
 	st := state.NewStateManager()
 
@@ -123,32 +126,18 @@ func (this *Connector) RecvPacket() (*Packet, error) {
 		return nil, err
 	}
 
-	// 记录后端超时
-	if this.timeOut > 0 {
-		this.remoteTimeOut = time.Now().Unix() + this.timeOut
-	}
-
 	// 握手消息
 	if pkt.pktId == C_PACKET_ID_HANDSHAKE {
-		this.handleHandshake(pkt)
+		this.handleHandshake(pkt.GetBody())
 
-		return nil, err
-	}
-
-	// 心跳消息
-	if pkt.pktId == C_PACKET_ID_HEARTBEAT {
-		zaplog.Debugf("收到 server 心跳消息")
-		//this.handleHeartbeat()
-
-		return nil, err
+		return nil, nil
 	}
 
 	// 状态效验
-	s := this.stateMgr.GetState()
-	if s != C_CONN_STATE_WORKING {
-		this.Close()
+	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
+		err = errors.New("Connector 在非 workling 状态下收到数据，关闭 Connector")
 
-		err = errors.Errorf("Connector 状态错误。当前状态=%d，正确状态=%d", s, C_CONN_STATE_WORKING)
+		this.Close()
 
 		return nil, err
 	}
@@ -159,12 +148,6 @@ func (this *Connector) RecvPacket() (*Packet, error) {
 // 发送1个 packet 消息
 func (this *Connector) SendPacket(pkt *Packet) error {
 	// 状态效验
-
-	// 记录前端超时
-	if this.timeOut > 0 {
-		this.localTimeOut = time.Now().Unix() + this.timeOut
-	}
-
 	return this.packetSocket.SendPacket(pkt)
 }
 
@@ -175,37 +158,6 @@ func (this *Connector) Flush() error {
 	}
 
 	return this.packetSocket.Flush()
-}
-
-// 检查本地心跳
-func (this *Connector) CheckLocalHeartbeat() {
-	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
-		return
-	}
-
-	if this.timeOut > 0 {
-		if time.Now().Unix() >= this.localTimeOut {
-
-			this.sendHeartbeat()
-		}
-	}
-}
-
-// 检查远端心跳
-func (this *Connector) CheckRemoteHeartbeat() error {
-	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
-		return nil
-	}
-
-	if this.timeOut > 0 {
-		if time.Now().Unix() >= this.remoteTimeOut {
-			zaplog.Warnf("Connector 后端心跳超时，断开连接")
-
-			return this.Close()
-		}
-	}
-
-	return nil
 }
 
 // 创建统一 socket
@@ -221,8 +173,18 @@ func (this *Connector) createSocket(conn net.Conn) {
 
 // 连接 tcp
 func (this *Connector) connectTcp() error {
-	conn, err := net.Dial("tcp", this.addr.TcpAddr)
+	var err error
+	var conn net.Conn
 
+	// 地址效验
+	if "" == this.addr.TcpAddr {
+		err = errors.New("连接 tcp 服务器失败，TcpAddr 为空")
+
+		return err
+	}
+
+	// 连接
+	conn, err = net.Dial("tcp", this.addr.TcpAddr)
 	if nil != err {
 		return err
 	}
@@ -262,24 +224,26 @@ func (this *Connector) sendHandshake() (err error) {
 }
 
 //  处理握手消息
-func (this *Connector) handleHandshake(pkt *Packet) {
+func (this *Connector) handleHandshake(data []byte) {
+	var err error
+
 	// 解码
-	code := pkt.ReadUint32()
-	heartbeat := pkt.ReadUint32()
+	res := &protocol.HandshakeRes{}
+	err = msgpack.Unmarshal(data, res)
+	if nil != err {
+		zaplog.Error("Connector 解码握手消息失败，关闭 Connector")
+
+		this.Close()
+	}
 
 	// 握手结果
-	if code == protocol.OK {
-		// 保存握手数据
-		t := int64(heartbeat * 2)
-		if t > 0 {
-			this.remoteTimeOut = time.Now().Unix() + t
-			this.timeOut = t
-		}
+	if res.Code == protocol.OK {
+		zaplog.Debugf("Connector 握手成功")
 
-		// 发送 ack
-		this.sendAck()
+		this.heartbeat = res.Heartbeat // 保存握手数据
+		this.sendAck()                 // 发送 ack
 	} else {
-		zaplog.Error("Connector 握手失败。code=%d", code)
+		zaplog.Errorf("Connector 握手失败，关闭 Connector。code=%d", res.Code)
 
 		this.Close()
 	}
@@ -299,24 +263,4 @@ func (this *Connector) sendAck() {
 
 	// 状态： 工作中
 	this.stateMgr.SetState(C_CONN_STATE_WORKING)
-}
-
-//  发送心跳数据
-func (this *Connector) sendHeartbeat() {
-	// 状态效验
-	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
-
-		return
-	}
-
-	zaplog.Debugf("client 发送心跳")
-
-	// 发送心跳数据
-	pkt := NewPacket(C_PACKET_ID_HEARTBEAT)
-	this.SendPacket(pkt)
-}
-
-//  处理心跳消息
-func (this *Connector) handleHeartbeat() {
-
 }

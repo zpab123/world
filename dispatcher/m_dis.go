@@ -26,24 +26,24 @@ const (
 
 // DispatcherClient 组件配置参数
 type TDispatcherClientOpt struct {
-	Enable         bool                     // 是否启用 DispatcherClient
-	FlushInterval  time.Duration            // socket 数据发送周期
-	TcpConnOpt     *model.TTcpConnOpt       // tcpSocket 配置参数
-	WorldSocketOpt *network.TWorldSocketOpt // WorldSocketOpt 配置参数
+	Enable        bool                   // 是否启用 DispatcherClient
+	FlushInterval time.Duration          // socket 数据发送周期
+	TcpConnOpt    *model.TTcpConnOpt     // tcpSocket 配置参数
+	ConnectorOpt  *network.TConnectorOpt // Connector 配置参数
 }
 
 // 创建1个新的 TDispatcherServerOpts
 func NewTDispatcherClientOpt(handler session.IServerMsgHandler) *TDispatcherClientOpt {
 	// 创建组合对象
 	tcpOpt := model.NewTTcpConnOpt()
-	wsOpt := network.NewTWorldSocketOpt()
+	ctOpt := network.NewTConnectorOpt()
 
 	// 创建对象
 	opt := &TDispatcherClientOpt{
-		Enable:         false,
-		FlushInterval:  C_DISPATCHER_FLUSH_INTERVAL,
-		TcpConnOpt:     tcpOpt,
-		WorldSocketOpt: wsOpt,
+		Enable:        false,
+		FlushInterval: C_DISPATCHER_FLUSH_INTERVAL,
+		TcpConnOpt:    tcpOpt,
+		ConnectorOpt:  ctOpt,
 	}
 
 	return opt

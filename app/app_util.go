@@ -193,15 +193,26 @@ func newAcceptor(app *Application) {
 
 	// 创建 Connector
 	actor, err := acceptor.NewAcceptor(laddr, opt)
-	if nil != err && nil != actor {
+	if nil != err {
+		return
+	}
+
+	if nil != actor {
 		app.componentMgr.AddComponent(actor)
 	}
+
 }
 
 // 创建分发客户端
 func newDisClient(app *Application) {
 	opt := app.componentMgr.GetDisClientOpt()
 
-	disClient := dispatcher.NewDispatcherClient(opt)
-	app.componentMgr.AddComponent(disClient)
+	disClient, err := dispatcher.NewDispatcherClient(opt)
+	if nil != err {
+		return
+	}
+
+	if nil != disClient {
+		app.componentMgr.AddComponent(disClient)
+	}
 }

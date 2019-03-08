@@ -4,9 +4,7 @@
 package network
 
 import (
-	"time"
-
-	"github.com/pkg/errors"             // 错误库
+	"github.com/pkg/errors"             // 异常库
 	"github.com/vmihailenco/msgpack"    // 二进制结构体数据转化
 	"github.com/zpab123/world/protocol" // world 内部通信协议
 	"github.com/zpab123/world/state"    // 状态管理
@@ -81,12 +79,6 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 // 发送1个 packet 消息
 func (this *WorldConnection) SendPacket(pkt *Packet) error {
 	// 状态效验
-
-	// 记录超时
-	if this.timeOut > 0 {
-		this.serverTimeOut = time.Now().Unix() + this.timeOut
-	}
-
 	return this.packetSocket.SendPacket(pkt)
 }
 
@@ -121,37 +113,6 @@ func (this *WorldConnection) Close() error {
 	return err
 }
 
-// 检查客户端心跳
-func (this *WorldConnection) CheckClientHeartbeat() error {
-	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
-		return nil
-	}
-
-	if this.timeOut > 0 {
-		if time.Now().Unix() >= this.clientTimeOut {
-			zaplog.Warnf("客户端心跳超时，断开连接")
-
-			return this.Close()
-		}
-	}
-
-	return nil
-}
-
-// 检查服务器心跳
-func (this *WorldConnection) CheckServerHeartbeat() {
-	if this.stateMgr.GetState() != C_CONN_STATE_WORKING {
-		return
-	}
-
-	if this.timeOut > 0 {
-		if time.Now().Unix() >= this.serverTimeOut {
-
-			this.sendHeartbeat()
-		}
-	}
-}
-
 // 处理 Packet 消息
 func (this *WorldConnection) handlePacket(pkt *Packet) {
 	// 根据类型处理数据
@@ -160,20 +121,10 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 		zaplog.Error("WorldConnection 收到无效消息类型，关闭 WorldConnection")
 
 		this.Close()
-
-		break
 	case C_PACKET_ID_HANDSHAKE: // 客户端握手请求
 		this.handleHandshake(pkt.GetBody())
-
-		break
 	case C_PACKET_ID_HANDSHAKE_ACK: // 客户端握手 ACK
 		this.handleHandshakeAck()
-
-		break
-	case C_PACKET_ID_HEARTBEAT: // 心跳数据
-		zaplog.Debugf("收到 client 心跳消息")
-
-		break
 	default:
 		break
 	}
@@ -192,7 +143,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	req := &protocol.HandshakeReq{}
 	err = msgpack.Unmarshal(body, req)
 	if nil != err {
-		zaplog.Error("msgpack 解码握手消息出错，关闭连接")
+		zaplog.Error("msgpack 解码握手消息出错，关闭 WorldConnection")
 
 		this.Close()
 	}
@@ -216,7 +167,7 @@ func (this *WorldConnection) handleHandshake(body []byte) {
 	// 回复处理结果
 	buf, err = msgpack.Marshal(res)
 	if nil != err {
-		zaplog.Error("msgpack 编码握手消息出错。返回握手消息失败")
+		zaplog.Error("msgpack 编码握手消息出错。WorldConnection 返回握手消息失败")
 	} else {
 		this.handshakeResponse(sucess, buf)
 	}
