@@ -44,8 +44,8 @@ const (
 	C_PACKET_ID_INVALID       uint16 = iota // 无效的消息类型
 	C_PACKET_ID_HANDSHAKE                   // 握手消息
 	C_PACKET_ID_HANDSHAKE_ACK               // 握手 ACK
-	C_PACKET_ID_HEARTBEAT                   // 心跳消息
 	C_PACKET_ID_WORLD                       // 分界线： 以上由 WorldConnection 处理的消息
+	C_PACKET_ID_HEARTBEAT                   // 心跳消息
 )
 
 // Connection 状态

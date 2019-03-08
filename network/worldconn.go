@@ -6,8 +6,8 @@ package network
 import (
 	"time"
 
-	"github.com/gogo/protobuf/proto"    // protobuf 库
 	"github.com/pkg/errors"             // 错误库
+	"github.com/vmihailenco/msgpack"    // 二进制结构体数据转化
 	"github.com/zpab123/world/protocol" // world 内部通信协议
 	"github.com/zpab123/world/state"    // 状态管理
 	"github.com/zpab123/zaplog"         // 日志库
@@ -18,12 +18,9 @@ import (
 
 // world 框架内部需要用到的一些常用网络消息
 type WorldConnection struct {
-	stateMgr      *state.StateManager // 状态管理
-	option        *TWorldConnOpt      // 配置参数
-	packetSocket  *PacketSocket       // 接口继承： 符合 IPacketSocket 的对象
-	timeOut       int64               // 心跳超时时间，单位：秒
-	clientTimeOut int64               // 客户端心跳超时时间点，精确到秒
-	serverTimeOut int64               // 服务器心跳超时时间点，精确到秒
+	stateMgr     *state.StateManager // 状态管理
+	option       *TWorldConnOpt      // 配置参数
+	packetSocket *PacketSocket       // 接口继承： 符合 IPacketSocket 的对象
 }
 
 // 新建1个 WorldConnection 对象
@@ -45,7 +42,6 @@ func NewWorldConnection(socket ISocket, opt *TWorldConnOpt) *WorldConnection {
 		stateMgr:     st,
 		packetSocket: pktSocket,
 		option:       opt,
-		timeOut:      int64(opt.Heartbeat * 2),
 	}
 
 	// 设置为初始化状态
@@ -60,11 +56,6 @@ func (this *WorldConnection) RecvPacket() (*Packet, error) {
 	pkt, err := this.packetSocket.RecvPacket()
 	if nil == pkt || nil != err {
 		return nil, err
-	}
-
-	// 记录时间
-	if this.timeOut > 0 {
-		this.clientTimeOut = time.Now().Unix() + this.timeOut
 	}
 
 	// 内部 packet
@@ -189,23 +180,21 @@ func (this *WorldConnection) handlePacket(pkt *Packet) {
 }
 
 //  处理握手消息
-func (this *WorldConnection) handleHandshake(data []byte) {
+func (this *WorldConnection) handleHandshake(body []byte) {
+	var err error
+
 	// 状态效验
 	if this.stateMgr.GetState() != C_CONN_STATE_INIT {
 		return
 	}
 
-	// 解码消息
-	shakeInfo := &protocol.HandshakeReq{}
-	var err error
-
-	err = proto.Unmarshal(data, shakeInfo)
+	// 消息解码
+	req := &protocol.HandshakeReq{}
+	err = msgpack.Unmarshal(body, req)
 	if nil != err {
-		zaplog.Error("protobuf 解码握手消息出错。关闭连接")
+		zaplog.Error("msgpack 解码握手消息出错，关闭连接")
 
 		this.Close()
-
-		return
 	}
 
 	// 回复消息
@@ -217,7 +206,7 @@ func (this *WorldConnection) handleHandshake(data []byte) {
 	var sucess bool = true
 
 	// 版本验证
-	if this.option.ShakeKey != "" && shakeInfo.Key != this.option.ShakeKey {
+	if this.option.ShakeKey != "" && req.Key != this.option.ShakeKey {
 		res.Code = protocol.SHAKE_KEY_ERROR
 		sucess = false
 	}
@@ -225,9 +214,9 @@ func (this *WorldConnection) handleHandshake(data []byte) {
 	// 通信方式验证,后续添加
 
 	// 回复处理结果
-	buf, err = proto.Marshal(res)
+	buf, err = msgpack.Marshal(res)
 	if nil != err {
-		zaplog.Error("protobuf 编码握手消息出错。返回握手消息失败")
+		zaplog.Error("msgpack 编码握手消息出错。返回握手消息失败")
 	} else {
 		this.handshakeResponse(sucess, buf)
 	}
@@ -277,7 +266,7 @@ func (this *WorldConnection) sendHeartbeat() {
 		return
 	}
 
-	zaplog.Debugf("sever 发送心跳")
+	zaplog.Debugf("WorldConnection 发送心跳")
 
 	// 发送心跳数据
 	pkt := NewPacket(C_PACKET_ID_HEARTBEAT)

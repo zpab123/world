@@ -245,7 +245,7 @@ func (this *Packet) ReadFloat64() float64 {
 	return *f64
 }
 
-// 在 Packet 的 bytes 后面，添加1个 固定大小的 []byte 数据
+// 在 Packet 的 bytes 后面，添加1个固定大小的 []byte 数据
 func (this *Packet) AppendBytes(v []byte) {
 	// byte 长度
 	bytesLen := uint32(len(v))
@@ -282,7 +282,7 @@ func (this *Packet) ReadBytes(size uint32) []byte {
 	return bytes
 }
 
-// 在 Packet 的 bytes 后面，添加1个 可变大小 []byte 数据
+// 在 Packet 的 bytes 后面，添加1个可变大小 []byte 数据
 func (this *Packet) AppendVarBytes(v []byte) {
 	// 记录 v 长度
 	this.AppendUint32(uint32(len(v)))
@@ -291,7 +291,7 @@ func (this *Packet) AppendVarBytes(v []byte) {
 	this.AppendBytes(v)
 }
 
-// 从 Packet 的 bytes 中读取1个 可变大小 []byte 数据
+// 从 Packet 的 bytes 中读取1个可变大小 []byte 数据
 func (this *Packet) ReadVarBytes() []byte {
 	// 读取长度
 	ln := this.ReadUint32()
@@ -318,6 +318,11 @@ func (this *Packet) ReadString() string {
 	s := string(varBytes)
 
 	return s
+}
+
+// 添加1个任意数据
+func (this *Packet) AppendData(msg interface{}) {
+
 }
 
 // 将1个 Packet包中的数据初始化，并存入 对象池

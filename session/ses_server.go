@@ -122,12 +122,6 @@ func (this *ServerSession) SetId(v int64) {
 // 接收线程
 func (this *ServerSession) recvLoop() {
 	for {
-		// 心跳检查
-		err := this.worldConn.CheckClientHeartbeat()
-		if nil != err {
-			break
-		}
-
 		// 接收消息
 		pkt, _ := this.worldConn.RecvPacket()
 		if nil == pkt {
