@@ -102,7 +102,7 @@ func configLogger(app *Application) {
 	zaplog.SetLevel(zaplog.ParseLevel(lv))
 
 	// 输出文件
-	logFile := fmt.Sprintf("%s.log", app.baseInfo.Name)
+	logFile := fmt.Sprintf("./logs/%s.log", app.baseInfo.Name)
 	var outputs []string
 	stdErr := config.GetWorldConfig().LogStderr
 	if stdErr {
