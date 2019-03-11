@@ -4,6 +4,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/pkg/errors"            // 异常库
 	"github.com/zpab123/syncutil"      // 原子变量
 	"github.com/zpab123/world/network" // 网络库
@@ -20,12 +22,16 @@ import (
 
 // 面向服务器连接的 session 对象
 type ServerSession struct {
-	option      *TServerSessionOpt       // 配置参数
-	stateMgr    *state.StateManager      // 状态管理
-	worldConn   *network.WorldConnection // world 引擎连接对象
-	sesssionMgr ISessionManage           // sessiong 管理对象
-	sessionId   syncutil.AtomicInt64     // session ID
-	msgHandler  IServerMsgHandler        // 消息处理器
+	option       *TServerSessionOpt       // 配置参数
+	stateMgr     *state.StateManager      // 状态管理
+	worldConn    *network.WorldConnection // world 引擎连接对象
+	sesssionMgr  ISessionManage           // sessiong 管理对象
+	sessionId    syncutil.AtomicInt64     // session ID
+	msgHandler   IServerMsgHandler        // 消息处理器
+	ticker       *time.Ticker             // 心跳计时器
+	timeOut      time.Duration            // 心跳超时时间
+	lastRecvTime time.Time                // 上次接收消息的时间
+	lastSendTime time.Time                // 上次发送消息的时间
 }
 
 // 创建1个新的 ServerSession 对象
@@ -46,6 +52,7 @@ func NewServerSession(socket network.ISocket, mgr ISessionManage, opt *TServerSe
 		worldConn:   wc,
 		sesssionMgr: mgr,
 		msgHandler:  opt.ServerMsgHandler,
+		timeOut:     opt.Heartbeat * 2,
 	}
 
 	// 修改为初始化状态
@@ -75,7 +82,11 @@ func (this *ServerSession) Run() (err error) {
 	// 开启发送线程
 	go this.sendLoop()
 
-	// 主循环
+	// 计时器 goroutine
+	if this.timeOut > 0 {
+		this.ticker = time.NewTicker(this.timeOut)
+		go this.mainLoop()
+	}
 
 	// 改变状态： 工作中
 	if !this.stateMgr.SwapState(state.C_RUNING, state.C_WORKING) {
@@ -154,6 +165,7 @@ func (this *ServerSession) recvLoop() {
 		}
 	}()
 
+	// 这里有bug 不应该在这里监测状态
 	for this.stateMgr.GetState() == state.C_WORKING {
 		// 接收消息
 		pkt, err := this.worldConn.RecvPacket()
@@ -194,5 +206,30 @@ func (this *ServerSession) sendLoop() {
 
 // 主循环
 func (this *ServerSession) mainLoop() {
+	for {
+		select {
+		case <-this.ticker.C:
+			this.checkRecvTime() // 检查接收是否超时
+			this.checkSendTime() // 检查发送是否超时
+		}
+	}
 
+}
+
+// 检查接收是否超时
+func (this *ServerSession) checkRecvTime() {
+	if time.Now().After(this.lastRecvTime.Add(this.timeOut)) {
+		zaplog.Errorf("ServerSession %s 接收消息超时，关闭连接", this)
+
+		this.Stop()
+	}
+}
+
+// 检查发送是否超时
+func (this *ServerSession) checkSendTime() {
+	if time.Now().After(this.lastSendTime.Add(this.timeOut)) {
+		zaplog.Debugf("ServerSession %s 发送心跳", this)
+
+		this.SendHeartbeat()
+	}
 }
