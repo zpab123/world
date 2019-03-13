@@ -76,10 +76,10 @@ func (this *ServerSession) Run() (err error) {
 	// 将 session 添加到管理器, 在线程处理前添加到管理器(分配id), 避免ID还未分配,就开始使用id的竞态问题
 	this.sesssionMgr.OnNewSession(this)
 
-	// 开启接收线程
+	// 开启接收 goroutine
 	go this.recvLoop()
 
-	// 开启发送线程
+	// 开启发送 goroutine
 	go this.sendLoop()
 
 	// 计时器 goroutine
