@@ -191,7 +191,7 @@ func newAcceptor(app *Application) {
 		WsAddr:  wsAddr,
 	}
 
-	// 创建 Connector
+	// 创建 Acceptor
 	actor, err := acceptor.NewAcceptor(laddr, opt)
 	if nil != err {
 		return
