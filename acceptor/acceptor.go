@@ -97,7 +97,7 @@ func (this *Acceptor) Run() (err error) {
 	}
 
 	// 启动 acceptor
-	if err = this.acceptor.Run(); nil == err {
+	if err = this.acceptor.Run(); nil != err {
 		return
 	}
 
