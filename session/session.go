@@ -69,7 +69,7 @@ func (this *Session) Run() (err error) {
 	}
 	// 变量重置？ 状态? 发送队列？
 
-	// 开启接收 goroutine
+	// 接收循环，这里不能 go this.recvLoop()，会导致连接直接断开
 	go this.recvLoop()
 
 	// 开启发送 goroutine
